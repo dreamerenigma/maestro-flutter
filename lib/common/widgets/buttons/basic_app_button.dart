@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gradient_widgets_plus/gradient_widgets_plus.dart';
-import 'package:maestro/core/configs/themes/app_colors.dart';
-import '../../../core/configs/assets/app_sizes.dart';
+import 'package:maestro/utils/constants/app_colors.dart';
+import '../../../utils/constants/app_sizes.dart';
 
 class BasicAppButton extends StatelessWidget {
   final VoidCallback callback;
@@ -22,7 +22,7 @@ class BasicAppButton extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(30.0),
       ),
-      increaseHeightBy: height ?? 40.0,
+      increaseHeightBy: height ?? 35.0,
       callback: callback,
       child: Text(title, style: const TextStyle(color: AppColors.white, fontSize: AppSizes.fontSizeBg)),
     );

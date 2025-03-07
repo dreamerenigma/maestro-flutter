@@ -1,15 +1,21 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter/services.dart';
 
 class AppLocalizations {
   final Locale locale;
+  static Map<String, String>? _localizedStrings;
 
   AppLocalizations(this.locale);
 
   static Future<AppLocalizations> load(Locale locale) async {
-    await initializeDateFormatting();
+    final String jsonString = await rootBundle.loadString('assets/lang/${locale.languageCode}.json');
+    final Map<String, dynamic> jsonMap = json.decode(jsonString);
+
+    _localizedStrings = jsonMap.map((key, value) {
+      return MapEntry(key, value.toString());
+    });
 
     return AppLocalizations(locale);
   }
@@ -18,31 +24,8 @@ class AppLocalizations {
     return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
   }
 
-  String get russian {
-    return Intl.message(
-      'Russian',
-      name: 'russian',
-      desc: 'Russian language option',
-      locale: locale.toString(),
-    );
-  }
-
-  String get english {
-    return Intl.message(
-      'English',
-      name: 'english',
-      desc: 'English language option',
-      locale: locale.toString(),
-    );
-  }
-
-  String get spanish {
-    return Intl.message(
-      'Spanish',
-      name: 'spanish',
-      desc: 'Spanish language option',
-      locale: locale.toString(),
-    );
+  String translate(String key) {
+    return _localizedStrings![key] ?? key;
   }
 }
 

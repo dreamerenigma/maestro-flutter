@@ -1,6 +1,6 @@
 {
-    "name": "maestro",
-    "short_name": "maestro",
+    "name": "Stream and listen to music online for free with Maestro",
+    "short_name": "Maestro",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

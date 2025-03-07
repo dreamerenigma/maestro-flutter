@@ -1,8 +1,8 @@
 import 'package:dartz/dartz.dart';
-import 'package:maestro/data/models/authentication/create_user_req.dart';
-import 'package:maestro/domain/repository/authentication/authentication.dart';
-import '../../../core/usecase/usecase.dart';
+import 'package:maestro/features/authentication/models/create_user_req.dart';
+import 'package:maestro/domain/repository/authentication/auth_repository.dart';
 import '../../../service_locator.dart';
+import '../../../utils/usecase/usecase.dart';
 
 class SignupUseCase implements UseCase<Either, CreateUserReq> {
 

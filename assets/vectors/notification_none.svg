@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- icon666.com - MILLIONS OF FREE VECTOR ICONS -->
+
+<svg
+   clip-rule="evenodd"
+   fill-rule="evenodd"
+   stroke-linejoin="round"
+   stroke-miterlimit="2"
+   viewBox="0 0 32 32"
+   version="1.1"
+   id="svg2"
+   sodipodi:docname="notification_none.svg"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="namedview2"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="12.609375"
+     inkscape:cx="29.77943"
+     inkscape:cy="24.228005"
+     inkscape:window-width="1920"
+     inkscape:window-height="1009"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="Icon" />
+  <g
+     transform="translate(-128 -80)"
+     id="g2">
+    <g
+       transform="translate(-1.0309789,-47.920694)"
+       id="g1">
+      <g
+         id="Icon">
+        <path
+           d="m 139.60354,153.25527 c 0.464,2.281 3.1571,4.51548 5.5741,4.51548 2.417,0 5.05062,-2.23448 5.51462,-4.51548 h 3.8001 c 0.796,0 1.559,-0.316 2.121,-0.879 0.563,-0.562 0.879,-1.325 0.879,-2.121 0,-0.796 -0.316,-1.559 -0.879,-2.121 -1.33618,-1.07873 -1.28828,-1.76146 -1.60936,-3.531 v -0.002 C 155,143.09127 155,143.98874 155,141.51974 c 0,-6.075 -3.41372,-11.19826 -9.48872,-11.19826 -6.075,0 -9.76346,5.12326 -9.76346,11.19826 v 3.08453 c 0,1.7654 -0.69424,2.5068 -1.9334,3.53 -0.563,0.562 -0.879,1.325 -0.879,2.121 0,0.796 0.316,1.559 0.879,2.121 0.562,0.563 1.325,0.879 2.121,0.879 z m 2.071,0 h 6.94672 c -0.412,1.165 -2.13862,2.51548 -3.44362,2.51548 -1.305,0 -3.0911,-1.35048 -3.5031,-2.51548 z M 153,141.51974 c 0,-4.971 -2.51772,-9.19826 -7.48872,-9.19826 -4.971,0 -7.76346,4.22726 -7.76346,9.19826 v 3.08453 c 0,2.57587 -0.78459,3.53303 -2.5194,4.944 -0.188,0.187 -0.293,0.442 -0.293,0.707 0,0.265 0.105,0.52 0.293,0.707 0.187,0.188 0.442,0.293 0.707,0.293 h 18.55694 c 0.265,0 0.52,-0.105 0.707,-0.293 0.188,-0.187 0.293,-0.442 0.293,-0.707 0,-0.265 -0.105,-0.52 -0.293,-0.707 -1.8536,-1.37264 -1.96487,-2.42342 -2.19536,-4.942 C 153,143.09627 153,143.99074 153,141.51974 Z"
+           id="path1"
+           sodipodi:nodetypes="cscscscsssssscscscccscsssscscsscsccs" />
+      </g>
+    </g>
+  </g>
+</svg>
