@@ -12,6 +12,7 @@ class SongModel {
   bool ? isFavorite;
   String ? songId;
   int ? listenCount;
+  String ? fileURL;
   String? uploadedBy;
 
   SongModel({
@@ -25,6 +26,7 @@ class SongModel {
     required this.isFavorite,
     required this.songId,
     required this.listenCount,
+    required this.fileURL,
     required this.uploadedBy,
   });
 
@@ -39,6 +41,7 @@ class SongModel {
     isFavorite = data['isFavorite'];
     songId = data['songId'];
     listenCount = data['listenCount'] ?? 0;
+    fileURL = data['fileURL'];
     uploadedBy = data['uploadedBy'];
   }
 
@@ -54,6 +57,7 @@ class SongModel {
       'isFavorite': isFavorite,
       'songId': songId,
       'listenCount': listenCount,
+      'fileURL': fileURL,
       'uploadedBy': uploadedBy,
     };
   }
@@ -71,8 +75,9 @@ extension SongModelX on SongModel {
       releaseDate: releaseDate!,
       isFavorite: isFavorite!,
       songId: songId!,
-      listenCount: listenCount!, url: '',
-      coverPath: '',
+      listenCount: listenCount!,
+      fileURL: '',
+      cover: '',
       uploadedBy: uploadedBy ?? '',
     );
   }

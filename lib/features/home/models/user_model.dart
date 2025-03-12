@@ -8,6 +8,9 @@ class UserModel {
   final String flag;
   final String backgroundImage;
   final int followers;
+  final List<String> links;
+  final int limitUploads;
+  final int tracksCount;
 
   UserModel({
     required this.id,
@@ -19,6 +22,9 @@ class UserModel {
     required this.flag,
     required this.backgroundImage,
     required this.followers,
+    required this.links,
+    required this.limitUploads,
+    required this.tracksCount,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> data, String documentId) {
@@ -32,6 +38,9 @@ class UserModel {
       flag: data['flag'] ?? '',
       backgroundImage: data['backgroundImage'] ?? '',
       followers: data['followers'] ?? 0,
+      links: List<String>.from(data['links'] ?? []),
+      limitUploads: data['limitUploads'] ?? 0,
+      tracksCount: data['tracksCount'] ?? 0,
     );
   }
 }

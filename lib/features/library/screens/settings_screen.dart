@@ -72,7 +72,7 @@ class SettingsScreenState extends State<SettingsScreen> {
     }
 
     return {
-      'appVersion': '2025.03.03-release (${packageInfo.buildNumber})',
+      'appVersion': '2025.03.10-release (${packageInfo.buildNumber})',
       'troubleshootingId': savedTroubleshootingId,
     };
   }

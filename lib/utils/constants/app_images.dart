@@ -22,7 +22,22 @@ class AppImages {
   static const String albumSecondary = '${basePath}bg_album_secondary.png';
   static const String albumPrimary = '${basePath}bg_album_primary.png';
   static const String genreBg = '${basePath}genre_bg.png';
-  static const String defaultCover = '${basePath}cover_default.png';
+  static const String defaultCover1 = '${basePath}default_cover_1.png';
+  static const String defaultCover2 = '${basePath}default_cover_2.png';
+  static const String defaultCover3 = '${basePath}default_cover_3.png';
+  static const String defaultCover4 = '${basePath}default_cover_4.png';
+  static const String defaultCover5 = '${basePath}default_cover_5.png';
+  static const String defaultCover6 = '${basePath}default_cover_6.png';
+
+  /// -- Test images
+  static const String trackCover1 = '${basePath}track_cover_1.png';
+  static const String trackCover2 = '${basePath}track_cover_2.png';
+  static const String trackCover3 = '${basePath}track_cover_3.png';
+  static const String trackCover4 = '${basePath}track_cover_4.png';
+  static const String playlistCover1 = '${basePath}playlist_cover_1.png';
+  static const String playlistCover2 = '${basePath}playlist_cover_2.png';
+  static const String playlistCover3 = '${basePath}playlist_cover_3.png';
+  static const String playlistCover4 = '${basePath}playlist_cover_4.png';
 
   /// -- Icons
   static const String russiaFlag = '${iconsPath}flags/russia.png';

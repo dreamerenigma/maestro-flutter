@@ -5,10 +5,9 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:carbon_icons/carbon_icons.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:maestro/features/library/screens/library/playlists_screen.dart';
+import 'package:maestro/features/library/screens/library/playlists/view_playlists_screen.dart';
 import 'package:maestro/features/library/screens/library/your_insights_screen.dart';
 import 'package:maestro/features/library/screens/recently_played_screen.dart';
 import 'package:maestro/features/library/screens/settings_screen.dart';
@@ -23,11 +22,9 @@ import 'package:maestro/features/library/screens/library/your_upload_screen.dart
 import 'package:shimmer/shimmer.dart';
 import '../../../utils/constants/app_sizes.dart';
 import '../../../utils/helpers/helper_functions.dart';
-import '../../home/bloc/play_list_cubit.dart';
-import '../../home/bloc/play_list_state.dart';
 import 'library/albums_screen.dart';
 import 'library/following_screen.dart';
-import 'library/stations_screen.dart';
+import 'library/station/stations_screen.dart';
 import 'listening_history_screen.dart';
 
 class LibraryScreen extends StatefulWidget {
@@ -49,6 +46,7 @@ class LibraryScreen extends StatefulWidget {
 class LibraryScreenState extends State<LibraryScreen> {
   String? _userAvatarUrl;
   List<String> recentlyPlayed = [];
+  List<Map<String, dynamic>> playlists = [];
   final bool _isSeeAllTapped = false;
   bool _isConnected = true;
 
@@ -96,81 +94,67 @@ class LibraryScreenState extends State<LibraryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => PlayListCubit()..getPlayList(),
-      child: Scaffold(
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _info(widget.onUpgradeTapped),
-            Expanded(
-              child: ScrollConfiguration(
-                behavior: NoGlowScrollBehavior(),
-                child: RefreshIndicator(
-                  onRefresh: _reloadData,
-                  displacement: 0,
-                  color: AppColors.primary,
-                  backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.softGrey,
-                  child: CustomScrollView(
-                    slivers: [
-                      SliverList(
-                        delegate: SliverChildListDelegate(
-                          [
-                            _buildProfileOption('Liked tracks', Icons.arrow_forward_ios, () {
-                              Navigator.push(context, createPageRoute(LikedTracksScreen(likedTracks: [], initialIndex: widget.initialIndex)));
-                            }),
-                            BlocBuilder<PlayListCubit, PlayListState>(
-                              builder: (context, state) {
-                                if (state is PlayListLoaded) {
-                                  return _buildProfileOption('Playlists', Icons.arrow_forward_ios, () {
-                                    Navigator.push(
-                                      context,
-                                      createPageRoute(PlaylistsScreen(playlists: [], initialIndex: widget.initialIndex)),
-                                    );
-                                  });
-                                } else {
-                                  return _buildProfileOption('Playlists', Icons.arrow_forward_ios, () {});
-                                }
-                              },
-                            ),
-                            _buildProfileOption('Albums', Icons.arrow_forward_ios, () {
-                              Navigator.push(context, createPageRoute(AlbumsScreen(initialIndex: widget.initialIndex, albums: [])));
-                            }),
-                            _buildProfileOption('Following', Icons.arrow_forward_ios, () {
-                              Navigator.push(context, createPageRoute(FollowingScreen(initialIndex: widget.initialIndex)));
-                            }),
-                            _buildProfileOption('Stations', Icons.arrow_forward_ios, () {
-                              Navigator.push(context, createPageRoute(StationsScreen(initialIndex: widget.initialIndex, stations: [])));
-                            }),
-                            _buildProfileOption('Local audio', Icons.arrow_forward_ios, () {
-                              Navigator.push(context, createPageRoute(LocalAudioScreen(initialIndex: widget.initialIndex, songs: [])));
-                            }),
-                            _buildProfileOption('Your insights', Icons.arrow_forward_ios, () {
-                              Navigator.push(context, createPageRoute(YourInsightsScreen(initialIndex: widget.initialIndex)));
-                            }),
-                            _buildProfileOption('Your uploads', Icons.arrow_forward_ios, () {
-                              Navigator.push(context, createPageRoute(YourUploadScreen(initialIndex: widget.initialIndex)));
-                            }),
-                            _buildSection('Recently played', 'Find all your recently played content here.', () {
-                              Navigator.push(context, createPageRoute(RecentlyPlayedScreen(initialIndex: widget.initialIndex)));
-                            },
-                              recentlyPlayed
-                            ),
-                            _buildSection('Listening history', 'Find all the tracks you\'ve listened to here.', () {
-                              Navigator.push(context, createPageRoute(ListeningHistoryScreen(initialIndex: widget.initialIndex)));
-                            },
-                              recentlyPlayed
-                            ),
-                          ],
-                        ),
+    return Scaffold(
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _info(widget.onUpgradeTapped),
+          Expanded(
+            child: ScrollConfiguration(
+              behavior: NoGlowScrollBehavior(),
+              child: RefreshIndicator(
+                onRefresh: _reloadData,
+                displacement: 0,
+                color: AppColors.primary,
+                backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.softGrey,
+                child: CustomScrollView(
+                  slivers: [
+                    SliverList(
+                      delegate: SliverChildListDelegate(
+                        [
+                          _buildProfileOption('Liked tracks', Icons.arrow_forward_ios, () {
+                            Navigator.push(context, createPageRoute(LikedTracksScreen(likedTracks: [], initialIndex: widget.initialIndex)));
+                          }),
+                          _buildProfileOption('Playlists', Icons.arrow_forward_ios, () {
+                            Navigator.push(context, createPageRoute(ViewPlaylistsScreen(playlists: playlists, initialIndex: widget.initialIndex)));
+                          }),
+                          _buildProfileOption('Albums', Icons.arrow_forward_ios, () {
+                            Navigator.push(context, createPageRoute(AlbumsScreen(initialIndex: widget.initialIndex, albums: [])));
+                          }),
+                          _buildProfileOption('Following', Icons.arrow_forward_ios, () {
+                            Navigator.push(context, createPageRoute(FollowingScreen(initialIndex: widget.initialIndex)));
+                          }),
+                          _buildProfileOption('Stations', Icons.arrow_forward_ios, () {
+                            Navigator.push(context, createPageRoute(StationsScreen(initialIndex: widget.initialIndex, stations: [])));
+                          }),
+                          _buildProfileOption('Local audio', Icons.arrow_forward_ios, () {
+                            Navigator.push(context, createPageRoute(LocalAudioScreen(initialIndex: widget.initialIndex, songs: [])));
+                          }),
+                          _buildProfileOption('Your insights', Icons.arrow_forward_ios, () {
+                            Navigator.push(context, createPageRoute(YourInsightsScreen(initialIndex: widget.initialIndex)));
+                          }),
+                          _buildProfileOption('Your uploads', Icons.arrow_forward_ios, () {
+                            Navigator.push(context, createPageRoute(YourUploadScreen(initialIndex: widget.initialIndex)));
+                          }),
+                          _buildSection('Recently played', 'Find all your recently played content here.', () {
+                            Navigator.push(context, createPageRoute(RecentlyPlayedScreen(initialIndex: widget.initialIndex)));
+                          },
+                            recentlyPlayed
+                          ),
+                          _buildSection('Listening history', 'Find all the tracks you\'ve listened to here.', () {
+                            Navigator.push(context, createPageRoute(ListeningHistoryScreen(initialIndex: widget.initialIndex)));
+                          },
+                            recentlyPlayed
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -233,8 +217,8 @@ class LibraryScreenState extends State<LibraryScreen> {
   Widget _buildProfileOption(String text, IconData icon, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
-      splashColor: context.isDarkMode ? AppColors.darkerGrey.withAlpha((0.2 * 255).toInt()) : AppColors.grey.withAlpha((0.4 * 255).toInt()),
-      highlightColor: context.isDarkMode ? AppColors.darkerGrey.withAlpha((0.2 * 255).toInt()) : AppColors.grey.withAlpha((0.4 * 255).toInt()),
+      splashColor: context.isDarkMode ? AppColors.darkGrey.withAlpha((0.2 * 255).toInt()) : AppColors.grey.withAlpha((0.4 * 255).toInt()),
+      highlightColor: context.isDarkMode ? AppColors.darkGrey.withAlpha((0.2 * 255).toInt()) : AppColors.grey.withAlpha((0.4 * 255).toInt()),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
         child: Row(

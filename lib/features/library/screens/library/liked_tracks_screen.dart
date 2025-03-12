@@ -17,7 +17,7 @@ import '../../../home/widgets/nav_bar/bottom_nav_bar.dart';
 import '../../../song_player/widgets/mini_player/mini_player_manager.dart';
 import '../../widgets/dialogs/sort_by_liked_tracks_bottom_dialog.dart';
 import '../../widgets/input_fields/input_field.dart';
-import '../../widgets/lists/liked_tracks_list.dart';
+import '../../widgets/lists/track/liked_tracks_list.dart';
 
 class LikedTracksScreen extends StatefulWidget {
   final List<SongEntity> likedTracks;
@@ -89,7 +89,7 @@ class _LikedTracksScreenState extends State<LikedTracksScreen> {
         final id = user.uid;
         final tracks = await APIs.fetchLikedTracks(id);
 
-        await Future.delayed(const Duration(seconds: 1));
+        await Future.delayed(const Duration(milliseconds: 700));
 
         setState(() {
           filteredTracks = tracks;

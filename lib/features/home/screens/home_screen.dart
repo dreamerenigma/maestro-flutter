@@ -1,5 +1,5 @@
 import 'dart:developer';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +8,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:maestro/features/home/screens/upload_tracks_screen.dart';
 import 'package:maestro/utils/constants/app_colors.dart';
 import 'package:permission_handler/permission_handler.dart';
-import '../../../domain/entities/song/song_entity.dart';
 import '../../../routes/custom_page_route.dart';
 import '../../authentication/screens/signin_screen.dart';
 import '../../feed/screens/feed_screens.dart';
@@ -21,8 +20,6 @@ import '../widgets/home_header_widget.dart';
 import '../widgets/nav_bar/bottom_nav_bar.dart';
 import 'inbox_screen.dart';
 import 'notifications_screen.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:path/path.dart' as path;
 
 class HomeScreen extends StatefulWidget {
   final int initialIndex;
@@ -39,6 +36,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   User? _user;
   bool _isLoading = false;
   int unreadMessages = 1;
+  File? _selectedFile;
 
   late AnimationController _rotationController;
   late Animation<double> rotationAnimation;
@@ -126,19 +124,32 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Future<void> requestStoragePermission() async {
-    final PermissionStatus status = await Permission.storage.request();
+    final PermissionStatus status = await Permission.manageExternalStorage.request();
     if (status.isGranted) {
       log("Permission granted.");
     } else {
       log("Permission denied.");
+      openAppSettings();
     }
   }
 
-  void onIconPressed({required String title, required String artist, String description = '', String caption = ''}) async {
+  void onIconPressed({
+    required String title,
+    required String artist,
+    String description = '',
+    String caption = '',
+  }) async {
+    log("Requesting storage permission...");
     await requestStoragePermission();
 
-    if (await Permission.storage.isGranted) {
+    final PermissionStatus permissionStatus = await Permission.manageExternalStorage.status;
+
+    if (permissionStatus.isGranted) {
+      log("Storage permission granted.");
+
       if (!_rotationController.isAnimating) {
+        log("Starting animations...");
+
         setState(() {
           _isLoading = true;
         });
@@ -148,50 +159,30 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
         await Future.delayed(const Duration(seconds: 2));
 
+        if (_selectedFile != null) {
+          setState(() {
+            _selectedFile = null;
+          });
+        }
+
         Navigator.push(
           context,
-          createPageRoute(UploadTracksScreen(songName: title)),
+          createPageRoute(UploadTracksScreen(
+            songName: '',
+            shouldSelectFileImmediately: true,
+            selectedFile: _selectedFile,
+          )),
         ).then((_) async {
-          setState(() {
-            _isLoading = false;
-          });
-          _rotationController.stop();
-          _opacityController.stop();
 
-          FilePickerResult? result = await FilePicker.platform.pickFiles(
-            type: FileType.audio,
-            allowedExtensions: ['mp3', 'aac', 'wav', 'flac', 'alac', 'dsd', 'ogg'],
-          );
-
-          if (result != null) {
-            String? filePath = result.files.single.path;
-            if (filePath != null) {
-              String fileName = path.basename(filePath);
-              String genre = 'Unknown';
-
-              SongEntity song = SongEntity(
-                title: title,
-                artist: artist,
-                genre: genre,
-                description: description,
-                caption: caption,
-                duration: 240,
-                releaseDate: Timestamp.now(),
-                isFavorite: false,
-                songId: fileName,
-                listenCount: 0,
-                url: filePath,
-                coverPath: '',
-                uploadedBy: '',
-              );
-
-              setState(() {
-                _isLoading = false;
-              });
-              _rotationController.stop();
-              _opacityController.stop();
-            }
+          if (_selectedFile != null) {
+            log("File selected, navigating to UploadTracksScreen...");
+            setState(() {
+              _isLoading = false;
+            });
+            _rotationController.stop();
+            _opacityController.stop();
           } else {
+            log("No file selected.");
             setState(() {
               _isLoading = false;
             });
@@ -199,9 +190,13 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             _opacityController.stop();
           }
         });
+
+      } else {
+        log("Rotation controller is already animating.");
       }
     } else {
       log("Storage permission is not granted.");
+      openAppSettings();
     }
   }
 

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:icons_plus/icons_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
 
@@ -47,32 +48,35 @@ void showMoreBioInfoBottomDialog(BuildContext context, Map<String, dynamic> user
       }
       return <String, String>{};
     }).toList() ?? [];
+  final displayBio = userBioInfo ?? 'Bio not specified';
 
   final Map<String, IconData> domainIcons = {
-      'google.com': BootstrapIcons.google,
-      'youtube.com': BootstrapIcons.youtube,
-      'facebook.com': BootstrapIcons.facebook,
-      'vk.com': FontAwesome.vk_brand,
-    };
+    'google.com': BootstrapIcons.google,
+    'instagram.com': BootstrapIcons.instagram,
+    'youtube.com': BootstrapIcons.youtube,
+    'facebook.com': BootstrapIcons.facebook,
+    'x.com': BootstrapIcons.twitter_x,
+    'vk.com': FontAwesome.vk_brand,
+  };
 
-    String getDomainFromUrl(String url) {
-      try {
-        Uri uri = Uri.parse(url);
-        return uri.host.toLowerCase();
-      } catch (e) {
-        return '';
-      }
+  String getDomainFromUrl(String url) {
+    try {
+      Uri uri = Uri.parse(url);
+      return uri.host.toLowerCase();
+    } catch (e) {
+      return '';
     }
+  }
 
-    Widget getIconForLink(String url) {
-      String domain = getDomainFromUrl(url);
+  Widget getIconForLink(String url) {
+    String domain = getDomainFromUrl(url);
 
-      if (domainIcons.containsKey(domain)) {
-        return Icon(domainIcons[domain], color: AppColors.lightGrey, size: 26);
-      } else {
-        return Icon(FontAwesome.earth_europe_solid, color: AppColors.lightGrey, size: 26);
-      }
+    if (domainIcons.containsKey(domain)) {
+      return Icon(domainIcons[domain], color: AppColors.lightGrey, size: 26);
+    } else {
+      return Icon(FontAwesome.earth_europe_solid, color: AppColors.lightGrey, size: 26);
     }
+  }
 
   showModalBottomSheet(
     context: context,
@@ -115,31 +119,38 @@ void showMoreBioInfoBottomDialog(BuildContext context, Map<String, dynamic> user
             ),
           ),
           const SizedBox(height: 20),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Text('Bio', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, letterSpacing: -0.3)),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                child: Text('$userBioInfo', style: TextStyle(fontSize: AppSizes.fontSizeMd, color: AppColors.grey, letterSpacing: -0.3)),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                child: Text('Links', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, letterSpacing: -0.3)),
-              ),
-              for (var link in userLinks)
-                _buildLinkRow(
-                  icon: getIconForLink(link['url'] ?? ''),
-                  text: link['title'] ?? '',
-                  onTap: () {
-                    log('Opening link: ${link['url']}');
-                  }
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Text('Bio', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, letterSpacing: -0.3)),
                 ),
-              const SizedBox(height: 16),
-            ],
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                  child: Text(displayBio, style: TextStyle(fontSize: AppSizes.fontSizeMd, color: AppColors.grey, letterSpacing: -0.3)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  child: Text('Links', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, letterSpacing: -0.3)),
+                ),
+                if (userLinks.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Text('Links not specified', style: TextStyle(fontSize: 15, color: AppColors.grey, letterSpacing: -0.3)),
+                ),
+                if (userLinks.isNotEmpty)
+                for (var link in userLinks)
+                  _buildLinkRow(
+                    icon: getIconForLink(link['url'] ?? ''),
+                    text: link['title'] ?? '',
+                    url: link['url'] ?? '',
+                  ),
+                const SizedBox(height: 16),
+              ],
+            ),
           ),
         ],
       );
@@ -150,10 +161,24 @@ void showMoreBioInfoBottomDialog(BuildContext context, Map<String, dynamic> user
 Widget _buildLinkRow({
   required Widget icon,
   required String text,
-  required VoidCallback onTap,
+  required String url,
 }) {
   return InkWell(
-    onTap: onTap,
+    onTap: () async {
+      Uri uri = Uri.parse(url);
+
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        Uri webUri = Uri.parse(_convertToWebUrl(url));
+        if (await canLaunchUrl(webUri)) {
+          await launchUrl(webUri, mode: LaunchMode.externalApplication);
+        } else {
+          log('Could not launch $url');
+          Get.snackbar('Error', 'Could not open link');
+        }
+      }
+    },
     splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
     highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
     child: Padding(
@@ -168,3 +193,16 @@ Widget _buildLinkRow({
     ),
   );
 }
+
+String _convertToWebUrl(String url) {
+  Uri uri = Uri.parse(url);
+
+  if (uri.host.contains('youtube.com') || uri.host.contains('youtu.be')) {
+    return 'https://www.youtube.com/watch?v=${uri.queryParameters["v"] ?? ""}';
+  } else if (uri.host.contains('vk.com')) {
+    return 'https://vk.com/${uri.path}';
+  }
+
+  return url;
+}
+

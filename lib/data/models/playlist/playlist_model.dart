@@ -1,57 +1,69 @@
 class PlaylistModel {
-  final String id;
+  final String playlistId;
   final String title;
-  final String author;
+  final String authorName;
   final int likes;
   final int trackCount;
+  final List<String> tags;
   final bool isFavorite;
+  final bool isPublic;
 
   PlaylistModel({
-    required this.id,
+    required this.playlistId,
     required this.title,
-    required this.author,
+    required this.authorName,
     required this.likes,
     required this.trackCount,
+    required this.tags,
     this.isFavorite = false,
+    this.isPublic = false,
   });
 
   factory PlaylistModel.fromJson(Map<String, dynamic> json) {
     return PlaylistModel(
-      id: json['id'] as String,
+      playlistId: json['playlistId'] as String,
       title: json['title'] as String,
-      author: json['author'] as String,
+      authorName: json['authorName'] as String,
       likes: json['likes'] ?? 0,
       trackCount: json['trackCount'] as int,
+      tags: json['tags'] as List<String>,
       isFavorite: json['isFavorite'] ?? false,
+      isPublic: json['isPublic'] ?? false,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      'playlistId': playlistId,
       'title': title,
-      'author': author,
+      'authorName': authorName,
       'likes': likes,
       'trackCount': trackCount,
+      'tags': tags,
       'isFavorite': isFavorite,
+      'isPublic': isPublic,
     };
   }
 
   PlaylistModel copyWith({
-    String? id,
+    String? playlistId,
     String? title,
-    String? author,
+    String? authorName,
     int? likes,
     int? trackCount,
+    List<String>? tags,
     bool? isFavorite,
+    bool? isPublic,
   }) {
     return PlaylistModel(
-      id: id ?? this.id,
+      playlistId: playlistId ?? this.playlistId,
       title: title ?? this.title,
-      author: author ?? this.author,
+      authorName: authorName ?? this.authorName,
       likes: likes ?? this.likes,
       trackCount: trackCount ?? this.trackCount,
+      tags: tags ?? this.tags,
       isFavorite: isFavorite ?? this.isFavorite,
+      isPublic: isPublic ?? this.isPublic,
     );
   }
 }

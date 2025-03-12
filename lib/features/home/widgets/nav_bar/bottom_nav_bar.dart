@@ -32,12 +32,13 @@ class _BottomNavBarState extends State<BottomNavBar> {
     _isConnected = _storage.read('isConnected') ?? true;
     _checkInternetConnection();
 
-    Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> results) {
-      final result = results.isNotEmpty ? results.first : ConnectivityResult.none;
-      _isConnected = result != ConnectivityResult.none;
-      _storage.write('isConnected', _isConnected);
+    Connectivity().onConnectivityChanged.listen((result) {
+      if (mounted) {
+        _isConnected = result != ConnectivityResult.none;
+        _storage.write('isConnected', _isConnected);
 
-      setState(() {});
+        setState(() {});
+      }
     });
   }
 

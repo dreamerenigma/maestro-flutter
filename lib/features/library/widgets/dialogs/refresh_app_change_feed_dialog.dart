@@ -19,10 +19,7 @@ Future<bool> showRefreshAppChangeFeedDialog(BuildContext context) async {
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
-              decoration: BoxDecoration(
-                color: context.isDarkMode ? AppColors.youngNight : AppColors.light,
-                borderRadius: BorderRadius.circular(25),
-              ),
+              decoration: BoxDecoration(color: context.isDarkMode ? AppColors.youngNight : AppColors.light, borderRadius: BorderRadius.circular(25)),
               child: Stack(
                 children: [
                   Column(

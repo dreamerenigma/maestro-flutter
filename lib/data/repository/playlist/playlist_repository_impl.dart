@@ -2,7 +2,7 @@ import 'package:dartz/dartz.dart';
 import '../../../domain/repository/playlist/playlists_repository.dart';
 import '../../../service_locator.dart';
 import '../../models/playlist/playlist_model.dart';
-import '../../sources/playlist/playlist_firebase_service.dart';
+import '../../services/playlist/playlist_firebase_service.dart';
 
 class PlaylistRepositoryImpl extends PlaylistsRepository {
 
@@ -17,7 +17,17 @@ class PlaylistRepositoryImpl extends PlaylistsRepository {
   }
 
   @override
-  Future<Either<Exception, String>> addOrRemoveFavoritePlaylists(String songId) async {
+  Future<Either<Exception, String>> updatePlaylist(String playlistId, String title, String description, String coverImage, int trackCount, List<String> tags, bool isPublic) async {
+    return await sl<PlaylistFirebaseService>().updatePlaylist(playlistId, title, description, coverImage, trackCount, tags, isPublic);
+  }
+
+  @override
+  Future<Either<Exception, String>> deletePlaylist(String playlistId) async {
+    return await sl<PlaylistFirebaseService>().deletePlaylist(playlistId);
+  }
+
+  @override
+  Future<Either<Exception, String>> addOrRemoveFavoritePlaylists(String playlistId) async {
     throw UnimplementedError();
   }
 
@@ -27,7 +37,7 @@ class PlaylistRepositoryImpl extends PlaylistsRepository {
   }
 
   @override
-  Future<bool> isFavoritePlaylist(String songId) async {
+  Future<bool> isFavoritePlaylist(String playlistId) async {
     throw UnimplementedError();
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:jam_icons/jam_icons.dart';
@@ -27,6 +29,7 @@ class _AlbumsScreenState extends State<AlbumsScreen> {
   late final int selectedIndex;
   final TextEditingController _searchController = TextEditingController();
   List<SongEntity> filteredAlbums = [];
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -34,6 +37,23 @@ class _AlbumsScreenState extends State<AlbumsScreen> {
     selectedIndex = widget.initialIndex;
     filteredAlbums = widget.albums;
     _searchController.addListener(_filterSongs);
+    _loadAlbums();
+  }
+
+  Future<void> _loadAlbums() async {
+    try {
+      await Future.delayed(const Duration(seconds: 1));
+
+      setState(() {
+        filteredAlbums = widget.albums;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      log('Error loading albums: $e');
+    }
   }
 
   void _filterSongs() {
@@ -62,7 +82,9 @@ class _AlbumsScreenState extends State<AlbumsScreen> {
       ),
       body: MiniPlayerManager(
         hideMiniPlayerOnSplash: false,
-        child: ScrollConfiguration(
+        child: isLoading
+          ? const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)))
+          : ScrollConfiguration(
           behavior: NoGlowScrollBehavior(),
           child: RefreshIndicator(
             onRefresh: _reloadData,

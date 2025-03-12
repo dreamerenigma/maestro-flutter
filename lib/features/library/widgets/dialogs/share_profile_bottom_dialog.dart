@@ -18,7 +18,9 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../routes/custom_page_route.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
+import '../../../../utils/formatters/formatter.dart';
 import '../../../../utils/popups/dialogs.dart';
+import '../../screens/library/station/station_screen.dart';
 
 void copyUserInfo(Map<String, dynamic> userData) {
   final userName = userData['userName'] as String?;
@@ -84,7 +86,7 @@ void shareContent(Map<String, dynamic> userData) {
 void showShareProfileDialog(BuildContext context, Map<String, dynamic> userData) {
   final userImage = userData['image'] as String?;
   final userName = userData['name'] as String?;
-  final userLinks = (userData['links'] as List).cast<Map<String, String>>();
+  final trackCount = userData['tracksCount'] as int;
 
   int initialIndex = 0;
   int selectedIndex = 0;
@@ -139,7 +141,7 @@ void showShareProfileDialog(BuildContext context, Map<String, dynamic> userData)
                           child: Text('346 Followers', style: const TextStyle(fontSize: 13, color: AppColors.buttonGrey, fontWeight: FontWeight.w400)),
                         ),
                         const Text(' · ', style: TextStyle(fontSize: 13, color: AppColors.buttonGrey, fontWeight: FontWeight.w400)),
-                        Text('One tracks', style: const TextStyle(fontSize: 13, color: AppColors.buttonGrey, fontWeight: FontWeight.w400)),
+                        Text(Formatter.formatTrackCount(trackCount), style: const TextStyle(fontSize: 13, color: AppColors.buttonGrey, fontFamily: 'Roboto', fontWeight: FontWeight.normal)),
                       ],
                     ),
                   ],
@@ -275,7 +277,9 @@ void showShareProfileDialog(BuildContext context, Map<String, dynamic> userData)
           Divider(height: 0, thickness: 1, color: context.isDarkMode ? AppColors.darkGrey : AppColors.lightGrey),
           SizedBox(height: 6),
           InkWell(
-            onTap: () {},
+            onTap: () {
+              Navigator.pushReplacement(context, createPageRoute(StationScreen(initialIndex: initialIndex, station: [], song: [])));
+            },
             splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
             highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
             child: Padding(

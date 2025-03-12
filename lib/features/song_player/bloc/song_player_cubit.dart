@@ -3,8 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:maestro/features/song_player/bloc/song_player_state.dart';
-import '../../../data/sources/notification/notification_service.dart';
+import '../../../data/services/notification/notification_service.dart';
 import '../../../domain/entities/song/song_entity.dart';
+import '../../../utils/constants/app_urls.dart';
 import '../widgets/task/audio_player_task.dart';
 
 class SongPlayerCubit extends Cubit<SongPlayerState> {
@@ -15,6 +16,9 @@ class SongPlayerCubit extends Cubit<SongPlayerState> {
   Duration songPosition = Duration.zero;
   bool isRepeating = false;
   SongEntity? currentSong;
+  bool isPlaying = false;
+  List<SongEntity> songQueue = [];
+  int currentSongIndex = 0;
 
   SongPlayerCubit() : super(SongPlayerLoading()) {
     audioPlayer.positionStream.listen((position) {
@@ -43,9 +47,23 @@ class SongPlayerCubit extends Cubit<SongPlayerState> {
     safeEmit(SongPlayerLoaded(currentSong));
   }
 
-  Future<void> loadSong(String url, SongEntity song) async {
+  Future<void> loadSong(SongEntity song) async {
     try {
-      await audioPlayer.setUrl(url);
+      if (song.fileURL.isEmpty) {
+        log("The provided URL is empty!");
+        throw Exception("URL is empty");
+      }
+
+      if (song.fileURL.startsWith(AppURLs.songFirestorage)) {
+        log('Loading song from Firebase Storage');
+      } else if (song.fileURL.startsWith(AppURLs.coverFirestorage)) {
+        log('Error: URL points to a cover image, not a song file.');
+        throw Exception("URL points to a cover image, not a song file.");
+      } else if (!song.fileURL.startsWith('file://')) {
+        log('URL does not start with "file://", assuming it is an external URL.');
+      }
+
+      await audioPlayer.setUrl(song.fileURL);
       currentSong = song;
       safeEmit(SongPlayerLoaded(currentSong));
     } catch (e) {
@@ -57,43 +75,55 @@ class SongPlayerCubit extends Cubit<SongPlayerState> {
   Future<void> playOrPauseSong([SongEntity? song]) async {
     try {
       log('Current Position Before Action: $songPosition');
-      log('Is Playing: ${audioPlayer.playing}');
+      log('Is Playing: $isPlaying');
 
       if (song != null) {
         log('Playing song: ${song.title}');
+        String url = song.fileURL;
+        log('Song URL: $url');
 
         if (currentSong == song && audioPlayer.playing) {
+          songPosition = audioPlayer.position;
           await audioPlayer.pause();
           log('Song paused: ${song.title}');
           notificationService.showNotification('Paused: ${song.title}');
+          isPlaying = false;
         } else {
+          if (currentSong != null) {
+            log('Stopping current song: ${currentSong?.title}');
+            await audioPlayer.stop();
+            songPosition = Duration.zero;
+          }
+
           currentSong = song;
-          String url = song.url;
+
           if (!url.startsWith('http') && !url.startsWith('file://')) {
             url = 'file://$url';
           }
 
-          if (currentSong?.url != url) {
+          if (currentSong?.fileURL != url) {
             log('Setting URL: $url');
             await audioPlayer.setUrl(url);
           }
 
-          if (songPosition > Duration.zero) {
-            log('Seeking to position: $songPosition');
-            await audioPlayer.seek(songPosition);
-          }
+          songPosition = Duration.zero;
+          log('Seeking to position: $songPosition');
+          await audioPlayer.seek(songPosition);
 
           if (!audioPlayer.playing) {
             await audioPlayer.play();
             log('Song started: ${song.title}');
             notificationService.showNotification('Now Playing: ${song.title}');
+            isPlaying = true;
           }
         }
       } else {
         if (audioPlayer.playing) {
+          songPosition = audioPlayer.position;
           await audioPlayer.pause();
           log('Song paused');
           notificationService.showNotification('Paused');
+          isPlaying = false;
         } else {
           if (songPosition > Duration.zero) {
             await audioPlayer.seek(songPosition);
@@ -101,15 +131,22 @@ class SongPlayerCubit extends Cubit<SongPlayerState> {
           await audioPlayer.play();
           log('Song resumed');
           notificationService.showNotification('Now Playing');
+          isPlaying = true;
         }
       }
 
-      log('Current Position After Action: ${audioPlayer.position}');
       emit(SongPlayerLoaded(currentSong));
+
     } catch (e) {
       log('Error in playOrPauseSong: $e');
       emit(SongPlayerFailure('Error playing or pausing song: $e'));
     }
+  }
+
+  void setSongQueue(List<SongEntity> songs) {
+    songQueue = songs;
+    currentSongIndex = 0;
+    loadSong(songs[currentSongIndex]);
   }
 
   void seekForward(Duration duration) {

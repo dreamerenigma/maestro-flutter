@@ -1,17 +1,21 @@
+import 'dart:developer';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:maestro/common/widgets/app_bar/app_bar.dart';
 import 'package:maestro/features/utils/widgets/no_glow_scroll_behavior.dart';
 import 'package:maestro/routes/custom_page_route.dart';
 import 'package:maestro/utils/helpers/helper_functions.dart';
+import '../../../../api/apis.dart';
+import '../../../../domain/entities/song/song_entity.dart';
 import '../../../../utils/constants/app_sizes.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../home/screens/home_screen.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
-
 import '../../../home/screens/upload_tracks_screen.dart';
 import '../../../home/widgets/nav_bar/bottom_nav_bar.dart';
 import '../../../song_player/widgets/mini_player/mini_player_manager.dart';
+import '../../widgets/lists/track/tracks_list.dart';
 
 class YourUploadScreen extends StatefulWidget {
   final int initialIndex;
@@ -24,6 +28,7 @@ class YourUploadScreen extends StatefulWidget {
 
 class YourUploadScreenState extends State<YourUploadScreen> {
   late final int selectedIndex;
+  List<SongEntity> myTracks = [];
   bool isLoading = true;
 
   @override
@@ -38,13 +43,35 @@ class YourUploadScreenState extends State<YourUploadScreen> {
         });
       }
     });
+
+    _fetchTracks();
+  }
+
+  Future<void> _fetchTracks() async {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+
+      if (user == null) {
+        log('User is not authenticated');
+        return;
+      }
+
+      final tracks = await APIs.fetchTracks(user.uid);
+
+      if (mounted) {
+        setState(() {
+          myTracks = tracks;
+        });
+      }
+    } catch (e) {
+      log('Error fetching tracks: $e');
+    }
   }
 
   Future<void> _reloadData() async {
     await Future.delayed(const Duration(seconds: 1));
     setState(() {});
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -74,6 +101,7 @@ class YourUploadScreenState extends State<YourUploadScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildLimitUpload(),
+                      TracksList(tracks: myTracks, userData: {}, shouldShowLikesListRow: false),
                       _buildSection('Got something new to share?', 'Upload directly from your phone.'),
                     ],
                   ),
@@ -93,7 +121,7 @@ class YourUploadScreenState extends State<YourUploadScreen> {
 
   Widget _buildLimitUpload() {
     return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 16),
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
       child: Row(
         children: [
           Expanded(
@@ -109,7 +137,12 @@ class YourUploadScreenState extends State<YourUploadScreen> {
                 children: [
                   Icon(PhosphorIcons.star_four_fill, color: AppColors.purple, size: 13),
                   const SizedBox(width: 8),
-                  Text('No get heard credits', style: TextStyle(fontSize: 13, color: AppColors.lightGrey)),
+                  Expanded(
+                    child: Text(
+                      'No get heard credits',
+                      style: TextStyle(fontSize: 13, color: AppColors.lightGrey), overflow: TextOverflow.ellipsis, softWrap: false,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -128,7 +161,12 @@ class YourUploadScreenState extends State<YourUploadScreen> {
                 children: [
                   const Icon(Icons.cloud_upload_rounded, color: AppColors.blue, size: 18),
                   const SizedBox(width: 8),
-                  Text('0/180 mins used', style: TextStyle(fontSize: 13, color: AppColors.lightGrey)),
+                  Expanded(
+                    child: Text(
+                      '0/180 mins used',
+                      style: TextStyle(fontSize: 13, color: AppColors.lightGrey), overflow: TextOverflow.ellipsis, softWrap: false,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -141,7 +179,7 @@ class YourUploadScreenState extends State<YourUploadScreen> {
   Widget _buildSection(String title, String content) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 25),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -153,7 +191,7 @@ class YourUploadScreenState extends State<YourUploadScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.pushReplacement(context, createPageRoute(UploadTracksScreen(songName: '')));
+                  Navigator.pushReplacement(context, createPageRoute(UploadTracksScreen(songName: '', shouldSelectFileImmediately: true)));
                 },
                 style: ButtonStyle(
                   foregroundColor: WidgetStateProperty.all(HelperFunctions.isDarkMode(Get.context!) ? AppColors.dark : AppColors.white),

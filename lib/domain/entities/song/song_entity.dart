@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
@@ -12,8 +13,8 @@ class SongEntity {
   final bool isFavorite;
   final String songId;
   final int listenCount;
-  final String url;
-  final String coverPath;
+  final String fileURL;
+  final String cover;
   final String uploadedBy;
 
   SongEntity({
@@ -27,10 +28,33 @@ class SongEntity {
     required this.isFavorite,
     required this.songId,
     required this.listenCount,
-    required this.url,
-    required this.coverPath,
+    required this.fileURL,
+    required this.cover,
     required this.uploadedBy,
   });
+
+    factory SongEntity.fromFirestore(DocumentSnapshot doc) {
+    Map data = doc.data() as Map;
+    final duration = data['duration'] is String ? parseDuration(data['duration']) : data['duration'] ?? 0;
+
+    log('Fetched Duration for ${doc.id}: $duration');
+
+    return SongEntity(
+      title: data['title'] ?? 'Unknown Title',
+      artist: data['artist'] ?? 'Unknown Artist',
+      genre: data['genre'] ?? '',
+      description: data['description'] ?? '',
+      caption: data['caption'] ?? '',
+      duration: duration,
+      releaseDate: data['releaseDate'] ?? Timestamp.now(),
+      isFavorite: data['isFavorite'] ?? false,
+      songId: doc.id,
+      listenCount: data['listenCount'] ?? 0,
+      fileURL: data['fileURL'] ?? '',
+      cover: data['cover'] ?? '',
+      uploadedBy: data['uploadedBy'] ?? '',
+    );
+  }
 }
 
 Future<SongEntity> convertSongModelToEntity(SongModel songModel, {bool fetchFromFirestore = true}) async {
@@ -55,8 +79,8 @@ Future<SongEntity> convertSongModelToEntity(SongModel songModel, {bool fetchFrom
     isFavorite: false,
     songId: songModel.id.toString(),
     listenCount: listenCount,
-    url: songModel.data,
-    coverPath: '',
+    fileURL: songModel.data,
+    cover: '',
     uploadedBy: uploadedBy,
   );
 }
@@ -69,4 +93,14 @@ Future<String> _fetchUploadedByFromFirestore(String songId) async {
 Future<int> _fetchListenCountFromFirestore(String songId) async {
   final doc = await FirebaseFirestore.instance.collection('Songs').doc(songId).get();
   return doc.exists ? (doc.data()?['listenCount'] ?? 0) as int : 0;
+}
+
+int parseDuration(String durationString) {
+  final parts = durationString.split(':');
+  if (parts.length == 2) {
+    final minutes = int.tryParse(parts[0]) ?? 0;
+    final seconds = int.tryParse(parts[1]) ?? 0;
+    return minutes * 60 + seconds;
+  }
+  return 0;
 }

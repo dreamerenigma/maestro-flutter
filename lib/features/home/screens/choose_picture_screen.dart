@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:maestro/features/home/screens/upload_tracks_screen.dart';
 import 'package:photo_manager/photo_manager.dart';
@@ -6,11 +7,13 @@ import '../../../common/widgets/app_bar/app_bar.dart';
 import '../../../routes/custom_page_route.dart';
 import '../../../utils/constants/app_sizes.dart';
 import '../../../utils/constants/app_colors.dart';
+import '../../library/screens/library/tracks/edit_track_screen.dart';
 
 class ChoosePictureScreen extends StatefulWidget {
   final AssetEntity image;
+  final bool fromEditTrackScreen;
 
-  const ChoosePictureScreen({super.key, required this.image});
+  const ChoosePictureScreen({super.key, required this.image, required this.fromEditTrackScreen});
 
   @override
   ChoosePictureScreenState createState() => ChoosePictureScreenState();
@@ -19,14 +22,12 @@ class ChoosePictureScreen extends StatefulWidget {
 class ChoosePictureScreenState extends State<ChoosePictureScreen> {
   double _scale = 1.0;
   final TransformationController _transformationController = TransformationController();
+  File? _selectedFile;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const BasicAppBar(
-        title: Text('Choose Image'),
-        hideBack: true,
-      ),
+      appBar: const BasicAppBar(title: Text('Choose Image'), hideBack: true),
       body: Column(
         children: [
           Expanded(
@@ -69,16 +70,34 @@ class ChoosePictureScreenState extends State<ChoosePictureScreen> {
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  child: const Text(
-                    'Cancel',
-                    style: TextStyle(fontSize: AppSizes.fontSizeMd, color: AppColors.grey),
-                  ),
+                  child: const Text('Cancel', style: TextStyle(fontSize: AppSizes.fontSizeMd, color: AppColors.grey)),
                 ),
                 TextButton(
                   onPressed: () {
-                    Navigator.pushReplacement(context, createPageRoute(UploadTracksScreen(selectedImage: widget.image, songName: '')));
+                    if (widget.fromEditTrackScreen) {
+                      Navigator.pop(
+                        context,
+                        createPageRoute(
+                          EditTrackScreen(
+                            selectedImage: widget.image,
+                          ),
+                        ),
+                      );
+                    } else {
+                      Navigator.pushReplacement(
+                        context,
+                        createPageRoute(
+                          UploadTracksScreen(
+                            selectedImage: widget.image,
+                            songName: '',
+                            shouldSelectFileImmediately: true,
+                            selectedFile: _selectedFile,
+                          ),
+                        ),
+                      );
+                    }
                   },
-                  child: const Text('Choose', style: TextStyle(fontSize: AppSizes.fontSizeMd, color: AppColors.grey),),
+                  child: const Text('Choose', style: TextStyle(fontSize: AppSizes.fontSizeMd, color: AppColors.grey)),
                 ),
               ],
             ),

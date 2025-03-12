@@ -1,12 +1,8 @@
 import 'dart:developer';
-import 'dart:io';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:maestro/common/widgets/app_bar/app_bar.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-
 import '../../../utils/constants/app_colors.dart';
 import '../../../utils/constants/app_sizes.dart';
 

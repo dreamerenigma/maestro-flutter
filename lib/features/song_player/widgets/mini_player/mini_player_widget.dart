@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:carbon_icons/carbon_icons.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -28,6 +29,14 @@ class MiniPlayerWidget extends StatefulWidget {
 class _MiniPlayerWidgetState extends State<MiniPlayerWidget> {
   bool _isPressed = false;
 
+  String? _getArtistFromTitle(String? title) {
+    if (title != null && title.contains('-')) {
+      final parts = title.split('-');
+      return parts[0].trim();
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (kIsWeb) {
@@ -41,11 +50,21 @@ class _MiniPlayerWidgetState extends State<MiniPlayerWidget> {
     return BlocBuilder<SongPlayerCubit, SongPlayerState>(
       builder: (context, state) {
         if (state is SongPlayerLoaded) {
-          final isPlaying = context.read<SongPlayerCubit>().audioPlayer.playing;
+          final songPlayerCubit = context.read<SongPlayerCubit>();
           final songEntity = context.read<SongPlayerCubit>().currentSong;
+          final isPlaying = context.read<SongPlayerCubit>().audioPlayer.playing;
           final currentPosition = context.read<SongPlayerCubit>().songPosition;
           final totalDuration = context.read<SongPlayerCubit>().songDuration;
           final progress = totalDuration.inMilliseconds > 0 ? currentPosition.inMilliseconds / totalDuration.inMilliseconds : 0.0;
+          final fileURL = songEntity?.fileURL ?? '';
+          final isLocalFile = fileURL.startsWith('file://') || fileURL.startsWith('/');
+
+          final user = FirebaseAuth.instance.currentUser;
+          if (user == null) {
+            throw Exception('No user logged in');
+          }
+
+          final isSongUploadedByCurrentUser = songEntity?.uploadedBy == user.uid;
 
           return Container(
             height: 60,
@@ -60,7 +79,7 @@ class _MiniPlayerWidgetState extends State<MiniPlayerWidget> {
                   final songEntity = context.read<SongPlayerCubit>().currentSong;
 
                   if (songEntity != null) {
-                    Navigator.push(context, createPageRoute(SongPlayerScreen(songEntity: songEntity)));
+                    Navigator.push(context, createPageRoute(SongPlayerScreen(song: songEntity, isPlaying: context.read<SongPlayerCubit>().isPlaying)));
                   } else {
                     log('No song available');
                   }
@@ -86,7 +105,7 @@ class _MiniPlayerWidgetState extends State<MiniPlayerWidget> {
                                     children: [
                                       ClipOval(
                                         child: Image.asset(
-                                          AppImages.defaultCover,
+                                          AppImages.defaultCover1,
                                           width: 42,
                                           height: 42,
                                           fit: BoxFit.cover,
@@ -98,10 +117,7 @@ class _MiniPlayerWidgetState extends State<MiniPlayerWidget> {
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
                                           color: AppColors.blackGrey,
-                                          border: Border.all(
-                                            color: AppColors.buttonDarkGrey,
-                                            width: 0.5,
-                                          ),
+                                          border: Border.all(color: AppColors.buttonDarkGrey, width: 0.5),
                                         ),
                                       ),
                                     ],
@@ -113,8 +129,20 @@ class _MiniPlayerWidgetState extends State<MiniPlayerWidget> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Text(songEntity?.title ?? 'Unknown Title', style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
-                                      Text(songEntity?.artist ?? 'Unknown Artist', style: const TextStyle(color: AppColors.white)),
+                                      Text(
+                                        songEntity?.title.split('.').first ?? 'Unknown Title',
+                                        style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.bold),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      Text(
+                                        songEntity?.uploadedBy.isNotEmpty == true
+                                          ? songEntity!.uploadedBy
+                                          : (songEntity?.artist != null && songEntity?.artist.isNotEmpty == true && songEntity?.artist != '<unknown>')
+                                            ? songEntity!.artist
+                                            : _getArtistFromTitle(songEntity?.title) ?? 'Unknown Artist',
+                                        style: const TextStyle(color: AppColors.white),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -126,17 +154,23 @@ class _MiniPlayerWidgetState extends State<MiniPlayerWidget> {
                               IconButton(
                                 icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow, color: AppColors.white, size: 30),
                                 onPressed: () {
-                                  context.read<SongPlayerCubit>().playOrPauseSong(songEntity);
+                                  songPlayerCubit.playOrPauseSong();
                                 },
                               ),
-                              IconButton(
-                                icon: const Icon(Icons.person_add_alt, color: AppColors.white),
-                                onPressed: () {},
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.favorite_outline_outlined, color: AppColors.white),
-                                onPressed: () {},
-                              ),
+                              if (!isLocalFile) ...[
+                                if (isSongUploadedByCurrentUser) ...[
+                                  IconButton(
+                                    icon: const Icon(Icons.person_add_alt, color: AppColors.white),
+                                    onPressed: () {},
+                                  ),
+                                ],
+                                IconButton(
+                                  icon: const Icon(Icons.favorite_outline_outlined, color: AppColors.white),
+                                  onPressed: () {
+
+                                  },
+                                ),
+                              ],
                             ],
                           ),
                         ],

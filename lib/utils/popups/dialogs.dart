@@ -45,35 +45,30 @@ class Dialogs {
     );
   }
 
-  static Future<void> showProgressBar(BuildContext context, {Color color = AppColors.primary}) {
-  // Показываем диалог
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext context) {
-      return PopScope(
-        canPop: false,
-        child: Center(
-          child: SizedBox(
-            width: 40.0,
-            height: 40.0,
-            child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(color)),
+  static Future<void> showProgressBar(BuildContext context, {Color color = AppColors.primary, int delayInSeconds = 2}) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return PopScope(
+          canPop: false,
+          child: Center(
+            child: SizedBox(
+              width: 40.0,
+              height: 40.0,
+              child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(color)),
+            ),
           ),
-        ),
-      );
-    },
-  );
+        );
+      },
+    );
 
-  // Закрытие диалога через 2 секунды
-  Future.delayed(const Duration(seconds: 2), () {
+    await Future.delayed(Duration(seconds: delayInSeconds));
+
     if (Navigator.canPop(context)) {
-      Navigator.pop(context); // Закрываем диалог
+      Navigator.pop(context);
     }
-  });
-
-  // Возвращаем Future, которое завершится после того, как диалог закроется
-  return Future.delayed(const Duration(seconds: 2));
-}
+  }
 
   static Future<void> showProgressBarDialog(BuildContext context, {String? title, required String message}) async {
     bool hasTitle = title != null && title.isNotEmpty;

@@ -1,19 +1,17 @@
 import 'dart:developer';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:icons_plus/icons_plus.dart';
 import 'package:maestro/api/apis.dart';
-import 'package:maestro/features/home/widgets/lists/play_list.dart';
-import 'package:maestro/features/library/screens/spotlight_screen.dart';
+import 'package:maestro/features/library/widgets/lists/playlist/playlist_list.dart';
 import 'package:maestro/features/utils/widgets/no_glow_scroll_behavior.dart';
 import 'package:maestro/utils/constants/app_sizes.dart';
-import 'package:typicons_flutter/typicons_flutter.dart';
+import '../../../data/services/song/song_firebase_service.dart';
 import '../../../domain/entities/song/song_entity.dart';
 import '../../../routes/custom_page_route.dart';
 import '../../../utils/constants/app_colors.dart';
-import '../../../data/sources/song/song_firebase_service.dart';
 import '../../../generated/l10n/l10n.dart';
 import '../../home/screens/home_screen.dart';
 import '../../home/widgets/nav_bar/bottom_nav_bar.dart';
@@ -22,10 +20,12 @@ import '../controllers/background_controller.dart';
 import '../controllers/profile_image_controller.dart';
 import '../widgets/dialogs/share_profile_bottom_dialog.dart';
 import '../widgets/dialogs/show_more_bio_info_bottom_dialog.dart';
-import '../widgets/lists/tracks_list.dart';
+import '../widgets/icons/action_icons_widget.dart';
+import '../widgets/lists/track/tracks_list.dart';
+import '../widgets/pinned_spotlight_widget.dart';
 import '../widgets/user_avatar_widget.dart';
+import '../widgets/user_info_widget.dart';
 import '../widgets/user_profile_info_widget.dart';
-import 'edit_profile_screen.dart';
 import 'library/your_insights_screen.dart';
 
 class ProfileSettingsScreen extends StatefulWidget {
@@ -41,17 +41,19 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   final GetStorage _storageBox = GetStorage();
   final BackgroundController backgroundController = Get.put(BackgroundController());
   final ProfileImageController profileImageController = Get.put(ProfileImageController());
-  late Future<Map<String, dynamic>?> userDataFuture;
-  String? songId;
+  final ValueNotifier<double> opacityNotifier = ValueNotifier<double>(1.0);
   final SongFirebaseServiceImpl songService = SongFirebaseServiceImpl();
+  late Future<Map<String, dynamic>?> userDataFuture;
   late final int selectedIndex;
   late final Function(int) onItemTapped;
+  late ScrollController scrollController;
+  String? songId;
   String? _imageUrlBg;
   String? _imageUrl;
   bool isShuffleActive = false;
-  late ScrollController scrollController;
   double opacity = 1.0;
   double opacityUsername = 0;
+  double lastOffset = 0;
   List<SongEntity> likedTracks = [];
   List<SongEntity> myTracks = [];
   List<Map<String, dynamic>> playlists = [];
@@ -63,12 +65,11 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     userDataFuture = APIs.fetchUserData();
     songId = "someSongId";
     selectedIndex = widget.initialIndex;
-    scrollController = ScrollController()..addListener(() {
-      if (mounted) {
-        setState(() {
-          opacityUsername = (scrollController.offset / 100).clamp(0.0, 1.0);
-        });
-      }
+    scrollController = ScrollController();
+
+    scrollController.addListener(() {
+      double newOpacity = (1 - (scrollController.offset / 100)).clamp(0.0, 1.0);
+      opacityNotifier.value = newOpacity;
     });
 
     backgroundController.backgroundImageUrl.listen((String? newBackground) {
@@ -89,6 +90,7 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
     _fetchLikedTracks();
     _fetchTracks();
+    _fetchPlaylists();
     isShuffleActive = _storageBox.read('isShuffleActive') ?? false;
   }
 
@@ -96,11 +98,6 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   void dispose() {
     scrollController.dispose();
     super.dispose();
-  }
-
-  Future<void> _reloadData() async {
-    await Future.delayed(const Duration(seconds: 1));
-    setState(() {});
   }
 
   Future<void> _loadImageUrls() async {
@@ -138,16 +135,11 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         return;
       }
 
-      log('Fetching tracks for user: ${user.uid}');
-
       final tracks = await APIs.fetchTracks(user.uid);
-
-      log('Fetched tracks: $tracks');
 
       if (mounted) {
         setState(() {
           myTracks = tracks;
-          log('Tracks count: ${myTracks.length}');
         });
       }
     } catch (e) {
@@ -155,11 +147,40 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     }
   }
 
-  void _toggleShuffle() {
+  void toggleShuffle() {
     setState(() {
       isShuffleActive = !isShuffleActive;
     });
     _storageBox.write('isShuffleActive', isShuffleActive);
+  }
+
+  Future<void> _reloadData() async {
+    await Future.delayed(const Duration(seconds: 1));
+    await _fetchLikedTracks();
+    await _fetchTracks();
+    await _fetchPlaylists();
+    setState(() {});
+  }
+
+  Future<void> _fetchPlaylists() async {
+    try {
+      var snapshot = await FirebaseFirestore.instance.collection('Playlists').get();
+      var playlistsData = snapshot.docs.map((doc) {
+        return {
+          'id': doc.id,
+          'title': doc['title'],
+          'isPublic': doc['isPublic'],
+          'releaseDate': doc['releaseDate'],
+          'coverImage': doc['coverImage'],
+          'authorName': doc['authorName'],
+        };
+      }).toList();
+      setState(() {
+        playlists = playlistsData;
+      });
+    } catch (e) {
+      log('Error loading playlists: $e');
+    }
   }
 
   @override
@@ -196,11 +217,20 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                               pinned: true,
                               floating: false,
                               backgroundColor: Theme.of(context).brightness == Brightness.dark ? AppColors.backgroundColor : AppColors.white,
-                              title: Opacity(
-                                opacity: opacityUsername,
+                              title: ValueListenableBuilder<double>(
+                                valueListenable: opacityNotifier,
+                                builder: (context, opacity, child) {
+                                  return Opacity(
+                                    opacity: opacity,
+                                    child: child!,
+                                  );
+                                },
                                 child: Text(
                                   userData['name'] as String? ?? 'No Name',
-                                  style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black, fontSize: 20),
+                                  style: TextStyle(
+                                    color: Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black,
+                                    fontSize: 20,
+                                  ),
                                 ),
                               ),
                             ),
@@ -210,21 +240,41 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                   _buildBackground(context, userData),
                                   const SizedBox(height: 50),
                                   _buildUserProfile(userData),
-                                  _buildActionIcons(),
+                                  ActionIconsWidget(isShuffleActive: isShuffleActive, toggleShuffle: toggleShuffle, initialIndex: widget.initialIndex),
                                   const SizedBox(height: 15),
-                                  _buildUserBioInfo(userData),
+                                  UserInfoWidget(
+                                    userData: userData,
+                                    getInfoText: (userData) {
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 18),
+                                        child: Text(
+                                          userData['bio'] ?? 'Bio not specified',
+                                          style: TextStyle(fontSize: 15, height: 1.2, letterSpacing: -0.3), maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.start,
+                                        ),
+                                      );
+                                    },
+                                    onShowMorePressed: (context, userData) {
+                                      showMoreBioInfoBottomDialog(context, userData);
+                                    },
+                                  ),
                                   _buildYourInsights('Your insights', Icons.arrow_forward_ios, () {
                                     Navigator.push(context, createPageRoute(YourInsightsScreen(initialIndex: widget.initialIndex)));
                                   }),
                                   const SizedBox(height: 20),
-                                  _buildPinnedSpotlight(),
+                                  const PinnedSpotlightWidget(),
+                                  const SizedBox(height: 10),
                                   TracksList(tracks: myTracks, userData: {}),
-                                  PlayList(initialIndex: widget.initialIndex, playlists: playlists),
+                                  PlaylistList(
+                                    initialIndex: widget.initialIndex,
+                                    playlists: playlists.where((playlist) {
+                                      return playlist['authorName'] == (userData['name'] ?? '');
+                                    }).toList(),
+                                  ),
                                   // LikedTracksList(
                                   //   tracks: likedTracks ?? [],
                                   //   userData: userData ?? {},
                                   // ),
-                                  SizedBox(height: 50),
+                                  SizedBox(height: 100),
                                 ],
                               ),
                             ),
@@ -318,6 +368,8 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     final userName = userData['name'] as String?;
     final city = userData['city'] as String?;
     final country = userData['country'] as String?;
+    final displayCity = city ?? 'City not specified';
+    final displayCountry = country ?? 'Country not specified';
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
@@ -325,76 +377,14 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 15),
-          UserProfileInfo(userName: userName, city: city, country: country, initialIndex: widget.initialIndex),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionIcons() {
-    return Padding(
-      padding: const EdgeInsets.only(left: 8, right: 16),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Typicons.pencil, size: AppSizes.iconLg),
-            onPressed: () {
-              Navigator.push(context, createPageRoute(EditProfileScreen(initialIndex: widget.initialIndex)));
-            },
-          ),
-          const Spacer(),
-          IconButton(
-            icon: Icon(Bootstrap.shuffle, color: isShuffleActive ? AppColors.primary : AppColors.grey, size: AppSizes.iconMd),
-            onPressed: _toggleShuffle,
-          ),
-          const SizedBox(width: 5),
-          Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Theme.of(context).brightness == Brightness.light ? AppColors.black : AppColors.white,
-            ),
-            child: IconButton(
-              icon: Icon(
-                Icons.play_arrow_rounded,
-                color: Theme.of(context).brightness == Brightness.light ? AppColors.white : AppColors.black,
-                size: 32,
-              ),
-              onPressed: () {},
-            ),
+          UserProfileInfo(
+            userName: userName,
+            city: displayCity,
+            country: displayCountry,
+            initialIndex: widget.initialIndex,
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildUserBioInfo(Map<String, dynamic> userData) {
-    final userBioInfo = userData['bio'] as String?;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18),
-          child: Text('$userBioInfo', style: TextStyle(fontSize: 15, height: 1.2, letterSpacing: -0.3), maxLines: 2, overflow: TextOverflow.ellipsis),
-        ),
-        SizedBox(height: 6),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6),
-          child: SizedBox(
-            height: 30,
-            child: TextButton(
-              onPressed: () {
-                showMoreBioInfoBottomDialog(context, userData);
-              },
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.symmetric(horizontal: 10),
-                foregroundColor: AppColors.blue.withAlpha((0.2 * 255).toInt())
-              ),
-              child: Text('Show more', style: const TextStyle(color: AppColors.blue, fontSize: AppSizes.fontSizeSm, fontWeight: FontWeight.w600)),
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -415,54 +405,6 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildPinnedSpotlight() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text('Pinned to Spotlight', style: TextStyle(fontSize: AppSizes.fontSizeBg, fontWeight: FontWeight.bold, letterSpacing: -1.3)),
-              ),
-              SizedBox(
-                width: 50,
-                height: 27,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(context, createPageRoute(SpotlightScreen()));
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: context.isDarkMode ? AppColors.darkGrey : AppColors.lightGrey,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    textStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
-                    side: BorderSide.none,
-                  ).copyWith(
-                    foregroundColor: WidgetStateProperty.resolveWith((states) {
-                      if (states.contains(WidgetState.pressed)) {
-                        return AppColors.darkerGrey;
-                      } else {
-                        return AppColors.white;
-                      }
-                    }),
-                  ),
-                  child: const Text('Edit', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                ),
-              ),
-            ],
-          ),
-          Text(
-            'Pin items to your Spotlight',
-            style: TextStyle(color: AppColors.lightGrey, fontSize: AppSizes.fontSizeSm, fontWeight: FontWeight.normal, letterSpacing: -0.8),
-          ),
-        ],
       ),
     );
   }

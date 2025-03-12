@@ -87,10 +87,9 @@ Widget build(BuildContext context) {
           child: _buildTextField(context),
         ),
 
-        // MiniPlayerManager as an overlay above the BottomNavBar
         if (!isKeyboardVisible)
           Positioned(
-            bottom: 0,  // Adjust this position if needed
+            bottom: 0,
             left: 0,
             right: 0,
             child: MiniPlayerManager(

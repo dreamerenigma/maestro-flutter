@@ -1,7 +1,6 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:evil_icons_flutter/evil_icons_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:maestro/features/home/widgets/profile_playlist_widget.dart';
@@ -14,11 +13,10 @@ import '../../../generated/l10n/l10n.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../../utils/constants/app_sizes.dart';
 import '../../../utils/constants/app_vectors.dart';
-import '../../library/screens/library/playlist_screen.dart';
+import '../../library/screens/library/playlists/playlist_screen.dart';
 import '../../library/widgets/circular_animation.dart';
 import '../../utils/screens/internet_aware_screen.dart';
 import '../../utils/widgets/no_glow_scroll_behavior.dart';
-import '../bloc/play_list_cubit.dart';
 import 'grids/latest_artists_follow_grid_widget.dart';
 import 'grids/grid_widget.dart';
 import 'grids/made_for_you_grid_widget.dart';
@@ -90,149 +88,146 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => PlayListCubit()..getPlayList(),
-      child: FutureBuilder<Map<String, dynamic>?>(
-        future: userDataFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)));
-          } else if (snapshot.hasError || !snapshot.hasData) {
-            return Center(child: Text(S.of(context).errorLoadingProfile));
-          } else {
-            final userData = snapshot.data;
-            final userName = userData?['name'] ?? 'Guest';
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: userDataFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)));
+        } else if (snapshot.hasError || !snapshot.hasData) {
+          return Center(child: Text(S.of(context).errorLoadingProfile));
+        } else {
+          final userData = snapshot.data;
+          final userName = userData?['name'] ?? 'Guest';
 
-            return ScrollConfiguration(
-              behavior: NoGlowScrollBehavior(),
-              child: RefreshIndicator(
-                onRefresh: _reloadData,
-                displacement: 100,
-                color: AppColors.primary,
-                backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.softGrey,
-                child: Scaffold(
-                  body: Stack(
-                    children: [
-                      Column(
-                        children: [
-                          _buildAppBar(),
-                          Flexible(
-                            child: ListView(
-                              padding: EdgeInsets.symmetric(vertical: 20),
-                              children: [
-                                YourLikesWidget(padding: EdgeInsets.only(left: 16, right: 16, bottom: 12), initialIndex: widget.initialIndex),
-                                ProfilePlaylistWidget(padding: EdgeInsets.only(left: 16, right: 16, bottom: 35)),
-                                LatestArtistsFollowGridWidget(padding: EdgeInsets.only(bottom: 30)),
-                                GridWidget(
-                                  padding: EdgeInsets.only(top: 8, bottom: 20),
-                                  sectionTitle: 'More of what you like',
-                                  itemCount: 10,
-                                  subtitleText: 'Buzzing Electronic',
-                                  width: 130,
-                                  height: 130,
-                                  heights: 185,
-                                  onItemTap: () {
-                                    Navigator.push(
-                                      context,
-                                      createPageRoute(PlaylistScreen(playlists: [], initialIndex: widget.initialIndex)),
-                                    );
-                                  },
+          return ScrollConfiguration(
+            behavior: NoGlowScrollBehavior(),
+            child: RefreshIndicator(
+              onRefresh: _reloadData,
+              displacement: 100,
+              color: AppColors.primary,
+              backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.softGrey,
+              child: Scaffold(
+                body: Stack(
+                  children: [
+                    Column(
+                      children: [
+                        _buildAppBar(),
+                        Flexible(
+                          child: ListView(
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            children: [
+                              YourLikesWidget(padding: EdgeInsets.only(left: 16, right: 16, bottom: 12), initialIndex: widget.initialIndex),
+                              ProfilePlaylistWidget(padding: EdgeInsets.only(left: 16, right: 16, bottom: 35)),
+                              LatestArtistsFollowGridWidget(padding: EdgeInsets.only(bottom: 30)),
+                              GridWidget(
+                                padding: EdgeInsets.only(top: 8, bottom: 20),
+                                sectionTitle: 'More of what you like',
+                                itemCount: 10,
+                                subtitleText: 'Buzzing Electronic',
+                                width: 130,
+                                height: 130,
+                                heights: 185,
+                                onItemTap: () {
+                                  Navigator.push(
+                                    context,
+                                    createPageRoute(PlaylistsScreen(playlists: [], initialIndex: widget.initialIndex)),
+                                  );
+                                },
+                              ),
+                              _buildTabs(context),
+                              SizedBox(
+                                height: 260,
+                                child: TabBarView(
+                                  controller: widget.tabController,
+                                  children: [
+                                    const NewsSongsTab(),
+                                    const VideosTab(),
+                                    Container(),
+                                    Container(),
+                                    const ConcertsTab(),
+                                  ],
                                 ),
-                                _buildTabs(context),
-                                SizedBox(
-                                  height: 260,
-                                  child: TabBarView(
-                                    controller: widget.tabController,
-                                    children: [
-                                      const NewsSongsTab(),
-                                      const VideosTab(),
-                                      Container(),
-                                      Container(),
-                                      const ConcertsTab(),
-                                    ],
-                                  ),
-                                ),
-                                GridWidget(
-                                  padding: EdgeInsets.only(top: 25, bottom: 10),
-                                  sectionTitle: 'Mixed for $userName',
-                                  subtitleText: 'Buzzing Electronic',
-                                  itemCount: 10,
-                                  width: 130,
-                                  height: 130,
-                                  heights: 185,
-                                  onItemTap: () {},
-                                ),
-                                MadeForYouGridWidget(
-                                  padding: EdgeInsets.only(top: 25, bottom: 10),
-                                  sectionTitle: 'Made for $userName',
-                                  itemCount: 2,
-                                  height: 250,
-                                  heights: 260,
-                                ),
-                                GridWidget(
-                                  padding: EdgeInsets.only(top: 25, bottom: 10),
-                                  sectionTitle: 'Discover with Stations',
-                                  subtitleText: 'Buzzing Electronic',
-                                  itemCount: 5,
-                                  width: 130,
-                                  height: 130,
-                                  heights: 185,
-                                  onItemTap: () {},
-                                ),
-                                GridWidget(
-                                  padding: EdgeInsets.only(top: 25, bottom: 10),
-                                  sectionTitle: 'Trending by genre',
-                                  subtitleText: 'Trending Music',
-                                  itemCount: 15,
-                                  width: 130,
-                                  height: 130,
-                                  heights: 185,
-                                  onItemTap: () {},
-                                ),
-                                GridWidget(
-                                  padding: EdgeInsets.only(top: 25, bottom: 10),
-                                  sectionTitle: 'Curated to your taste',
-                                  subtitleText: 'Buzzing Electronic',
-                                  itemCount: 10,
-                                  width: 130,
-                                  height: 130,
-                                  heights: 185,
-                                  onItemTap: () {},
-                                ),
-                                GridWidget(
-                                  padding: EdgeInsets.only(top: 25, bottom: 10),
-                                  sectionTitle: 'Artists to watch out for',
-                                  subtitleText: 'New!',
-                                  itemCount: 10,
-                                  width: 130,
-                                  height: 130,
-                                  heights: 185,
-                                  onItemTap: () {},
-                                ),
-                                Container(height: 50),
-                              ],
-                            ),
+                              ),
+                              GridWidget(
+                                padding: EdgeInsets.only(top: 25, bottom: 10),
+                                sectionTitle: 'Mixed for $userName',
+                                subtitleText: 'Buzzing Electronic',
+                                itemCount: 10,
+                                width: 130,
+                                height: 130,
+                                heights: 185,
+                                onItemTap: () {},
+                              ),
+                              MadeForYouGridWidget(
+                                padding: EdgeInsets.only(top: 25, bottom: 10),
+                                sectionTitle: 'Made for $userName',
+                                itemCount: 2,
+                                height: 250,
+                                heights: 260,
+                              ),
+                              GridWidget(
+                                padding: EdgeInsets.only(top: 25, bottom: 10),
+                                sectionTitle: 'Discover with Stations',
+                                subtitleText: 'Buzzing Electronic',
+                                itemCount: 5,
+                                width: 130,
+                                height: 130,
+                                heights: 185,
+                                onItemTap: () {},
+                              ),
+                              GridWidget(
+                                padding: EdgeInsets.only(top: 25, bottom: 10),
+                                sectionTitle: 'Trending by genre',
+                                subtitleText: 'Trending Music',
+                                itemCount: 15,
+                                width: 130,
+                                height: 130,
+                                heights: 185,
+                                onItemTap: () {},
+                              ),
+                              GridWidget(
+                                padding: EdgeInsets.only(top: 25, bottom: 10),
+                                sectionTitle: 'Curated to your taste',
+                                subtitleText: 'Buzzing Electronic',
+                                itemCount: 10,
+                                width: 130,
+                                height: 130,
+                                heights: 185,
+                                onItemTap: () {},
+                              ),
+                              GridWidget(
+                                padding: EdgeInsets.only(top: 25, bottom: 10),
+                                sectionTitle: 'Artists to watch out for',
+                                subtitleText: 'New!',
+                                itemCount: 10,
+                                width: 130,
+                                height: 130,
+                                heights: 185,
+                                onItemTap: () {},
+                              ),
+                              Container(height: 50),
+                            ],
                           ),
-                        ],
-                      ),
-                      Positioned(
-                        top: kToolbarHeight + 30,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        child: Align(
-                          alignment: Alignment.topCenter,
-                          child: InternetAwareScreen(title: 'Главная', connectedScreen: Container()),
                         ),
+                      ],
+                    ),
+                    Positioned(
+                      top: kToolbarHeight + 30,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: Align(
+                        alignment: Alignment.topCenter,
+                        child: InternetAwareScreen(title: 'Главная', connectedScreen: Container()),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            );
-          }
-        },
-      ),
+            ),
+          );
+        }
+      },
     );
   }
 

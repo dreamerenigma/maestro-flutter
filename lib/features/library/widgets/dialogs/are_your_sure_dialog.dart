@@ -8,69 +8,84 @@ void showAreYouSureDialog(BuildContext context) {
     context: context,
     barrierDismissible: true,
     builder: (BuildContext context) {
-      return AlertDialog(
-        elevation: 4,
-        backgroundColor: Theme.of(context).brightness == Brightness.dark ? AppColors.youngNight : AppColors.lightBackground,
-        titlePadding: const EdgeInsets.all(0),
-        actionsPadding: const EdgeInsets.only(left: 20, right: 20, top: 12, bottom: 12),
-        contentPadding: const EdgeInsets.only(left: 20, right: 20, top: 12, bottom: 16),
-        title: Stack(
-          children: [
-            const Padding(
-              padding: EdgeInsets.only(left: 20, right: 20, top: 14, bottom: 12),
-              child: Text('Are you sure?', style: TextStyle(fontSize: AppSizes.fontSizeBg)),
-            ),
-            Positioned(
-              right: 0,
-              top: 5,
-              child: IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 25),
+        child: Align(
+          alignment: Alignment.center,
+          child: Material(
+            borderRadius: BorderRadius.circular(20),
+            color: context.isDarkMode ? AppColors.youngNight : AppColors.light,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+              decoration: BoxDecoration(color: context.isDarkMode ? AppColors.youngNight : AppColors.light, borderRadius: BorderRadius.circular(25)),
+              child: Stack(
+                children: [
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Are you sure?', style: TextStyle(fontSize: AppSizes.fontSizeLg, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 20),
+                      Text(
+                        'You have unsaved changes that will be lost',
+                        style: TextStyle(fontSize: AppSizes.fontSizeMd, fontWeight: FontWeight.w200, color: context.isDarkMode ? AppColors.lightGrey : AppColors.black),
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                  Navigator.of(context).pop();
+                                },
+                                style: TextButton.styleFrom(
+                                  foregroundColor: AppColors.red.withAlpha((0.5 * 255).toInt()),
+                                  backgroundColor: AppColors.red.withAlpha((0.2 * 255).toInt()),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                                ),
+                                child: Text('DISCARD CHANGES', style: TextStyle(color: AppColors.red, fontWeight: FontWeight.bold, fontSize: AppSizes.fontSizeMd)),
+                              ),
+                              const SizedBox(height: 8),
+                              TextButton(
+                                onPressed: () async {
+                                  Navigator.of(context).pop();
+                                },
+                                style: TextButton.styleFrom(
+                                  foregroundColor: AppColors.darkerGrey,
+                                  backgroundColor: context.isDarkMode ? AppColors.buttonDarkGrey : AppColors.darkGrey,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                                ),
+                                child: Text(
+                                  'CONTINUE EDITING',
+                                  style: TextStyle(color: context.isDarkMode ? AppColors.white : AppColors.black, fontWeight: FontWeight.bold, fontSize: AppSizes.fontSizeMd),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Positioned(
+                    right: -15,
+                    top: -12,
+                    child: IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        Navigator.of(context).pop(false);
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-        content: const Text('You have unsaved changes that will be lost'),
-        actions: [
-          Align(
-            alignment: Alignment.centerRight,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
-                  },
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.red.withAlpha((0.5 * 255).toInt()),
-                    backgroundColor: AppColors.red.withAlpha((0.2 * 255).toInt()),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                  ),
-                  child: Text('Discard Changes', style: TextStyle(color: AppColors.red, fontWeight: FontWeight.bold, fontSize: AppSizes.fontSizeMd)),
-                ),
-                SizedBox(height: 8),
-                TextButton(
-                  onPressed: () async {
-                    Navigator.of(context).pop();
-                  },
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppColors.darkerGrey,
-                    backgroundColor: context.isDarkMode ? AppColors.buttonDarkGrey : AppColors.darkGrey,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                  ),
-                  child: Text(
-                    'Continue Editing',
-                    style: TextStyle(color: context.isDarkMode ? AppColors.white : AppColors.black, fontWeight: FontWeight.bold, fontSize: AppSizes.fontSizeMd),
-                  ),
-                ),
-              ],
-            ),
           ),
-        ],
+        ),
       );
     },
   );

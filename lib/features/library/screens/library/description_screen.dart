@@ -6,20 +6,40 @@ import '../../../../utils/constants/app_sizes.dart';
 
 class DescriptionScreen extends StatefulWidget {
   final Function(String) onSaveDescription;
+  final String hintText;
+  final TextEditingController controller;
 
-  const DescriptionScreen({super.key, required this.onSaveDescription});
+  const DescriptionScreen({
+    super.key,
+    required this.onSaveDescription,
+    required this.hintText,
+    required this.controller,
+  });
 
   @override
   State<DescriptionScreen> createState() => DescriptionScreenState();
 }
 
 class DescriptionScreenState extends State<DescriptionScreen> {
-  final TextEditingController _controller = TextEditingController();
   final int _maxLength = 4000;
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(Duration.zero, () {
+      FocusScope.of(context).requestFocus(_focusNode);
+    });
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
 
   void _saveDescription() {
-    widget.onSaveDescription(_controller.text);
-    Navigator.pop(context);
+    widget.onSaveDescription(widget.controller.text);
   }
 
   @override
@@ -52,7 +72,7 @@ class DescriptionScreenState extends State<DescriptionScreen> {
           Positioned(
             bottom: 16,
             right: 16,
-            child: Text('${_maxLength - _controller.text.length}', style: const TextStyle(color: AppColors.grey)),
+            child: Text('${_maxLength - widget.controller.text.length}', style: const TextStyle(color: AppColors.grey)),
           ),
         ],
       ),
@@ -70,15 +90,16 @@ class DescriptionScreenState extends State<DescriptionScreen> {
             selectionHandleColor: AppColors.primary,
           ),
           child: TextFormField(
-            controller: _controller,
+            controller: widget.controller,
+            focusNode: _focusNode,
             maxLength: _maxLength,
             maxLines: null,
             onChanged: (text) {
               setState(() {});
             },
             decoration: InputDecoration(
-              hintText: 'Describe your track',
-              hintStyle: const TextStyle(color: AppColors.lightGrey, fontSize: AppSizes.fontSizeMd, fontWeight: FontWeight.w200),
+              hintText: widget.hintText,
+              hintStyle: const TextStyle(color: AppColors.lightGrey, fontFamily: 'Roboto', fontSize: 15, fontWeight: FontWeight.normal),
               counterText: '',
               border: InputBorder.none,
               enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: AppColors.transparent)),

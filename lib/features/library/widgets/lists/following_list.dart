@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dartz/dartz.dart' as dartz;
-import '../../../../data/sources/user/user_firebase_service.dart';
+import '../../../../data/services/user/user_firebase_service.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../home/models/user_model.dart';
 import '../items/following_item.dart';
@@ -44,6 +44,9 @@ class FollowingListState extends State<FollowingList> {
               country: '',
               flag: '',
               backgroundImage: '',
+              links: [],
+              limitUploads: 0,
+              tracksCount: 0,
             ));
             if (user != null) {
               return ListView(

@@ -4,9 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:maestro/routes/custom_page_route.dart';
 import '../../../common/widgets/buttons/basic_app_button.dart';
+import '../../../data/services/image/image_service.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../models/create_user_req.dart';
-import '../../../data/sources/image/image_service.dart';
 import '../../home/screens/home_screen.dart';
 
 class CreateInfoScreen extends StatefulWidget {

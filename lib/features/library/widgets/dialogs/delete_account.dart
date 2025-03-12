@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../../api/apis.dart';
 import '../../../../utils/constants/app_sizes.dart';
 import '../../../../utils/constants/app_colors.dart';
@@ -39,11 +40,11 @@ void showDeleteAccountDialog(BuildContext context) {
               Navigator.of(context).pop();
             },
             style: TextButton.styleFrom(
-              foregroundColor: AppColors.buttonSecondary,
-              backgroundColor: AppColors.buttonSecondary.withAlpha((0.2 * 255).toInt()),
+              foregroundColor: context.isDarkMode ? AppColors.darkerGrey : AppColors.buttonSecondary,
+              backgroundColor: context.isDarkMode ? AppColors.darkGrey : AppColors.buttonSecondary,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
             ),
-            child: const Text('Cancel', style: TextStyle(color: AppColors.black, fontWeight: FontWeight.bold, fontSize: AppSizes.fontSizeMd)),
+            child: Text('Cancel', style: TextStyle(color: context.isDarkMode ? AppColors.white : AppColors.black, fontWeight: FontWeight.bold, fontSize: AppSizes.fontSizeMd)),
           ),
           TextButton(
             onPressed: () async {

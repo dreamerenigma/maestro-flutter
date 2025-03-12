@@ -32,7 +32,7 @@ class FollowingScreenState extends State<FollowingScreen> {
   }
 
   Future<void> _loadData() async {
-    await Future.delayed(const Duration(seconds: 1));
+    await Future.delayed(const Duration(milliseconds: 700));
     setState(() {
       isLoading = false;
     });

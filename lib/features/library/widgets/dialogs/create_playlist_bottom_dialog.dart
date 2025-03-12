@@ -1,15 +1,14 @@
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import '../../../../data/sources/playlist/playlist_firebase_service.dart';
+import '../../../../data/services/playlist/playlist_firebase_service.dart';
 import '../../../../service_locator.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
 import '../switches.dart';
 
-void showCreatePlaylistDialog(BuildContext context) {
+void showCreatePlaylistDialog(BuildContext context, Function() onPlaylistCreated) {
   final TextEditingController controller = TextEditingController(text: 'Untitled Playlist');
   int currentLength = 0;
   final storage = GetStorage();
@@ -79,6 +78,7 @@ void showCreatePlaylistDialog(BuildContext context) {
                             log('Playlist created with ID: $playlistId');
                             Navigator.pop(context);
                             Get.snackbar('Success', 'Playlist created successfully!');
+                            onPlaylistCreated();
                           },
                         );
                       },

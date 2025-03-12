@@ -11,14 +11,13 @@ import 'package:maestro/routes/custom_page_route.dart';
 import 'package:on_audio_query/on_audio_query.dart' as audio_query;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_manager/photo_manager.dart';
-import 'dart:math' as math;
 import 'dart:developer';
 import '../../../utils/constants/app_colors.dart';
 import '../../../data/models/song/song_model.dart';
 import '../../../domain/entities/song/song_entity.dart' as entity;
 import '../../../domain/entities/song/song_entity.dart';
-import '../../../utils/constants/app_images.dart';
 import '../../../utils/constants/app_sizes.dart';
+import '../../../utils/formatters/formatter.dart';
 import '../../home/models/song_with_download_info.dart';
 import '../../home/screens/home_screen.dart';
 import '../../home/widgets/nav_bar/bottom_nav_bar.dart';
@@ -26,7 +25,9 @@ import '../../song_player/bloc/song_player_cubit.dart';
 import '../../song_player/bloc/song_player_state.dart';
 import '../../song_player/widgets/mini_player/mini_player_manager.dart';
 import '../widgets/dialogs/sort_by_local_audio_bottom_dialog.dart';
+import '../widgets/images/random_image_widget.dart';
 import '../widgets/input_fields/input_field.dart';
+import '../widgets/shimmers/shimmer_loader.dart';
 
 class LocalAudioScreen extends StatefulWidget {
   final List<SongEntity> songs;
@@ -59,12 +60,22 @@ class LocalAudioScreenState extends State<LocalAudioScreen> {
     super.dispose();
   }
 
-  void _requestPermission() async {
-    var status = await Permission.storage.status;
-    if (!status.isGranted) {
-      await Permission.storage.request();
+  Future<void> _requestPermission() async {
+    if (Platform.isAndroid) {
+      if (await Permission.storage.request().isGranted) {
+        if (Platform.version.contains("12")) {
+          if (await Permission.manageExternalStorage.request().isGranted) {
+            _fetchSongs();
+          } else {
+            log("Permission denied for managing storage");
+          }
+        } else {
+          _fetchSongs();
+        }
+      } else {
+        log("Storage permission denied");
+      }
     }
-    _fetchSongs();
   }
 
   Future<bool> isConnectedToInternet() async {
@@ -84,6 +95,9 @@ class LocalAudioScreenState extends State<LocalAudioScreen> {
 
   Future<void> _fetchSongs() async {
     log("Начинаю загрузку треков...");
+
+    await Future.delayed(const Duration(milliseconds: 700));
+
     List<audio_query.SongModel> songs = await _audioQuery.querySongs();
     log("Загружено треков: ${songs.length}");
 
@@ -157,7 +171,7 @@ class LocalAudioScreenState extends State<LocalAudioScreen> {
                 ),
                 Expanded(
                   child: _filteredSongs.isEmpty
-                    ? const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)))
+                    ? ShimmerLoader(itemCount: 10)
                     : ListView.builder(
                       itemCount: _filteredSongs.length,
                       itemBuilder: (context, index) {
@@ -169,7 +183,7 @@ class LocalAudioScreenState extends State<LocalAudioScreen> {
                           future: convertSongModelToEntity(song, fetchFromFirestore: false),
                           builder: (context, snapshot) {
                             if (snapshot.connectionState == ConnectionState.waiting) {
-                              return const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)));
+                              return ShimmerLoader(itemCount: 5);
                             } else if (snapshot.hasError) {
                               return Center(child: Text('Error: ${snapshot.error}'));
                             } else if (!snapshot.hasData) {
@@ -179,7 +193,7 @@ class LocalAudioScreenState extends State<LocalAudioScreen> {
 
                             return InkWell(
                               onTap: () async {
-                                Navigator.push(context, createPageRoute(SongPlayerScreen(songEntity: songEntity)));
+                                Navigator.push(context, createPageRoute(SongPlayerScreen(song: songEntity, isPlaying: context.read<SongPlayerCubit>().isPlaying)));
                               },
                               splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
                               highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
@@ -203,18 +217,7 @@ class LocalAudioScreenState extends State<LocalAudioScreen> {
                                             child: Stack(
                                               alignment: Alignment.center,
                                               children: [
-                                                Container(
-                                                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.darkGrey, width: 0.8)),
-                                                  child: ClipRRect(
-                                                    borderRadius: BorderRadius.circular(8),
-                                                    child: Image.asset(
-                                                      AppImages.defaultCover,
-                                                      width: 65,
-                                                      height: 65,
-                                                      fit: BoxFit.cover,
-                                                    ),
-                                                  ),
-                                                ),
+                                                RandomImageWidget(),
                                                 Icon(
                                                   isPlaying ? Icons.pause : Icons.play_arrow_rounded,
                                                   color: context.isDarkMode ? AppColors.darkGrey : AppColors.grey,
@@ -238,13 +241,12 @@ class LocalAudioScreenState extends State<LocalAudioScreen> {
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                           SizedBox(height: 5),
-                                          Text(_formatDate(downloadTime), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                          Text(Formatter.formatDateAudio(downloadTime), maxLines: 1, overflow: TextOverflow.ellipsis),
                                         ],
                                       ),
                                     ),
-
                                     SizedBox(width: 10),
-                                    Text(_formatFileSize(song.size), style: TextStyle(color: AppColors.lightGrey, fontSize: AppSizes.fontSizeLm)),
+                                    Text(Formatter.formatFileSize(song.size), style: TextStyle(color: AppColors.lightGrey, fontSize: AppSizes.fontSizeLm)),
                                   ],
                                 ),
                               ),
@@ -272,17 +274,5 @@ class LocalAudioScreenState extends State<LocalAudioScreen> {
     List<AssetPathEntity> albums = await PhotoManager.getAssetPathList(type: RequestType.image);
     List<AssetEntity> images = await albums[0].getAssetListRange(start: 0, end: 1);
     return images[0];
-  }
-
-  String _formatFileSize(int sizeInBytes) {
-    if (sizeInBytes <= 0) return "0 B";
-    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-    int index = (math.log(sizeInBytes) /  math.log(1024)).floor();
-    double size = sizeInBytes /  math.pow(1024, index);
-    return '${size.toStringAsFixed(2)} ${sizes[index]}';
-  }
-
-  String _formatDate(DateTime dateTime) {
-    return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 }

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import '../../../../utils/constants/app_colors.dart';
 
-class CustomSlider extends StatelessWidget {
+class CustomSlider extends StatefulWidget {
   final double value;
   final double min;
   final double max;
   final ValueChanged<double> onChanged;
   final Color activeColor;
   final Color inactiveColor;
+  final double thumbSize;
 
   const CustomSlider({
     super.key,
@@ -16,51 +18,87 @@ class CustomSlider extends StatelessWidget {
     required this.onChanged,
     required this.activeColor,
     required this.inactiveColor,
+    required this.thumbSize,
   });
+
+  @override
+  CustomSliderState createState() => CustomSliderState();
+}
+
+class CustomSliderState extends State<CustomSlider> {
+  late double _value;
+  late double _sliderWidth;
+
+  @override
+  void initState() {
+    super.initState();
+    _value = widget.value;
+  }
+
+  void _onDragUpdate(DragUpdateDetails details) {
+    double newValue = (details.localPosition.dx / _sliderWidth) * (widget.max - widget.min);
+    newValue = newValue.clamp(widget.min, widget.max);
+    setState(() {
+      _value = newValue;
+    });
+    widget.onChanged(_value);
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onHorizontalDragUpdate: (details) {
-        double newValue = (value + details.primaryDelta! / context.size!.width) * (max - min);
-        newValue = newValue.clamp(min, max);
-        onChanged(newValue);
+      onHorizontalDragUpdate: _onDragUpdate,
+      onHorizontalDragEnd: (details) {
+        widget.onChanged(_value);
       },
-      child: Container(
-        width: MediaQuery.of(context).size.width * 0.9,
-        height: 3,
-        decoration: BoxDecoration(
-          color: inactiveColor,
-          borderRadius: BorderRadius.circular(5),
-        ),
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Container(
-                  width: (value - min) / (max - min) * MediaQuery.of(context).size.width * 0.9,
-                  decoration: BoxDecoration(
-                    color: activeColor,
-                    borderRadius: BorderRadius.circular(5),
+      child: Builder(
+        builder: (context) {
+          _sliderWidth = MediaQuery.of(context).size.width * 0.9;
+          return Container(
+            width: _sliderWidth,
+            height: 3,
+            decoration: BoxDecoration(
+              color: widget.inactiveColor,
+              borderRadius: BorderRadius.circular(5),
+            ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned.fill(
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      width: (_value - widget.min) / (widget.max - widget.min) * _sliderWidth,
+                      decoration: BoxDecoration(
+                        color: widget.activeColor,
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-            Positioned(
-              left: (value - min) / (max - min) * MediaQuery.of(context).size.width * 0.9 - 10,
-              top: -5,
-              child: Container(
-                width: 20,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: activeColor,
-                  shape: BoxShape.circle,
+                Positioned(
+                  left: (_value - widget.min) / (widget.max - widget.min) * _sliderWidth - widget.thumbSize / 2,
+                  top: -widget.thumbSize / 2,
+                  child: Container(
+                    width: widget.thumbSize,
+                    height: widget.thumbSize,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.primary,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.black.withAlpha((0.3 * 255).toInt()),
+                          spreadRadius: 1,
+                          blurRadius: 2,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

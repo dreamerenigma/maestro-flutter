@@ -12,9 +12,10 @@ import 'package:maestro/utils/devices/device_utility.dart';
 import 'package:maestro/utils/theme/theme.dart';
 import 'package:path_provider/path_provider.dart';
 import 'bindings/general_bindings.dart';
-import 'data/sources/notification/notification_service.dart';
+import 'data/services/notification/notification_service.dart';
 import 'features/choose_mode/bloc/theme_cubit.dart';
 import 'features/library/bloc/language_cubit.dart';
+import 'features/library/bloc/song/song_cubit.dart';
 import 'features/library/controllers/themes_controller.dart';
 import 'features/song_player/widgets/mini_player/mini_player_manager.dart';
 import 'features/song_player/widgets/task/audio_player_task.dart';
@@ -70,6 +71,7 @@ class App extends StatelessWidget {
         BlocProvider(create: (_) => ThemeCubit()),
         BlocProvider(create: (_) => LanguageCubit()),
         BlocProvider(create: (_) => SongPlayerCubit()),
+        BlocProvider(create: (_) => SongCubit()),
       ],
       child: BlocListener<ThemeCubit, ThemeMode>(
         listener: (context, themeMode) {

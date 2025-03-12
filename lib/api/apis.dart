@@ -125,8 +125,8 @@ class APIs {
           releaseDate: data['releaseDate'] != null ? (data['releaseDate'] as Timestamp) : Timestamp.now(),
           isFavorite: data['isFavorite'] ?? true,
           listenCount: data['listenCount'] ?? 0,
-          url: data['audioUrl'] ?? '',
-          coverPath: data['coverPath'] ?? '',
+          fileURL: data['fileURL'] ?? '',
+          cover: data['cover'] ?? '',
           uploadedBy: data['uploadedBy'] ?? '',
         ));
       }
@@ -134,6 +134,31 @@ class APIs {
     } catch (e) {
       log("Error fetching liked tracks: $e");
       return [];
+    }
+  }
+
+  static Future<String> getUserName() async {
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      try {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('Users')
+          .doc(user.uid)
+          .get();
+
+        if (userDoc.exists) {
+          String name = userDoc['name'] ?? 'Unknown User';
+          return name;
+        } else {
+          return 'Unknown User';
+        }
+      } catch (e) {
+        log('Error getting user name: $e');
+        return 'Unknown User';
+      }
+    } else {
+      return 'Unknown User';
     }
   }
 
@@ -146,12 +171,11 @@ class APIs {
         return [];
       }
 
-      log('Fetching tracks for user: ${user.uid}');
+      String userName = await getUserName();
 
-      final tracksRef = FirebaseFirestore.instance.collection('Songs').where('uploadedBy', isEqualTo: user.uid);
+
+      final tracksRef = FirebaseFirestore.instance.collection('Songs').where('uploadedBy', isEqualTo: userName);
       final snapshot = await tracksRef.get();
-
-      log('Snapshot fetched: ${snapshot.docs.length} documents');
 
       List<SongEntity> uploadedTracks = [];
 
@@ -161,20 +185,18 @@ class APIs {
         uploadedTracks.add(SongEntity(
           songId: doc.id,
           title: data['title'] ?? 'Unknown Title',
-          artist: data['title'] ?? 'Unknown Artist',
+          artist: data['artist'] ?? 'Unknown Artist',
           genre: data['genre'] ?? '',
           description: data['description'] ?? '',
           caption: data['caption'] ?? '',
-          duration: int.tryParse(data['duration']) ?? 0,
+          duration: _parseDuration(data['duration']),
           releaseDate: data['releaseDate'] != null ? (data['releaseDate'] as Timestamp) : Timestamp.now(),
           isFavorite: data['isFavorite'] ?? false,
           listenCount: data['listenCount'] ?? 0,
-          url: data['audioUrl'] ?? '',
-          coverPath: data['coverPath'] ?? '',
+          fileURL: data['fileURL'] ?? '',
+          cover: data['cover'] ?? '',
           uploadedBy: data['uploadedBy'] ?? '',
         ));
-
-        log('Added track: ${uploadedTracks.last.title}, ${uploadedTracks.last.artist}');
       }
 
       return uploadedTracks;
@@ -182,6 +204,20 @@ class APIs {
       log("Error fetching uploaded tracks: $e");
       return [];
     }
+  }
+
+  static int _parseDuration(String duration) {
+    try {
+      final parts = duration.split(':');
+      if (parts.length == 2) {
+        final minutes = int.tryParse(parts[0]) ?? 0;
+        final seconds = int.tryParse(parts[1]) ?? 0;
+        return (minutes * 60) + seconds;
+      }
+    } catch (e) {
+      log('Error parsing duration: $e');
+    }
+    return 0;
   }
 
   ///******************* Chat Screen Related APIs *******************

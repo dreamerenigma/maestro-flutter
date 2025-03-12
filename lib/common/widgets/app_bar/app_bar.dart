@@ -58,6 +58,8 @@ class BasicAppBar extends StatelessWidget implements PreferredSizeWidget {
           leading: hideBack
             ? Container()
             : IconButton(
+              splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+              highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
               onPressed: () {
                 if (onBackPressed != null) {
                   onBackPressed!();
@@ -67,36 +69,36 @@ class BasicAppBar extends StatelessWidget implements PreferredSizeWidget {
               },
               icon: removeIconContainer
                 ? Transform.rotate(
-                  angle: rotateIcon ? -3.14159 / 2 : 0,
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 2),
-                    child: Icon(
-                      showCloseIcon ? Icons.close : Icons.arrow_back_ios_new,
-                      size: 20,
-                      color: context.isDarkMode ? AppColors.white : AppColors.black,
-                    ),
-                  ),
-                )
-                : Container(
-                  height: 36,
-                  width: 36,
-                  decoration: BoxDecoration(
-                    color: context.isDarkMode ? AppColors.white.withAlpha((0.1 * 255).toInt()) : AppColors.black.withAlpha((0.08 * 255).toInt()),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Transform.rotate(
                     angle: rotateIcon ? -3.14159 / 2 : 0,
                     child: Padding(
-                      padding: const EdgeInsets.only(right: 2),
+                      padding: EdgeInsets.only(right: showCloseIcon ? 0 : 2),
                       child: Icon(
                         showCloseIcon ? Icons.close : Icons.arrow_back_ios_new,
-                        size: 20,
+                        size: showCloseIcon ? 24 : 20,
                         color: context.isDarkMode ? AppColors.white : AppColors.black,
+                      ),
+                    ),
+                  )
+                : Container(
+                    height: 36,
+                    width: 36,
+                    decoration: BoxDecoration(
+                      color: context.isDarkMode ? AppColors.white.withAlpha((0.1 * 255).toInt()) : AppColors.black.withAlpha((0.08 * 255).toInt()),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Transform.rotate(
+                      angle: rotateIcon ? -3.14159 / 2 : 0,
+                      child: Padding(
+                        padding: EdgeInsets.only(right: showCloseIcon ? 0 : 2),
+                        child: Icon(
+                          showCloseIcon ? Icons.close : Icons.arrow_back_ios_new,
+                          size: showCloseIcon ? 24 : 20,
+                          color: context.isDarkMode ? AppColors.white : AppColors.black,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
           titleSpacing: hideBack ? 0.0 : NavigationToolbar.kMiddleSpacing,
         ),
       ),

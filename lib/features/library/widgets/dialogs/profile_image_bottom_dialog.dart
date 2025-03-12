@@ -46,7 +46,7 @@ void showProfileImageBottomDialog(
             if (pickImageProfile != null)
             _buildBottomSheetOption(
               icon: Ionicons.image_outline,
-              text: 'Choose from Library',
+              text: 'Choose from library',
               onTap: () {
                 pickImageProfile();
                 Navigator.pop(context);

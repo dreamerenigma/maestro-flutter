@@ -1,13 +1,17 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:maestro/features/utils/widgets/no_glow_scroll_behavior.dart';
 import 'package:photo_manager/photo_manager.dart';
 import '../../../routes/custom_page_route.dart';
 import '../../../utils/constants/app_colors.dart';
+import '../../../utils/constants/app_sizes.dart';
 import 'choose_picture_screen.dart';
 
 class SelectPicturesScreen extends StatefulWidget {
-  const SelectPicturesScreen({super.key});
+  final bool fromEditTrackScreen;
+
+  const SelectPicturesScreen({super.key, required this.fromEditTrackScreen});
 
   @override
   SelectPicturesScreenState createState() => SelectPicturesScreenState();
@@ -81,19 +85,22 @@ class SelectPicturesScreenState extends State<SelectPicturesScreen> {
                   children: [
                     GestureDetector(
                       onTap: () => Navigator.pop(context),
-                      child: const Text('Cancel', style: TextStyle(color: AppColors.blue)),
+                      child: const Text('Cancel', style: TextStyle(fontSize: AppSizes.fontSizeMd, color: AppColors.primary)),
                     ),
                     Expanded(child: _tabBar()),
                   ],
                 ),
               ),
-              _search(context),
+              _buildTextField(context),
               Expanded(
-                child: TabBarView(
-                  children: [
-                    _imagesGrid(context),
-                    _imagesGrid(context),
-                  ],
+                child: ScrollConfiguration(
+                  behavior: NoGlowScrollBehavior(),
+                  child: TabBarView(
+                    children: [
+                      _buildImagesGrid(context),
+                      _buildImagesGrid(context),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -114,7 +121,7 @@ class SelectPicturesScreenState extends State<SelectPicturesScreen> {
             tabs: const [
               Tab(
                 child: SizedBox(
-                  width: 100,
+                  width: 105,
                   child: Center(
                     child: Text('Photos'),
                   ),
@@ -122,17 +129,14 @@ class SelectPicturesScreenState extends State<SelectPicturesScreen> {
               ),
               Tab(
                 child: SizedBox(
-                  width: 100,
+                  width: 105,
                   child: Center(
                     child: Text('Albums'),
                   ),
                 ),
               ),
             ],
-            indicator: BoxDecoration(
-              color: AppColors.darkerGrey,
-              borderRadius: BorderRadius.circular(12.0),
-            ),
+            indicator: BoxDecoration(color: AppColors.steelGrey, borderRadius: BorderRadius.circular(12.0)),
             labelColor: AppColors.white,
             unselectedLabelColor: AppColors.grey,
             labelStyle: const TextStyle(fontWeight: FontWeight.bold),
@@ -146,7 +150,7 @@ class SelectPicturesScreenState extends State<SelectPicturesScreen> {
     );
   }
 
-  Widget _search(BuildContext context) {
+  Widget _buildTextField(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Row(
@@ -163,24 +167,16 @@ class SelectPicturesScreenState extends State<SelectPicturesScreen> {
                 textCapitalization: TextCapitalization.sentences,
                 decoration: InputDecoration(
                   hintText: 'Photos, People, Places...',
-                  hintStyle: TextStyle(color: context.isDarkMode ? AppColors.darkerGrey : AppColors.darkerGrey),
+                  hintStyle: TextStyle(fontSize: AppSizes.fontSizeMd, fontWeight: FontWeight.w200, color: context.isDarkMode ? AppColors.darkerGrey : AppColors.darkerGrey),
                   prefixIcon: Icon(Icons.search, color: context.isDarkMode ? AppColors.darkerGrey : AppColors.darkGrey),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
                   filled: true,
                   fillColor: context.isDarkMode ? AppColors.darkGrey : AppColors.lightGrey,
                   contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
                 ),
+                style: TextStyle(fontSize: AppSizes.fontSizeLg, fontWeight: FontWeight.w200),
               ),
             ),
           ),
@@ -189,7 +185,7 @@ class SelectPicturesScreenState extends State<SelectPicturesScreen> {
     );
   }
 
-  Widget _imagesGrid(BuildContext context) {
+  Widget _buildImagesGrid(BuildContext context) {
     if (loading) {
       return const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)));
     }
@@ -207,7 +203,16 @@ class SelectPicturesScreenState extends State<SelectPicturesScreen> {
       itemBuilder: (context, index) {
         return GestureDetector(
           onTap: () {
-            Navigator.push(context, createPageRoute(ChoosePictureScreen(image: _imageList[index])));
+            if (widget.fromEditTrackScreen) {
+              Navigator.pop(context, _imageList[index]);
+            } else {
+              Navigator.pushReplacement(
+                context,
+                createPageRoute(
+                  ChoosePictureScreen(image: _imageList[index], fromEditTrackScreen: false),
+                ),
+              );
+            }
           },
           child: FutureBuilder<Uint8List?>(
             future: _imageList[index].thumbnailData,

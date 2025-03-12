@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:audio_service/audio_service.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:rxdart/rxdart.dart';  // Import rxdart for BehaviorSubject
-import '../../../../data/sources/notification/notification_service.dart';
+import 'package:rxdart/rxdart.dart';
+import '../../../../data/services/notification/notification_service.dart';
 import '../../../../domain/entities/song/song_entity.dart';
 
 class AudioPlayerTask extends BaseAudioHandler {

@@ -6,7 +6,7 @@ import '../../../utils/constants/app_colors.dart';
 import '../../home/screens/home_screen.dart';
 import '../../home/widgets/nav_bar/bottom_nav_bar.dart';
 import '../../song_player/widgets/mini_player/mini_player_manager.dart';
-import '../widgets/app_bar/custom_sliver_app_bar.dart';
+import '../widgets/bars/custom_sliver_app_bar.dart';
 
 class GenreScreen extends StatefulWidget {
   final int initialIndex;

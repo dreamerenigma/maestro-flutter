@@ -16,10 +16,24 @@ class CaptionScreen extends StatefulWidget {
 class CaptionScreenState extends State<CaptionScreen> {
   final TextEditingController _controller = TextEditingController();
   final int _maxLength = 140;
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(Duration.zero, () {
+      FocusScope.of(context).requestFocus(_focusNode);
+    });
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
 
   void _saveCaption() {
     widget.onSaveCaption(_controller.text);
-    Navigator.pop(context);
   }
 
   @override
@@ -92,6 +106,7 @@ class CaptionScreenState extends State<CaptionScreen> {
           ),
           child: TextFormField(
             controller: _controller,
+            focusNode: _focusNode,
             maxLength: _maxLength,
             maxLines: null,
             onChanged: (text) {
