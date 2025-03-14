@@ -23,20 +23,13 @@ class SignUpOrSignInScreen extends StatelessWidget {
           const BasicAppBar(),
           Align(
             alignment: Alignment.topRight,
-            child: SvgPicture.asset(
-              AppVectors.topPattern
-            ),
+            child: SvgPicture.asset(AppVectors.topPattern),
           ),
           Align(
             alignment: Alignment.bottomRight,
-            child: SvgPicture.asset(
-              AppVectors.bottomPattern
-            ),
+            child: SvgPicture.asset(AppVectors.bottomPattern),
           ),
-          Align(
-            alignment: Alignment.bottomLeft,
-            child: Image.asset(AppImages.authBg)
-          ),
+          Align(alignment: Alignment.bottomLeft, child: Image.asset(AppImages.authBg)),
           Align(
             alignment: Alignment.center,
             child: Padding(

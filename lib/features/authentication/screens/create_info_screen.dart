@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:maestro/routes/custom_page_route.dart';
 import '../../../common/widgets/buttons/basic_app_button.dart';
 import '../../../data/services/image/image_service.dart';
+import '../../../generated/l10n/l10n.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../models/create_user_req.dart';
 import '../../home/screens/home_screen.dart';
@@ -26,18 +27,27 @@ class CreateInfoScreen extends StatefulWidget {
 }
 
 class CreateInfoScreenState extends State<CreateInfoScreen> {
+  List<String> _genders = [];
   String? _selectedGender;
   int? _selectedAge;
   File? _image;
-
-  final List<String> _genders = ['Male', 'Female', 'Other'];
   final List<int> _ages = List<int>.generate(100, (index) => index + 1);
+
+  @override
+  void initState() {
+    super.initState();
+    _genders = [
+      S.of(context).male,
+      S.of(context).female,
+      S.of(context).other,
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Additional Info'),
+        title: Text(S.of(context).additionalInfo),
       ),
       body: Column(
         children: <Widget>[
@@ -62,7 +72,7 @@ class CreateInfoScreenState extends State<CreateInfoScreen> {
               callback: () async {
                 await _createAccount();
               },
-              title: 'Create Account',
+              title: S.of(context).createAccount,
             ),
           ),
         ],
@@ -108,7 +118,7 @@ class CreateInfoScreenState extends State<CreateInfoScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Select Gender', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(S.of(context).selectGender, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8.0),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -119,7 +129,7 @@ class CreateInfoScreenState extends State<CreateInfoScreen> {
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 isExpanded: true,
-                hint: const Text('Select Gender'),
+                hint: Text(S.of(context).selectGender),
                 value: _selectedGender,
                 onChanged: (newValue) {
                   setState(() {
@@ -127,10 +137,7 @@ class CreateInfoScreenState extends State<CreateInfoScreen> {
                   });
                 },
                 items: _genders.map((gender) {
-                  return DropdownMenuItem(
-                    value: gender,
-                    child: Text(gender),
-                  );
+                  return DropdownMenuItem(value: gender, child: Text(gender));
                 }).toList(),
               ),
             ),
@@ -146,7 +153,7 @@ class CreateInfoScreenState extends State<CreateInfoScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Select Age', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(S.of(context).selectAge, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8.0),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -157,7 +164,7 @@ class CreateInfoScreenState extends State<CreateInfoScreen> {
             child: DropdownButtonHideUnderline(
               child: DropdownButton<int>(
                 isExpanded: true,
-                hint: const Text('Select Age'),
+                hint: Text(S.of(context).selectAge),
                 value: _selectedAge,
                 onChanged: (newValue) {
                   setState(() {
@@ -165,10 +172,7 @@ class CreateInfoScreenState extends State<CreateInfoScreen> {
                   });
                 },
                 items: _ages.map((age) {
-                  return DropdownMenuItem(
-                    value: age,
-                    child: Text(age.toString()),
-                  );
+                  return DropdownMenuItem(value: age, child: Text(age.toString()));
                 }).toList(),
               ),
             ),

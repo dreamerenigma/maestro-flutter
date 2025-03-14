@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui';
 import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,6 +8,11 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:icons_plus/icons_plus.dart';
+import 'package:maestro/common/widgets/buttons/favorite_button.dart';
+import 'package:maestro/features/library/screens/library/tracks/behind_this_track_screen.dart';
+import 'package:maestro/routes/custom_page_route.dart';
+import '../../../api/apis.dart';
+import '../../../common/bloc/favorite_button/favorite_button_cubit.dart';
 import '../../../common/widgets/app_bar/app_bar.dart';
 import '../../../data/services/song/song_firebase_service.dart';
 import '../../../utils/constants/app_images.dart';
@@ -14,16 +20,24 @@ import '../../../utils/constants/app_sizes.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../../domain/entities/song/song_entity.dart';
 import '../../../utils/constants/app_vectors.dart';
+import '../../../utils/formatters/formatter.dart';
+import '../../library/widgets/dialogs/info_track_bottom_dialog.dart';
 import '../bloc/song_player_cubit.dart';
 import '../bloc/song_player_state.dart';
-import '../widgets/sliders/song_slider.dart';
 import 'package:palette_generator/palette_generator.dart';
 
+import '../widgets/buttons/device_icon_button.dart';
+import '../widgets/dialogs/share_track_bottom_dialog.dart';
+import '../widgets/sliders/song_slider.dart';
+import 'comments_screen.dart';
+import 'next_up_screen.dart';
+
 class SongPlayerScreen extends StatefulWidget {
+  final int initialIndex;
   final SongEntity song;
   final bool isPlaying;
 
-  const SongPlayerScreen({super.key, required this.song, required this.isPlaying});
+  const SongPlayerScreen({super.key, required this.song, required this.isPlaying, required this.initialIndex});
 
   @override
   SongPlayerScreenState createState() => SongPlayerScreenState();
@@ -33,8 +47,10 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
   bool isShuffleActive = false;
   bool _isRepeated = false;
   final GetStorage _storageBox = GetStorage();
+  late Future<Map<String, dynamic>?> userDataFuture;
   Color backgroundColor = AppColors.transparent;
   Timer? _timer;
+  late String coverPath;
 
   List<String> cover = [
     AppImages.defaultCover1,
@@ -56,7 +72,9 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
   @override
   void initState() {
     super.initState();
+    userDataFuture = APIs.fetchUserData();
     onSongPlayed(widget.song.songId);
+    coverPath = widget.song.cover;
     isShuffleActive = _storageBox.read('isShuffleActive') ?? false;
     if (widget.isPlaying) {
       context.read<SongPlayerCubit>().playOrPauseSong(widget.song);
@@ -84,27 +102,29 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
   }
 
   Future<void> _getDominantColor() async {
-    final coverPath = widget.song.cover;
     if (coverPath.isNotEmpty) {
       ImageProvider imageProvider;
 
       if (coverPath.startsWith('http')) {
-        imageProvider = NetworkImage(coverPath) as ImageProvider<Object>;
+        imageProvider = NetworkImage(coverPath);
       } else {
-        imageProvider = FileImage(File(coverPath)) as ImageProvider<Object>;
+        imageProvider = FileImage(File(coverPath));
       }
 
       final PaletteGenerator palette = await PaletteGenerator.fromImageProvider(imageProvider);
 
       setState(() {
-        backgroundColor = palette.dominantColor?.color ?? AppColors.transparent;
+        backgroundColor = palette.dominantColor?.color ?? Colors.transparent;
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final coverPath = widget.song.cover;
+
     return Scaffold(
+      backgroundColor: context.isDarkMode ? AppColors.backgroundColor : AppColors.white,
       appBar: BasicAppBar(
         title: const Text('Now playing', style: TextStyle(fontSize: AppSizes.fontSizeLg)),
         rotateIcon: true,
@@ -115,7 +135,7 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
           borderRadius: BorderRadius.circular(AppSizes.cardRadiusXl),
           onTap: () {},
           child: Padding(
-            padding: const EdgeInsets.all(10.0),
+            padding: const EdgeInsets.only(left: 8, right: 6, top: 8, bottom: 8),
             child: SvgPicture.asset(
               AppVectors.playNext,
               width: 22,
@@ -128,20 +148,86 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
           ),
         ),
       ),
-      body: BlocProvider(
-        create: (_) => SongPlayerCubit()..loadSong(widget.song),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Column(
+      body: FutureBuilder<Map<String, dynamic>?>(
+        future: userDataFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)));
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData) {
+            return const Center(child: Text('No data available'));
+          }
+          final userData = snapshot.data!;
+          return Stack(
             children: [
-              _buildSongCover(widget.song),
-              const SizedBox(height: 20),
-              _buildSongDetail(),
-              const SizedBox(height: 30),
-              _buildSongPlayer(context),
+              Positioned.fill(
+                child: Stack(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: coverPath.isNotEmpty
+                            ? (coverPath.startsWith('http') ? NetworkImage(coverPath) : FileImage(File(coverPath)))
+                            : const AssetImage(AppImages.defaultCover1),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              AppColors.transparent,
+                              AppColors.black.withAlpha((0.7 * 255).toInt()),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.black.withAlpha((0.4 * 255).toInt()),
+                              offset: Offset(0, 10),
+                              blurRadius: 15,
+                              spreadRadius: 5,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              BlocProvider(
+                create: (_) => SongPlayerCubit()..loadSong(widget.song),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    _buildSongCover(widget.song),
+                    const SizedBox(height: 20),
+                    _buildSongDetail(),
+                    const SizedBox(height: 30),
+                    _buildSongPlayer(context),
+                  ],
+                ),
+              ),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: _buildBottomPanel(userData),
+              ),
             ],
-          ),
-        ),
+          );
+        }
       ),
     );
   }
@@ -150,9 +236,9 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
     final coverPath = song.cover;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 30),
       child: Container(
-        height: MediaQuery.of(context).size.height / 2,
+        height: MediaQuery.of(context).size.height / 2.3,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(30),
           image: DecorationImage(
@@ -161,6 +247,14 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
               ? (coverPath.startsWith('http') ? NetworkImage(coverPath) : FileImage(File(coverPath)))
               : const AssetImage(AppImages.defaultCover1),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.black.withAlpha((0.3 * 255).toInt()),
+              offset: const Offset(0, 4),
+              blurRadius: 10,
+              spreadRadius: 2,
+            ),
+          ],
         ),
       ),
     );
@@ -168,40 +262,48 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
 
   Widget _buildSongDetail() {
     return Padding(
-      padding: const EdgeInsets.only(left: 16),
+      padding: const EdgeInsets.only(right: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.song.title.split('.').first,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: AppSizes.fontSizeXl),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
+            child: InkWell(
+              onTap: () {
+                Navigator.push(context, createPageRoute(BehindThisTrackScreen()));
+              },
+              splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+              highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.song.title.split('.').first,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: AppSizes.fontSizeXl),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      widget.song.uploadedBy.isNotEmpty == true
+                        ? widget.song.uploadedBy
+                        : (widget.song.artist.isNotEmpty == true && widget.song.artist != '<unknown>')
+                          ? widget.song.artist
+                          : _getArtistFromTitle(widget.song.title) ?? 'Unknown Artist',
+                      style: const TextStyle(color: AppColors.white),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 5),
-                Text(
-                  widget.song.uploadedBy.isNotEmpty == true
-                    ? widget.song.uploadedBy
-                    : (widget.song.artist.isNotEmpty == true && widget.song.artist != '<unknown>')
-                      ? widget.song.artist
-                      : _getArtistFromTitle(widget.song.title) ?? 'Unknown Artist',
-                  style: const TextStyle(color: AppColors.white),
-                ),
-              ],
+              ),
             ),
           ),
           IconButton(
             onPressed: () {},
-            icon: const Icon(Icons.add_rounded, color: AppColors.darkerGrey, size: 30),
+            icon: const Icon(Icons.add_rounded, color: AppColors.buttonGrey, size: 30),
           ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.more_vert_rounded, color: AppColors.darkerGrey, size: 28),
-          ),
+          DeviceIconButton(),
         ],
       ),
     );
@@ -228,7 +330,7 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
           }
 
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.only(left: 16, right:16, bottom: 30),
             child: Column(
               children: [
                 CustomSlider(
@@ -247,8 +349,8 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(formatDuration(songPlayerCubit.songPosition, isRemaining: true), style: TextStyle(fontSize: AppSizes.fontSizeLm, fontWeight: FontWeight.w200)),
-                    Text(formatDuration(songPlayerCubit.songDuration - songPlayerCubit.songPosition), style: TextStyle(fontSize: AppSizes.fontSizeLm, fontWeight: FontWeight.w200)),
+                    Text(Formatter.formatDuration(songPlayerCubit.songPosition, isRemaining: true), style: TextStyle(fontSize: AppSizes.fontSizeLm, fontWeight: FontWeight.w200)),
+                    Text(Formatter.formatDuration(songPlayerCubit.songDuration - songPlayerCubit.songPosition), style: TextStyle(fontSize: AppSizes.fontSizeLm, fontWeight: FontWeight.w200)),
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -343,24 +445,86 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
       borderRadius: BorderRadius.circular(50),
       child: Container(
         padding: const EdgeInsets.all(15.0),
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          color: AppColors.transparent,
-        ),
-        child: Icon(
-          icon,
-          color: AppColors.white,
-          size: 36,
-        ),
+        decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.transparent),
+        child: Icon(icon, color: AppColors.white, size: 36),
       ),
     );
   }
 
-  String formatDuration(Duration duration, {bool isRemaining = false}) {
-    final minutes = duration.inMinutes.remainder(60);
-    final seconds = duration.inSeconds.remainder(60);
-    final formattedTime = '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-
-    return isRemaining ? formattedTime : '-$formattedTime';
+  Widget _buildBottomPanel(Map<String, dynamic> userData) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.youngNight,
+        borderRadius: const BorderRadius.only(topLeft: Radius.circular(18.0), topRight: Radius.circular(18.0)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Material(
+            color: AppColors.transparent,
+            child: InkWell(
+              onTap: () {},
+              splashColor: AppColors.darkGrey.withAlpha((0.8 * 255).toInt()),
+              highlightColor: AppColors.darkGrey.withAlpha((0.8 * 255).toInt()),
+              borderRadius: BorderRadius.circular(AppSizes.cardRadiusXl),
+              child: Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Row(
+                      children: [
+                        BlocProvider(
+                          create: (context) => FavoriteButtonCubit(),
+                          child: FavoriteButton(songEntity: widget.song),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Material(
+            color: AppColors.transparent,
+            child: InkWell(
+              onTap: () {
+                Navigator.push(context, createPageRoute(CommentsScreen(song: widget.song, initialIndex: widget.initialIndex, comments: [])));
+              },
+              splashColor: AppColors.darkGrey.withAlpha((0.8 * 255).toInt()),
+              highlightColor: AppColors.darkGrey.withAlpha((0.8 * 255).toInt()),
+              borderRadius: BorderRadius.circular(AppSizes.cardRadiusXl),
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: SvgPicture.asset(
+                  AppVectors.comment,
+                  colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn),
+                  width: 24,
+                  height: 24,
+                ),
+              ),
+            ),
+          ),
+          IconButton(
+            onPressed: () {
+              showShareTrackBottomDialog(context, userData, widget.song);
+            },
+            icon: Icon(Icons.share_outlined, size: 26, color: context.isDarkMode ? AppColors.white : AppColors.black),
+          ),
+          IconButton(
+            onPressed: () {
+              Navigator.push(context, createPageRoute(NextUpScreen()));
+            },
+            icon: Icon(Icons.playlist_play_rounded, size: 34, color: context.isDarkMode ? AppColors.white : AppColors.black),
+          ),
+          IconButton(
+            onPressed: () {
+              showInfoTrackBottomDialog(context, userData, widget.song, shouldShowPlayNext: false, shouldShowPlayLast: false);
+            },
+            icon: Icon(Icons.more_vert_rounded, size: 24, color: context.isDarkMode ? AppColors.white : AppColors.black),
+          ),
+        ],
+      ),
+    );
   }
 }

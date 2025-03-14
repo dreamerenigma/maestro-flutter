@@ -106,7 +106,6 @@ class PlaylistsScreenState extends State<PlaylistsScreen> {
           } else if (!snapshot.hasData) {
             return const Center(child: Text('No data available'));
           }
-
           final userData = snapshot.data!;
 
           return MiniPlayerManager(
@@ -195,11 +194,11 @@ class PlaylistsScreenState extends State<PlaylistsScreen> {
                               ? Padding(
                                 padding: const EdgeInsets.only(left: 6, top: 3),
                                 child: Container(
-                                    width: 15,
-                                    height: 15,
-                                    decoration: BoxDecoration(color: AppColors.grey, shape: BoxShape.circle),
-                                    child: Icon(Icons.lock, size: 13, color: AppColors.black),
-                                  ),
+                                  width: 15,
+                                  height: 15,
+                                  decoration: BoxDecoration(color: AppColors.grey, shape: BoxShape.circle),
+                                  child: Icon(Icons.lock, size: 13, color: AppColors.black),
+                                ),
                               )
                               : SizedBox.shrink(),
                           ],

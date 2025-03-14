@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../generated/l10n/l10n.dart';
 import '../../../../utils/constants/app_sizes.dart';
 import '../../../../utils/constants/app_colors.dart';
 
@@ -16,9 +17,9 @@ void showCancelUploadDialog(BuildContext context) {
         contentPadding: const EdgeInsets.only(left: 20, right: 20, top: 12, bottom: 16),
         title: Stack(
           children: [
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(left: 20, right: 20, top: 14, bottom: 12),
-              child: Text('Cancel this upload?', style: TextStyle(fontSize: AppSizes.fontSizeBg)),
+              child: Text(S.of(context).cancelUpload, style: TextStyle(fontSize: AppSizes.fontSizeBg)),
             ),
             Positioned(
               right: 0,
@@ -32,7 +33,7 @@ void showCancelUploadDialog(BuildContext context) {
             ),
           ],
         ),
-        content: const Text('Uploading this track will be stopped and deleted from Maestro.'),
+        content: Text(S.of(context).uploadingTrackStoppedDeleted),
         actions: [
           Align(
             alignment: Alignment.centerRight,
@@ -50,7 +51,7 @@ void showCancelUploadDialog(BuildContext context) {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                   ),
                   child: Text(
-                    'Resume',
+                    S.of(context).resume,
                     style: TextStyle(color: context.isDarkMode ? AppColors.white : AppColors.black, fontWeight: FontWeight.bold, fontSize: AppSizes.fontSizeMd),
                   ),
                 ),
@@ -65,7 +66,7 @@ void showCancelUploadDialog(BuildContext context) {
                     backgroundColor: AppColors.red.withAlpha((0.2 * 255).toInt()),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                   ),
-                  child: Text('Cancel upload', style: TextStyle(color: AppColors.red, fontWeight: FontWeight.bold, fontSize: AppSizes.fontSizeMd)),
+                  child: Text(S.of(context).cancelUpload, style: TextStyle(color: AppColors.red, fontWeight: FontWeight.bold, fontSize: AppSizes.fontSizeMd)),
                 ),
               ],
             ),

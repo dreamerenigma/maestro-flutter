@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:maestro/utils/constants/app_colors.dart';
 
+import '../../../../generated/l10n/l10n.dart';
+
 class RecentBrowseNavBar extends StatelessWidget {
   final int selectedIndex;
   final void Function(int) onItemTapped;
@@ -36,13 +38,13 @@ class RecentBrowseNavBar extends StatelessWidget {
               _buildBottomNavigationBarItem(
                 context,
                 iconData: Icons.access_time_filled_sharp,
-                label: 'Recents',
+                label: S.of(context).recents,
                 index: 0,
               ),
               _buildBottomNavigationBarItem(
                 context,
                 iconData: IonIcons.folder,
-                label: 'Browse',
+                label: S.of(context).browse,
                 index: 1,
               ),
             ],
@@ -58,12 +60,12 @@ class RecentBrowseNavBar extends StatelessWidget {
   }
 
   BottomNavigationBarItem _buildBottomNavigationBarItem(
-      BuildContext context, {
-        required IconData iconData,
-        required String label,
-        required int index,
-        double iconSize = 30,
-      }) {
+    BuildContext context, {
+      required IconData iconData,
+      required String label,
+      required int index,
+      double iconSize = 30,
+    }) {
     bool isSelected = selectedIndex == index;
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
@@ -78,16 +80,8 @@ class RecentBrowseNavBar extends StatelessWidget {
 
     return BottomNavigationBarItem(
       icon: Tooltip(
-        richMessage: TextSpan(
-          text: label,
-          style: TextStyle(
-            color: isDarkMode ? Colors.white : Colors.black,
-          ),
-        ),
-        decoration: BoxDecoration(
-          color: isDarkMode ? AppColors.black : AppColors.grey,
-          borderRadius: BorderRadius.circular(4),
-        ),
+        richMessage: TextSpan(text: label, style: TextStyle(color: isDarkMode ? AppColors.white : AppColors.black)),
+        decoration: BoxDecoration(color: isDarkMode ? AppColors.black : AppColors.grey, borderRadius: BorderRadius.circular(4)),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 20),
           child: iconWidget,

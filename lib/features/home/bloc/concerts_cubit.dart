@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../domain/usecases/concerts/get_concerts_use_case.dart';
+import '../../../domain/usecases/concerts/get_concerts_use_cases.dart';
 import '../../../service_locator.dart';
 import 'concerts_state.dart';
 

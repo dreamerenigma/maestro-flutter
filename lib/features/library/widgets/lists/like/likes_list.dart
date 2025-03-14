@@ -8,7 +8,6 @@ import '../../../../../utils/constants/app_colors.dart';
 import '../../../../../utils/constants/app_sizes.dart';
 import '../../../../song_player/bloc/song_player_cubit.dart';
 import '../../../../song_player/bloc/song_player_state.dart';
-import '../../../../song_player/widgets/dialogs/song_player_bottom_dialog.dart';
 import '../../../bloc/likes/likes_cubit.dart';
 import '../../../bloc/likes/likes_state.dart';
 import '../../../screens/library/playlists/playlist_screen.dart';
@@ -93,9 +92,7 @@ class LikesList extends StatelessWidget {
       itemBuilder: (context, index) {
         final song = songs[index];
         return GestureDetector(
-          onTap: () async {
-            showSongPlayerDialog(context, songEntity: song);
-          },
+          onTap: () {},
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

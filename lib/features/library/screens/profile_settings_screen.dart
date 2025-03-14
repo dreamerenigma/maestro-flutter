@@ -1,5 +1,7 @@
 import 'dart:developer';
+import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -16,6 +18,7 @@ import '../../../generated/l10n/l10n.dart';
 import '../../home/screens/home_screen.dart';
 import '../../home/widgets/nav_bar/bottom_nav_bar.dart';
 import '../../song_player/widgets/mini_player/mini_player_manager.dart';
+import '../../utils/screens/internet_aware_screen.dart';
 import '../controllers/background_controller.dart';
 import '../controllers/profile_image_controller.dart';
 import '../widgets/dialogs/share_profile_bottom_dialog.dart';
@@ -51,6 +54,7 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   String? _imageUrlBg;
   String? _imageUrl;
   bool isShuffleActive = false;
+  bool isConnected = true;
   double opacity = 1.0;
   double opacityUsername = 0;
   double lastOffset = 0;
@@ -88,9 +92,17 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       }
     });
 
+    Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> results) {
+      final result = results.isNotEmpty ? results.first : ConnectivityResult.none;
+      setState(() {
+        isConnected = result != ConnectivityResult.none;
+      });
+    });
+
     _fetchLikedTracks();
     _fetchTracks();
     _fetchPlaylists();
+    _checkInternetConnection();
     isShuffleActive = _storageBox.read('isShuffleActive') ?? false;
   }
 
@@ -98,6 +110,19 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   void dispose() {
     scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _checkInternetConnection() async {
+    bool hasConnection;
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      hasConnection = result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } catch (e) {
+      hasConnection = false;
+    }
+    setState(() {
+      isConnected = hasConnection;
+    });
   }
 
   Future<void> _loadImageUrls() async {
@@ -213,6 +238,7 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                         child: CustomScrollView(
                           controller: scrollController,
                           slivers: [
+                            if (isConnected)
                             SliverAppBar(
                               pinned: true,
                               floating: false,
@@ -220,10 +246,7 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                               title: ValueListenableBuilder<double>(
                                 valueListenable: opacityNotifier,
                                 builder: (context, opacity, child) {
-                                  return Opacity(
-                                    opacity: opacity,
-                                    child: child!,
-                                  );
+                                  return Opacity(opacity: opacity, child: child!);
                                 },
                                 child: Text(
                                   userData['name'] as String? ?? 'No Name',
@@ -234,6 +257,7 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                 ),
                               ),
                             ),
+                            if (isConnected)
                             SliverList(
                               delegate: SliverChildListDelegate(
                                 [
@@ -283,6 +307,19 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       ),
                     ),
                     _buildFixedIcons(context, userData),
+                    Positioned(
+                      top: kToolbarHeight + 70,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: Align(
+                        alignment: Alignment.topCenter,
+                        child: InternetAwareScreen(
+                          title: 'Profile Screen',
+                          connectedScreen: Container(),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               );

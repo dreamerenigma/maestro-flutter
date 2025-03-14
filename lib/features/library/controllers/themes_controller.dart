@@ -83,19 +83,19 @@ class ThemesController extends GetxController {
                 _buildThemeOption(
                   context,
                   icon: WeatherIcons.day_sunny,
-                  text: S.of(context).lightTheme,
+                  text: S.of(context).light,
                   value: 'light',
                 ),
                 _buildThemeOption(
                   context,
                   icon: BootstrapIcons.moon,
-                  text: S.of(context).darkTheme,
+                  text: S.of(context).dark,
                   value: 'dark',
                 ),
                 _buildThemeOption(
                   context,
                   icon: Ionicons.settings_outline,
-                  text: S.of(context).systemTheme,
+                  text: S.of(context).system,
                   value: 'system',
                 ),
                 SizedBox(height: AppSizes.spaceBtwLittle),

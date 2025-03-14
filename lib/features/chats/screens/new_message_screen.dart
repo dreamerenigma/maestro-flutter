@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../common/widgets/app_bar/app_bar.dart';
+import '../../../generated/l10n/l10n.dart';
 import '../../../routes/custom_page_route.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../../utils/constants/app_sizes.dart';
@@ -70,7 +71,7 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: BasicAppBar(
-        title: const Text('New message', style: TextStyle(fontSize: AppSizes.fontSizeXl, fontWeight: FontWeight.bold)),
+        title: Text(S.of(context).newMessage, style: TextStyle(fontSize: AppSizes.fontSizeXl, fontWeight: FontWeight.bold)),
         centerTitle: false,
         actions: [
           IconButton(

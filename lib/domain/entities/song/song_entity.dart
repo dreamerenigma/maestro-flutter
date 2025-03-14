@@ -13,6 +13,8 @@ class SongEntity {
   final bool isFavorite;
   final String songId;
   final int listenCount;
+  final int likeCount;
+  final int commentsCount;
   final String fileURL;
   final String cover;
   final String uploadedBy;
@@ -28,6 +30,8 @@ class SongEntity {
     required this.isFavorite,
     required this.songId,
     required this.listenCount,
+    required this.likeCount,
+    required this.commentsCount,
     required this.fileURL,
     required this.cover,
     required this.uploadedBy,
@@ -50,6 +54,8 @@ class SongEntity {
       isFavorite: data['isFavorite'] ?? false,
       songId: doc.id,
       listenCount: data['listenCount'] ?? 0,
+      likeCount: data['likeCount'] ?? 0,
+      commentsCount: data['commentsCount'] ?? 0,
       fileURL: data['fileURL'] ?? '',
       cover: data['cover'] ?? '',
       uploadedBy: data['uploadedBy'] ?? '',
@@ -59,9 +65,13 @@ class SongEntity {
 
 Future<SongEntity> convertSongModelToEntity(SongModel songModel, {bool fetchFromFirestore = true}) async {
   int listenCount = 0;
+  int likeCount = 0;
+  int commentsCount = 0;
 
   if (fetchFromFirestore) {
-    listenCount = await _fetchListenCountFromFirestore(songModel.id.toString());
+    listenCount = await _fetchFieldFromFirestore(songModel.id.toString(), 'listenCount');
+    likeCount = await _fetchFieldFromFirestore(songModel.id.toString(), 'likeCount');
+    commentsCount = await _fetchFieldFromFirestore(songModel.id.toString(), 'commentsCount');
   }
 
   final String uploadedBy = await _fetchUploadedByFromFirestore(songModel.id.toString());
@@ -79,6 +89,8 @@ Future<SongEntity> convertSongModelToEntity(SongModel songModel, {bool fetchFrom
     isFavorite: false,
     songId: songModel.id.toString(),
     listenCount: listenCount,
+    likeCount: likeCount,
+    commentsCount: commentsCount,
     fileURL: songModel.data,
     cover: '',
     uploadedBy: uploadedBy,
@@ -90,9 +102,9 @@ Future<String> _fetchUploadedByFromFirestore(String songId) async {
   return doc.exists ? (doc.data()?['uploadedBy'] ?? '') : '';
 }
 
-Future<int> _fetchListenCountFromFirestore(String songId) async {
+Future<int> _fetchFieldFromFirestore(String songId, String fieldName) async {
   final doc = await FirebaseFirestore.instance.collection('Songs').doc(songId).get();
-  return doc.exists ? (doc.data()?['listenCount'] ?? 0) as int : 0;
+  return doc.exists ? (doc.data()?[fieldName] ?? 0) as int : 0;
 }
 
 int parseDuration(String durationString) {

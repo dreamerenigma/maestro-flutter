@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -16,20 +17,21 @@ class FeedScreen extends StatefulWidget {
 
 class FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  bool _isConnected = true;
+  bool isConnected = true;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.index = 1;
     _tabController.addListener(_onTabChanged);
     _checkInternetConnection();
 
     Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> results) {
       final result = results.isNotEmpty ? results.first : ConnectivityResult.none;
-      _isConnected = result != ConnectivityResult.none;
-
-      setState(() {});
+      setState(() {
+        isConnected = result != ConnectivityResult.none;
+      });
     });
   }
 
@@ -44,10 +46,17 @@ class FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateMi
     setState(() {});
   }
 
-  void _checkInternetConnection() async {
-    final connectivityResult = await Connectivity().checkConnectivity();
+  Future<void> _checkInternetConnection() async {
+    bool hasConnection;
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      hasConnection = result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } catch (e) {
+      hasConnection = false;
+    }
+
     setState(() {
-      _isConnected = connectivityResult != ConnectivityResult.none;
+      isConnected = hasConnection;
     });
   }
 
@@ -88,7 +97,7 @@ class FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateMi
         children: [
           const Text('Feed', style: TextStyle(fontSize: AppSizes.fontSizeBg, fontWeight: FontWeight.bold)),
           const Spacer(),
-          _isConnected ? GestureDetector(
+          isConnected ? GestureDetector(
             onTap: widget.onUpgradeTapped,
             child: const Text('UPGRADE', style: TextStyle(fontSize: AppSizes.fontSizeLm, fontWeight: FontWeight.bold, color: AppColors.primary)),
           ) : Container(),

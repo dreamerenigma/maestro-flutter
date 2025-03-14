@@ -15,6 +15,7 @@ class BasicAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onBackPressed;
   final bool rotateIcon;
   final bool removeIconContainer;
+  final EdgeInsetsGeometry padding;
 
   const BasicAppBar({
     this.title,
@@ -28,6 +29,7 @@ class BasicAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.onBackPressed,
     this.rotateIcon = false,
     this.removeIconContainer = false,
+    this.padding = const EdgeInsets.symmetric(horizontal: 6),
     super.key,
   });
 
@@ -35,9 +37,9 @@ class BasicAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 6),
+        padding: padding,
         child: AppBar(
-          backgroundColor: context.isDarkMode ? AppColors.backgroundColor : AppColors.white,
+          backgroundColor: AppColors.transparent,
           elevation: 0,
           centerTitle: centerTitle,
           title: title ?? const Text(''),

@@ -105,6 +105,10 @@ class SongFirebaseServiceImpl extends SongFirebaseService {
             });
 
           isFavorite = true;
+
+          await firebaseFirestore.collection('Songs').doc(songId).update({
+            'likeCount': FieldValue.increment(1),
+          });
         } else {
           return const Left('Song not found');
         }

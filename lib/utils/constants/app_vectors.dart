@@ -31,6 +31,7 @@ class AppVectors {
   static const String nextPlay = '${basePath}next_play$format';
   static const String favoriteInline = '${basePath}favorite_inline$format';
   static const String copyPlaylist = '${basePath}copy_playlist$format';
+  static const String repeat = '${basePath}repeat$format';
 
 /// -- Flags country
   static const String abw = '${pathFlags}abw$format';

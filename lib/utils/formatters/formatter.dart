@@ -74,4 +74,18 @@ class Formatter {
   static String formatDateAudio(DateTime dateTime) {
     return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
+
+  static String formatDuration(Duration duration, {bool isRemaining = false}) {
+    final minutes = duration.inMinutes.remainder(60);
+    final seconds = duration.inSeconds.remainder(60);
+    final formattedTime = '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+
+    return isRemaining ? formattedTime : '-$formattedTime';
+  }
+
+  static String formatTrackPosition(double trackPosition) {
+    int minutes = trackPosition.floor();
+    int seconds = ((trackPosition - minutes) * 60).round();
+    return '${minutes.toString().padLeft(1, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
 }

@@ -13,6 +13,7 @@ import '../../../utils/constants/app_colors.dart';
 import '../../../generated/l10n/l10n.dart';
 import '../../song_player/widgets/mini_player/mini_player_manager.dart';
 import '../../chats/widgets/lists/user_message_list.dart';
+import '../../utils/screens/internet_aware_screen.dart';
 import '../widgets/nav_bar/bottom_nav_bar.dart';
 import 'home_screen.dart';
 import '../../chats/screens/new_message_screen.dart';
@@ -61,20 +62,20 @@ class InboxScreenState extends State<InboxScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Scaffold(
-          appBar: BasicAppBar(
-            title: Text(S.of(context).inbox, style: TextStyle(fontSize: AppSizes.fontSizeXl, fontWeight: FontWeight.bold)),
-            centerTitle: false,
-            actions: [
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(Icons.cast, size: 23),
-              ),
-            ],
+    return Scaffold(
+      appBar: BasicAppBar(
+        title: Text(S.of(context).inbox, style: TextStyle(fontSize: AppSizes.fontSizeXl, fontWeight: FontWeight.bold)),
+        centerTitle: false,
+        actions: [
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.cast, size: 23),
           ),
-          body: MiniPlayerManager(
+        ],
+      ),
+      body: Stack(
+        children: [
+          MiniPlayerManager(
             hideMiniPlayerOnSplash: false,
             child: RefreshIndicator(
               onRefresh: _reloadData,
@@ -111,31 +112,41 @@ class InboxScreenState extends State<InboxScreen> {
               ),
             ),
           ),
-          bottomNavigationBar: BottomNavBar(
-            selectedIndex: widget.selectedIndex,
-            onItemTapped: (index) {
-              Navigator.pushReplacement(context, createPageRoute(HomeScreen(initialIndex: index)));
-            },
-          ),
-        ),
-        Positioned(
-          right: 16.0,
-          bottom: 140,
-          child: SizedBox(
-            width: 56.0,
-            height: 56.0,
-            child: FloatingActionButton(
-              onPressed: () {
-                Navigator.push(context, createPageRoute(NewMessageScreen(initialIndex: widget.initialIndex, users: [])));
-              },
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
-              splashColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-              backgroundColor: context.isDarkMode ? AppColors.white : AppColors.black,
-              child: Icon(PhosphorIcons.pencil_simple_light, size: 26, color: context.isDarkMode ? AppColors.black : AppColors.white),
+          Positioned(
+            right: 16.0,
+            bottom: 75,
+            child: SizedBox(
+              width: 56.0,
+              height: 56.0,
+              child: FloatingActionButton(
+                onPressed: () {
+                  Navigator.push(context, createPageRoute(NewMessageScreen(initialIndex: widget.initialIndex, users: [])));
+                },
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+                splashColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
+                backgroundColor: context.isDarkMode ? AppColors.white : AppColors.black,
+                child: Icon(PhosphorIcons.pencil_simple_light, size: 26, color: context.isDarkMode ? AppColors.black : AppColors.white),
+              ),
             ),
           ),
-        ),
-      ],
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 60,
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: InternetAwareScreen(title: 'Inbox Screen', connectedScreen: Container()),
+            ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: BottomNavBar(
+        selectedIndex: widget.selectedIndex,
+        onItemTapped: (index) {
+          Navigator.pushReplacement(context, createPageRoute(HomeScreen(initialIndex: index)));
+        },
+      ),
     );
   }
 
@@ -143,7 +154,7 @@ class InboxScreenState extends State<InboxScreen> {
     final userName = userData['name'] as String?;
     final createdAtTimestamp = userData['createdAt'] as Timestamp?;
     final createdAt = createdAtTimestamp?.toDate();
-    String timeAgo = createdAt != null ? timeago.format(createdAt) : 'No date available';
+    String timeAgo = createdAt != null ? timeago.format(createdAt) : S.of(context).noDateAvailable;
 
     return Padding(
       padding: const EdgeInsets.only(left: 16.0, right: 16, top: 16, bottom: 8),
@@ -180,7 +191,7 @@ class InboxScreenState extends State<InboxScreen> {
                   style: const TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.grey, height: 1),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                )
+                ),
               ],
             ),
           ),

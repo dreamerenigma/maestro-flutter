@@ -1,7 +1,7 @@
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:photo_manager/photo_manager.dart';
+import '../../../../generated/l10n/l10n.dart';
 import '../../../../utils/constants/app_colors.dart';
 import 'package:flutter/services.dart';
 
@@ -60,39 +60,37 @@ class _SongPictureWidgetState extends State<SongPictureWidget> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(16.0),
                 child: widget.trackImageUrl != null
-                    ? Image.network(
-                        widget.trackImageUrl!,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: double.infinity,
-                      )
-                    : widget.selectedImage == null
-                        ? const Center(child: Icon(Icons.camera_alt_outlined, size: 28, color: AppColors.black))
-                        : FutureBuilder<Uint8List?>(
-                            future: widget.selectedImage!.thumbnailData,
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.done) {
-                                if (snapshot.data != null) {
-                                  return LayoutBuilder(
-                                    builder: (context, constraints) {
-                                      return Image.memory(
-                                        snapshot.data!,
-                                        fit: BoxFit.cover,
-                                        width: constraints.maxWidth,
-                                        height: constraints.maxHeight,
-                                      );
-                                    },
-                                  );
-                                } else {
-                                  log('Failed to load image from AssetEntity');
-                                  return const Center(child: Text('Failed to load image'));
-                                }
-                              } else {
-                                log('Loading image from AssetEntity...');
-                                return const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)));
-                              }
-                            },
-                          ),
+                  ? Image.network(
+                    widget.trackImageUrl!,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                  )
+                  : widget.selectedImage == null
+                    ? const Center(child: Icon(Icons.camera_alt_outlined, size: 28, color: AppColors.black))
+                    : FutureBuilder<Uint8List?>(
+                      future: widget.selectedImage!.thumbnailData,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done) {
+                          if (snapshot.data != null) {
+                            return LayoutBuilder(
+                              builder: (context, constraints) {
+                                return Image.memory(
+                                  snapshot.data!,
+                                  fit: BoxFit.cover,
+                                  width: constraints.maxWidth,
+                                  height: constraints.maxHeight,
+                                );
+                              },
+                            );
+                          } else {
+                            return Center(child: Text(S.of(context).failedLoadImage));
+                          }
+                        } else {
+                          return const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)));
+                        }
+                      },
+                    ),
               ),
               if (widget.showFilter)
                 Container(

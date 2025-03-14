@@ -96,6 +96,4 @@ class AppColors {
     Colors.purple,
     Colors.pink,
   ];
-
-
 }

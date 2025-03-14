@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import '../../../../generated/l10n/l10n.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_images.dart';
 import '../../../../utils/constants/app_sizes.dart';
@@ -30,10 +31,7 @@ class MadeForYouGridWidget extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text(
-              sectionTitle,
-              style: TextStyle(fontSize: AppSizes.fontSizeBg, fontWeight: FontWeight.w900),
-            ),
+            child: Text(sectionTitle, style: TextStyle(fontSize: AppSizes.fontSizeBg, fontWeight: FontWeight.w900)),
           ),
           SizedBox(height: 16),
           SizedBox(
@@ -46,16 +44,16 @@ class MadeForYouGridWidget extends StatelessWidget {
                   _buildGridItem(
                     AppImages.albumSecondary,
                     AppImages.albumImage,
-                    'New releases based on your taste. Updated every day',
-                    'DAILY DROPS',
+                    S.of(context).newReleases,
+                    S.of(context).dailyDrops,
                     const EdgeInsets.only(right: 8.0),
                     AppColors.blue.withAlpha((0.4 * 255).toInt()),
                   ),
                   _buildGridItem(
                     AppImages.albumPrimary,
                     AppImages.playlist,
-                    'The best of Maestro just for you. Updated every Monday',
-                    'WEEKLY WAVE',
+                    S.of(context).updatedEveryMonday,
+                    S.of(context).weeklyWave,
                     const EdgeInsets.only(left: 8.0),
                     AppColors.primary.withAlpha((0.4 * 255).toInt()),
                   ),
@@ -86,7 +84,7 @@ class MadeForYouGridWidget extends StatelessWidget {
                   width: height,
                   height: height,
                   decoration: BoxDecoration(
-                    color: Colors.blue[100], // Container color
+                    color: Colors.blue[100],
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Stack(

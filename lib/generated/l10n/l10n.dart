@@ -351,10 +351,10 @@ class S {
   }
 
   /// `Upgrade`
-  String get upgrade {
+  String get upgradeNav {
     return Intl.message(
       'Upgrade',
-      name: 'upgrade',
+      name: 'upgradeNav',
       desc: '',
       args: [],
     );
@@ -400,21 +400,21 @@ class S {
     );
   }
 
-  /// `Clear search history`
-  String get clearSearchHistory {
+  /// `Concerts`
+  String get concerts {
     return Intl.message(
-      'Clear search history',
-      name: 'clearSearchHistory',
+      'Concerts',
+      name: 'concerts',
       desc: '',
       args: [],
     );
   }
 
-  /// `Select language`
-  String get selectLanguage {
+  /// `Clear search history`
+  String get clearSearchHistory {
     return Intl.message(
-      'Select language',
-      name: 'selectLanguage',
+      'Clear search history',
+      name: 'clearSearchHistory',
       desc: '',
       args: [],
     );
@@ -510,31 +510,11 @@ class S {
     );
   }
 
-  /// `Light`
-  String get lightTheme {
+  /// `Select language`
+  String get selectLanguage {
     return Intl.message(
-      'Light',
-      name: 'lightTheme',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Dark`
-  String get darkTheme {
-    return Intl.message(
-      'Dark',
-      name: 'darkTheme',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `System`
-  String get systemTheme {
-    return Intl.message(
-      'System',
-      name: 'systemTheme',
+      'Select language',
+      name: 'selectLanguage',
       desc: '',
       args: [],
     );
@@ -589,6 +569,686 @@ class S {
       args: [],
     );
   }
+
+  /// `guest`
+  String get guest {
+    return Intl.message(
+      'guest',
+      name: 'guest',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `More of what you like`
+  String get moreWhatYouLike {
+    return Intl.message(
+      'More of what you like',
+      name: 'moreWhatYouLike',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Buzzing Electronic`
+  String get buzzingElectronic {
+    return Intl.message(
+      'Buzzing Electronic',
+      name: 'buzzingElectronic',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Mixed for {userName}`
+  String mixedFor(Object userName) {
+    return Intl.message(
+      'Mixed for $userName',
+      name: 'mixedFor',
+      desc: '',
+      args: [userName],
+    );
+  }
+
+  /// `Made for {userName}`
+  String madeFor(Object userName) {
+    return Intl.message(
+      'Made for $userName',
+      name: 'madeFor',
+      desc: '',
+      args: [userName],
+    );
+  }
+
+  /// `Discover with Stations`
+  String get discoverStations {
+    return Intl.message(
+      'Discover with Stations',
+      name: 'discoverStations',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Trending by genre`
+  String get trendingGenre {
+    return Intl.message(
+      'Trending by genre',
+      name: 'trendingGenre',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Trending Music`
+  String get trendingMusic {
+    return Intl.message(
+      'Trending Music',
+      name: 'trendingMusic',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Curated to your taste`
+  String get curatedYourTaste {
+    return Intl.message(
+      'Curated to your taste',
+      name: 'curatedYourTaste',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Artists to watch out for`
+  String get artistsWatchOutFor {
+    return Intl.message(
+      'Artists to watch out for',
+      name: 'artistsWatchOutFor',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `New!`
+  String get newArtists {
+    return Intl.message(
+      'New!',
+      name: 'newArtists',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `UPGRADE`
+  String get upgrade {
+    return Intl.message(
+      'UPGRADE',
+      name: 'upgrade',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Additional Info`
+  String get additionalInfo {
+    return Intl.message(
+      'Additional Info',
+      name: 'additionalInfo',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Create Account`
+  String get createAccount {
+    return Intl.message(
+      'Create Account',
+      name: 'createAccount',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Select Gender`
+  String get selectGender {
+    return Intl.message(
+      'Select Gender',
+      name: 'selectGender',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Male`
+  String get male {
+    return Intl.message(
+      'Male',
+      name: 'male',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Female`
+  String get female {
+    return Intl.message(
+      'Female',
+      name: 'female',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Other`
+  String get other {
+    return Intl.message(
+      'Other',
+      name: 'other',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Select Age`
+  String get selectAge {
+    return Intl.message(
+      'Select Age',
+      name: 'selectAge',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Google sign-in successful!`
+  String get googleSignInSuccess {
+    return Intl.message(
+      'Google sign-in successful!',
+      name: 'googleSignInSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Google sign-in failed: {error}`
+  String googleSignInFailed(Object error) {
+    return Intl.message(
+      'Google sign-in failed: $error',
+      name: 'googleSignInFailed',
+      desc: '',
+      args: [error],
+    );
+  }
+
+  /// `No date available`
+  String get noDateAvailable {
+    return Intl.message(
+      'No date available',
+      name: 'noDateAvailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Google Sign-Up was Successful`
+  String get googleSignUpSuccess {
+    return Intl.message(
+      'Google Sign-Up was Successful',
+      name: 'googleSignUpSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Apple Sign-In was Successful`
+  String get appleSignInSuccess {
+    return Intl.message(
+      'Apple Sign-In was Successful',
+      name: 'appleSignInSuccess',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `New message`
+  String get newMessage {
+    return Intl.message(
+      'New message',
+      name: 'newMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Type your message`
+  String get typeYourMessage {
+    return Intl.message(
+      'Type your message',
+      name: 'typeYourMessage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No user logged in`
+  String get noUserLoggedIn {
+    return Intl.message(
+      'No user logged in',
+      name: 'noUserLoggedIn',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Deleted user`
+  String get deletedUser {
+    return Intl.message(
+      'Deleted user',
+      name: 'deletedUser',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Show all notifications`
+  String get showAllNotify {
+    return Intl.message(
+      'Show all notifications',
+      name: 'showAllNotify',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Choose Image`
+  String get chooseImage {
+    return Intl.message(
+      'Choose Image',
+      name: 'chooseImage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed to load image`
+  String get failedLoadImage {
+    return Intl.message(
+      'Failed to load image',
+      name: 'failedLoadImage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancel`
+  String get cancel {
+    return Intl.message(
+      'Cancel',
+      name: 'cancel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Choose`
+  String get choose {
+    return Intl.message(
+      'Choose',
+      name: 'choose',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Photos`
+  String get photos {
+    return Intl.message(
+      'Photos',
+      name: 'photos',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Albums`
+  String get albums {
+    return Intl.message(
+      'Albums',
+      name: 'albums',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Photos, People, Places...`
+  String get photosPeoplePlaces {
+    return Intl.message(
+      'Photos, People, Places...',
+      name: 'photosPeoplePlaces',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No images found`
+  String get noImagesFound {
+    return Intl.message(
+      'No images found',
+      name: 'noImagesFound',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Describe your track`
+  String get describeYourTrack {
+    return Intl.message(
+      'Describe your track',
+      name: 'describeYourTrack',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add a caption to your post (optional)`
+  String get addCaptionYourPost {
+    return Intl.message(
+      'Add a caption to your post (optional)',
+      name: 'addCaptionYourPost',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No file selected`
+  String get noFileSelected {
+    return Intl.message(
+      'No file selected',
+      name: 'noFileSelected',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Title`
+  String get title {
+    return Intl.message(
+      'Title',
+      name: 'title',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Pick genre`
+  String get pickGenre {
+    return Intl.message(
+      'Pick genre',
+      name: 'pickGenre',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Select genre`
+  String get selectGenre {
+    return Intl.message(
+      'Select genre',
+      name: 'selectGenre',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Description`
+  String get description {
+    return Intl.message(
+      'Description',
+      name: 'description',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Caption`
+  String get caption {
+    return Intl.message(
+      'Caption',
+      name: 'caption',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Uploading`
+  String get uploading {
+    return Intl.message(
+      'Uploading',
+      name: 'uploading',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your track is ready. Tap Save to continue.`
+  String get yourTrackReady {
+    return Intl.message(
+      'Your track is ready. Tap Save to continue.',
+      name: 'yourTrackReady',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancel upload`
+  String get cancelUpload {
+    return Intl.message(
+      'Cancel upload',
+      name: 'cancelUpload',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Uploading this track will be stopped and deleted from Maestro.`
+  String get uploadingTrackStoppedDeleted {
+    return Intl.message(
+      'Uploading this track will be stopped and deleted from Maestro.',
+      name: 'uploadingTrackStoppedDeleted',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Resume`
+  String get resume {
+    return Intl.message(
+      'Resume',
+      name: 'resume',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Something went wrong`
+  String get somethingWentWrong {
+    return Intl.message(
+      'Something went wrong',
+      name: 'somethingWentWrong',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please make sure your internet is available`
+  String get pleaseSureInternetAvailable {
+    return Intl.message(
+      'Please make sure your internet is available',
+      name: 'pleaseSureInternetAvailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `OK`
+  String get ok {
+    return Intl.message(
+      'OK',
+      name: 'ok',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Show all notifications`
+  String get showAllNotifications {
+    return Intl.message(
+      'Show all notifications',
+      name: 'showAllNotifications',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Comments`
+  String get comments {
+    return Intl.message(
+      'Comments',
+      name: 'comments',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Likes`
+  String get likes {
+    return Intl.message(
+      'Likes',
+      name: 'likes',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Followings`
+  String get followings {
+    return Intl.message(
+      'Followings',
+      name: 'followings',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Reposts`
+  String get reposts {
+    return Intl.message(
+      'Reposts',
+      name: 'reposts',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Latest from artists you follow`
+  String get latestArtistsFollow {
+    return Intl.message(
+      'Latest from artists you follow',
+      name: 'latestArtistsFollow',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `New releases based on your taste. Updated every day`
+  String get newReleases {
+    return Intl.message(
+      'New releases based on your taste. Updated every day',
+      name: 'newReleases',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `DAILY DROPS`
+  String get dailyDrops {
+    return Intl.message(
+      'DAILY DROPS',
+      name: 'dailyDrops',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The best of Maestro just for you. Updated every Monday`
+  String get updatedEveryMonday {
+    return Intl.message(
+      'The best of Maestro just for you. Updated every Monday',
+      name: 'updatedEveryMonday',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `WEEKLY WAVE`
+  String get weeklyWave {
+    return Intl.message(
+      'WEEKLY WAVE',
+      name: 'weeklyWave',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Local Audio Playlist`
+  String get localAudioPlaylist {
+    return Intl.message(
+      'Local Audio Playlist',
+      name: 'localAudioPlaylist',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `LocalList`
+  String get localList {
+    return Intl.message(
+      'LocalList',
+      name: 'localList',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `See All`
+  String get seeAll {
+    return Intl.message(
+      'See All',
+      name: 'seeAll',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Recents`
+  String get recents {
+    return Intl.message(
+      'Recents',
+      name: 'recents',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Browse`
+  String get browse {
+    return Intl.message(
+      'Browse',
+      name: 'browse',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {
@@ -597,6 +1257,7 @@ class AppLocalizationDelegate extends LocalizationsDelegate<S> {
   List<Locale> get supportedLocales {
     return const <Locale>[
       Locale.fromSubtags(languageCode: 'en'),
+      Locale.fromSubtags(languageCode: 'es'),
       Locale.fromSubtags(languageCode: 'ru'),
     ];
   }

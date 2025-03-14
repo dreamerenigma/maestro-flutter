@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -18,6 +19,7 @@ import 'package:uuid/uuid.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../../utils/constants/app_sizes.dart';
 import '../../home/screens/home_screen.dart';
+import '../../home/screens/upload_tracks_screen.dart';
 import '../../home/widgets/nav_bar/bottom_nav_bar.dart';
 import '../../song_player/widgets/mini_player/mini_player_manager.dart';
 import '../controllers/language_controller.dart';
@@ -26,7 +28,6 @@ import 'account_screen.dart';
 import 'basic_settings_screen.dart';
 import 'inbox_settings_screen.dart';
 import 'interface_style_screen.dart';
-import 'library/your_upload_screen.dart';
 import 'notification_settings_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -41,6 +42,7 @@ class SettingsScreen extends StatefulWidget {
 class SettingsScreenState extends State<SettingsScreen> {
   late final int selectedIndex;
   final LanguageController languageController = Get.put(LanguageController());
+  File? _selectedFile;
 
   @override
   void initState() {
@@ -102,7 +104,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                   Navigator.push(context, createPageRoute(AccountScreen(initialIndex: widget.initialIndex)));
                 }),
                 _buildProfileOption('Upload', Icons.arrow_forward_ios, () {
-                  Navigator.push(context, createPageRoute(YourUploadScreen(initialIndex: widget.initialIndex)));
+                  Navigator.push(context, createPageRoute(UploadTracksScreen(songName: '', shouldSelectFileImmediately: true, selectedFile: _selectedFile)));
                 }),
                 _buildProfileOption('Your insights', Icons.arrow_forward_ios, () {
                   Navigator.push(context, createPageRoute(YourInsightsScreen(initialIndex: widget.initialIndex)));

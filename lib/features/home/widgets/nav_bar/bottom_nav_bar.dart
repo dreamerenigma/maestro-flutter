@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -23,37 +24,39 @@ class BottomNavBar extends StatefulWidget {
 }
 
 class _BottomNavBarState extends State<BottomNavBar> {
-  bool _isConnected = true;
+  bool isConnected = true;
   final GetStorage _storage = GetStorage();
 
   @override
   void initState() {
     super.initState();
-    _isConnected = _storage.read('isConnected') ?? true;
+    isConnected = _storage.read('isConnected') ?? true;
     _checkInternetConnection();
 
-    Connectivity().onConnectivityChanged.listen((result) {
-      if (mounted) {
-        _isConnected = result != ConnectivityResult.none;
-        _storage.write('isConnected', _isConnected);
-
-        setState(() {});
-      }
+    Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> results) {
+      final result = results.isNotEmpty ? results.first : ConnectivityResult.none;
+      setState(() {
+        isConnected = result != ConnectivityResult.none;
+      });
     });
   }
 
-  void _checkInternetConnection() async {
-    final connectivityResult = await Connectivity().checkConnectivity();
+  Future<void> _checkInternetConnection() async {
+    bool hasConnection;
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      hasConnection = result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } catch (e) {
+      hasConnection = false;
+    }
     setState(() {
-      _isConnected = connectivityResult != ConnectivityResult.none;
+      isConnected = hasConnection;
     });
-
-    _storage.write('isConnected', _isConnected);
   }
 
   @override
   Widget build(BuildContext context) {
-    final availableItemsCount = _isConnected ? 5 : 4;
+    final availableItemsCount = isConnected ? 5 : 4;
     final safeSelectedIndex = widget.selectedIndex >= availableItemsCount ? availableItemsCount - 1 : widget.selectedIndex;
 
     return Container(
@@ -96,12 +99,12 @@ class _BottomNavBarState extends State<BottomNavBar> {
                 label: S.of(context).library,
                 index: 3,
               ),
-              if (_isConnected)
+              if (isConnected)
                 _buildBottomNavigationBarItem(
                   context,
                   activeIconData: FluentIcons.music_note_2_20_filled,
                   inactiveIconData: FluentIcons.music_note_2_20_regular,
-                  label: S.of(context).upgrade,
+                  label: S.of(context).upgradeNav,
                   index: 4,
                 ),
             ],

@@ -69,7 +69,6 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
     Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> results) {
       final result = results.isNotEmpty ? results.first : ConnectivityResult.none;
       _isConnected = result != ConnectivityResult.none;
-
       setState(() {});
     });
   }
@@ -97,7 +96,7 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
           return Center(child: Text(S.of(context).errorLoadingProfile));
         } else {
           final userData = snapshot.data;
-          final userName = userData?['name'] ?? 'Guest';
+          final userName = userData?['name'] ?? S.of(context).guest;
 
           return ScrollConfiguration(
             behavior: NoGlowScrollBehavior(),
@@ -121,9 +120,9 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
                               LatestArtistsFollowGridWidget(padding: EdgeInsets.only(bottom: 30)),
                               GridWidget(
                                 padding: EdgeInsets.only(top: 8, bottom: 20),
-                                sectionTitle: 'More of what you like',
+                                sectionTitle: S.of(context).moreWhatYouLike,
                                 itemCount: 10,
-                                subtitleText: 'Buzzing Electronic',
+                                subtitleText: S.of(context).buzzingElectronic,
                                 width: 130,
                                 height: 130,
                                 heights: 185,
@@ -150,8 +149,8 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
                               ),
                               GridWidget(
                                 padding: EdgeInsets.only(top: 25, bottom: 10),
-                                sectionTitle: 'Mixed for $userName',
-                                subtitleText: 'Buzzing Electronic',
+                                sectionTitle: S.of(context).mixedFor(userName),
+                                subtitleText: S.of(context).buzzingElectronic,
                                 itemCount: 10,
                                 width: 130,
                                 height: 130,
@@ -160,15 +159,15 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
                               ),
                               MadeForYouGridWidget(
                                 padding: EdgeInsets.only(top: 25, bottom: 10),
-                                sectionTitle: 'Made for $userName',
+                                sectionTitle: S.of(context).madeFor(userName),
                                 itemCount: 2,
                                 height: 250,
                                 heights: 260,
                               ),
                               GridWidget(
                                 padding: EdgeInsets.only(top: 25, bottom: 10),
-                                sectionTitle: 'Discover with Stations',
-                                subtitleText: 'Buzzing Electronic',
+                                sectionTitle: S.of(context).discoverStations,
+                                subtitleText: S.of(context).buzzingElectronic,
                                 itemCount: 5,
                                 width: 130,
                                 height: 130,
@@ -177,8 +176,8 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
                               ),
                               GridWidget(
                                 padding: EdgeInsets.only(top: 25, bottom: 10),
-                                sectionTitle: 'Trending by genre',
-                                subtitleText: 'Trending Music',
+                                sectionTitle: S.of(context).trendingGenre,
+                                subtitleText: S.of(context).trendingMusic,
                                 itemCount: 15,
                                 width: 130,
                                 height: 130,
@@ -187,8 +186,8 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
                               ),
                               GridWidget(
                                 padding: EdgeInsets.only(top: 25, bottom: 10),
-                                sectionTitle: 'Curated to your taste',
-                                subtitleText: 'Buzzing Electronic',
+                                sectionTitle: S.of(context).curatedYourTaste,
+                                subtitleText: S.of(context).buzzingElectronic,
                                 itemCount: 10,
                                 width: 130,
                                 height: 130,
@@ -197,8 +196,8 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
                               ),
                               GridWidget(
                                 padding: EdgeInsets.only(top: 25, bottom: 10),
-                                sectionTitle: 'Artists to watch out for',
-                                subtitleText: 'New!',
+                                sectionTitle: S.of(context).artistsWatchOutFor,
+                                subtitleText: S.of(context).newArtists,
                                 itemCount: 10,
                                 width: 130,
                                 height: 130,
@@ -218,7 +217,7 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
                       bottom: 0,
                       child: Align(
                         alignment: Alignment.topCenter,
-                        child: InternetAwareScreen(title: 'Главная', connectedScreen: Container()),
+                        child: InternetAwareScreen(title: S.of(context).home, connectedScreen: Container()),
                       ),
                     ),
                   ],
@@ -255,50 +254,35 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
           width: 75,
           height: 35,
           child: Center(
-            child: Text(
-              S.of(context).news,
-              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: AppSizes.fontSizeSm),
-            ),
+            child: Text(S.of(context).news, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: AppSizes.fontSizeSm)),
           ),
         ),
         SizedBox(
           width: 75,
           height: 35,
           child: Center(
-            child: Text(
-              S.of(context).videos,
-              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: AppSizes.fontSizeSm),
-            ),
+            child: Text(S.of(context).videos, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: AppSizes.fontSizeSm)),
           ),
         ),
         SizedBox(
           width: 75,
           height: 35,
           child: Center(
-            child: Text(
-              S.of(context).artists,
-              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: AppSizes.fontSizeSm),
-            ),
+            child: Text(S.of(context).artists, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: AppSizes.fontSizeSm)),
           ),
         ),
         SizedBox(
           width: 90,
           height: 35,
           child: Center(
-            child: Text(
-              S.of(context).podcasts,
-              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: AppSizes.fontSizeSm),
-            ),
+            child: Text(S.of(context).podcasts, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: AppSizes.fontSizeSm)),
           ),
         ),
         SizedBox(
           width: 90,
           height: 35,
           child: Center(
-            child: Text(
-              'Концерты',
-              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: AppSizes.fontSizeSm),
-            ),
+            child: Text(S.of(context).concerts, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: AppSizes.fontSizeSm)),
           ),
         ),
       ],
@@ -307,7 +291,7 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
 
   Widget _buildAppBar() {
     return Padding(
-      padding: EdgeInsets.only(left: 8, right: 16, top: 35, bottom: 12),
+      padding: EdgeInsets.only(left: 8, right: 8, top: 35, bottom: 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -315,7 +299,7 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
             alignment: Alignment.centerLeft,
             child: Padding(
               padding: const EdgeInsets.only(left: 10),
-              child: Text('Главная', style: TextStyle(fontSize: AppSizes.fontSizeBg, fontWeight: FontWeight.bold)),
+              child: Text(S.of(context).home, style: TextStyle(fontSize: AppSizes.fontSizeBg, fontWeight: FontWeight.bold)),
             ),
           ),
           Row(
@@ -326,36 +310,45 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
                   onTap: widget.onUpgradePressed,
                   child: Padding(
                     padding: const EdgeInsets.only(top: 6),
-                    child: Text('UPGRADE', style: TextStyle(fontSize: AppSizes.fontSizeLm, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                    child: Text(S.of(context).upgrade, style: TextStyle(fontSize: AppSizes.fontSizeLm, fontWeight: FontWeight.bold, color: AppColors.primary)),
                   ),
                 ) : Container(),
               ),
               SizedBox(width: 20),
               InkWell(
                 onTap: () {},
-                splashColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-                highlightColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-                borderRadius: BorderRadius.circular(AppSizes.cardRadiusLg),
-                child: Icon(Icons.cast, size: 22, color: context.isDarkMode ? AppColors.lightGrey : AppColors.black),
+                splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+                highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+                borderRadius: BorderRadius.circular(50),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Icon(Icons.cast, size: 22, color: context.isDarkMode ? AppColors.lightGrey : AppColors.black),
+                ),
               ),
-              SizedBox(width: 24),
+              SizedBox(width: 10),
               InkWell(
                 onTap: widget.onIconPressed,
-                splashColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-                highlightColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
+                splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+                highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
                 borderRadius: BorderRadius.circular(50),
-                child: widget.isLoading ? const CircularFillAnimation() : const Icon(Icons.arrow_circle_up_outlined, size: 24),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: widget.isLoading ? const CircularFillAnimation() : const Icon(Icons.arrow_circle_up_outlined, size: 24),
+                ),
               ),
-              SizedBox(width: 18),
+              SizedBox(width: 8),
               Stack(
                 clipBehavior: Clip.none,
                 children: [
                   InkWell(
                     onTap: widget.onInboxTapped,
-                    splashColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-                    highlightColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-                    borderRadius: BorderRadius.circular(AppSizes.cardRadiusLg),
-                    child: Icon(EvilIcons.envelope, size: 31, color: context.isDarkMode ? AppColors.lightGrey : AppColors.black),
+                    splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+                    highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+                    borderRadius: BorderRadius.circular(50),
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Icon(EvilIcons.envelope, size: 31, color: context.isDarkMode ? AppColors.lightGrey : AppColors.black),
+                    ),
                   ),
                   if (widget.unreadMessages > 0)
                     Positioned(
@@ -375,17 +368,20 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
                     ),
                 ],
               ),
-              SizedBox(width: 20),
+              SizedBox(width: 8),
               InkWell(
                 onTap: widget.onNotificationsTapped,
-                splashColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-                highlightColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-                borderRadius: BorderRadius.circular(AppSizes.cardRadiusLg),
-                child: SvgPicture.asset(
-                  AppVectors.notificationNone,
-                  width: 24,
-                  height: 24,
-                  colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.lightGrey : AppColors.black, BlendMode.srcIn),
+                splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+                highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+                borderRadius: BorderRadius.circular(50),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SvgPicture.asset(
+                    AppVectors.notificationNone,
+                    width: 24,
+                    height: 24,
+                    colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.lightGrey : AppColors.black, BlendMode.srcIn),
+                  ),
                 ),
               ),
             ],

@@ -48,7 +48,15 @@ class TracksList extends StatelessWidget {
                 isFromTracksList: true,
                 onTap: () {},
                 onMorePressed: () {
-                  showInfoTrackBottomDialog(context, userData, song, isEditMode: isEditMode, shouldShowRepost: false);
+                  showInfoTrackBottomDialog(
+                    context,
+                    userData,
+                    song,
+                    isEditMode: isEditMode,
+                    shouldShowRepost: false,
+                    shouldShowPlayNext: false,
+                    shouldShowPlayLast: false,
+                  );
                 },
               );
             },

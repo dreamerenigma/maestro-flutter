@@ -5,6 +5,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:maestro/routes/custom_page_route.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import '../../../../generated/l10n/l10n.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../library/screens/local_audio_screen.dart';
 
@@ -69,7 +70,7 @@ class LocalListState extends State<LocalList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Local Audio Playlist'),
+        title: Text(S.of(context).localAudioPlaylist),
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 16),
@@ -78,12 +79,12 @@ class LocalListState extends State<LocalList> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('LocalList', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                Text(S.of(context).localList, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                 GestureDetector(
                   onTap: () {
                     Navigator.push(context, createPageRoute(LocalAudioScreen(initialIndex: widget.initialIndex, songs: [])));
                   },
-                  child: const Text('See All', style: TextStyle(fontWeight: FontWeight.w400, fontSize: 16, color: AppColors.grey)),
+                  child: Text(S.of(context).seeAll, style: TextStyle(fontWeight: FontWeight.w400, fontSize: 16, color: AppColors.grey)),
                 ),
               ],
             ),

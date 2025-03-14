@@ -45,7 +45,7 @@ class _UserMessageItemState extends State<UserMessageItem> {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
-      throw Exception('No user logged in');
+      throw Exception(S.of(context).noUserLoggedIn);
     }
 
     var userDoc = await FirebaseFirestore.instance.collection('Users').doc(user.uid).get();
@@ -63,7 +63,7 @@ class _UserMessageItemState extends State<UserMessageItem> {
           return Center(child: Text(S.of(context).errorLoadingProfile));
         } else {
           final isDeleted = isDeletedSnapshot.data ?? false;
-          final displayName = isDeleted ? 'Deleted user' : widget.userName;
+          final displayName = isDeleted ? S.of(context).deletedUser : widget.userName;
 
           return FutureBuilder<Map<String, dynamic>?>(
             future: userDataFuture,

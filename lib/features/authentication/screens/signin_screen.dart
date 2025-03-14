@@ -64,13 +64,7 @@ class SignInScreenState extends State<SignInScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       bottomNavigationBar: _signupText(context),
-      appBar: BasicAppBar(
-        title: Image.asset(
-          AppImages.logo,
-          height: 160,
-          width: 160,
-        ),
-      ),
+      appBar: BasicAppBar(title: Image.asset(AppImages.logo, height: 160, width: 160)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
         child: Column(
@@ -195,7 +189,7 @@ class SignInScreenState extends State<SignInScreen> {
                   await FirebaseAuth.instance.signInWithPopup(googleProvider);
 
               if (userCredential.user != null) {
-                _showSuccess(context, "Google sign-in successful!");
+                _showSuccess(context, S.of(context).googleSignInSuccess);
               }
             } catch (e) {
               _showError(context, "Google sign-in failed: $e");

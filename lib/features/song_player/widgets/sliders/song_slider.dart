@@ -45,12 +45,14 @@ class CustomSliderState extends State<CustomSlider> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onHorizontalDragUpdate: _onDragUpdate,
-      onHorizontalDragEnd: (details) {
-        widget.onChanged(_value);
-      },
+Widget build(BuildContext context) {
+  return GestureDetector(
+    onHorizontalDragUpdate: _onDragUpdate,
+    onHorizontalDragEnd: (details) {
+      widget.onChanged(_value);
+    },
+    child: InkWell(
+      onTap: () {},
       child: Builder(
         builder: (context) {
           _sliderWidth = MediaQuery.of(context).size.width * 0.9;
@@ -77,21 +79,37 @@ class CustomSliderState extends State<CustomSlider> {
                   ),
                 ),
                 Positioned(
-                  left: (_value - widget.min) / (widget.max - widget.min) * _sliderWidth - widget.thumbSize / 2,
-                  top: -widget.thumbSize / 2,
-                  child: Container(
-                    width: widget.thumbSize,
-                    height: widget.thumbSize,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.primary,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.black.withAlpha((0.3 * 255).toInt()),
-                          spreadRadius: 1,
-                          blurRadius: 2,
+                  left: (_value - widget.min) / (widget.max - widget.min) * _sliderWidth - widget.thumbSize / 1,
+                  top: -widget.thumbSize / 1,
+                  child: InkWell(
+                    splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+                    highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+                    borderRadius: BorderRadius.circular(26),
+                    onTap: () {},
+                    child: Container(
+                      width: widget.thumbSize * 2.1,
+                      height: widget.thumbSize * 2.1,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.transparent,
+                      ),
+                      child: Center(
+                        child: Container(
+                          width: widget.thumbSize,
+                          height: widget.thumbSize,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.primary,
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.black.withAlpha((0.3 * 255).toInt()),
+                                spreadRadius: 1,
+                                blurRadius: 2,
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -100,6 +118,7 @@ class CustomSliderState extends State<CustomSlider> {
           );
         },
       ),
-    );
-  }
+    ),
+  );
+}
 }

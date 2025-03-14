@@ -1,5 +1,7 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import 'package:maestro/features/library/screens/profile_settings_screen.dart';
 import '../../../api/apis.dart';
 import '../../../generated/l10n/l10n.dart';
@@ -41,7 +43,8 @@ class _ProfilePlaylistWidgetState extends State<ProfilePlaylistWidget> {
           final userData = snapshot.data;
           final userName = userData?['name'] ?? 'Guest';
           final userCity = userData?['city'] ?? 'Unknown';
-          final userCountry= userData?['country'] ?? 'Unknown';
+          final userCountry = userData?['country'] ?? 'Unknown';
+          final userAvatar = userData?['image'] ?? 'Unknown';
 
           return Padding(
             padding: widget.padding,
@@ -67,13 +70,26 @@ class _ProfilePlaylistWidgetState extends State<ProfilePlaylistWidget> {
                           padding: const EdgeInsets.all(12),
                           child: Row(
                             children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: SvgPicture.asset(
-                                  AppVectors.profile,
-                                  width: 50,
-                                  height: 50,
-                                  fit: BoxFit.cover,
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(50),
+                                  border: Border.all(color: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()), width: 1),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: userAvatar != null && userAvatar!.isNotEmpty
+                                    ? CircleAvatar(
+                                        maxRadius: 25,
+                                        backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.lightGrey,
+                                        backgroundImage: CachedNetworkImageProvider(userAvatar!),
+                                        child: userAvatar == null ? const Icon(Icons.person, size: 16) : null,
+                                      )
+                                    : SvgPicture.asset(
+                                      AppVectors.profile,
+                                      width: 50,
+                                      height: 50,
+                                      fit: BoxFit.cover,
+                                    ),
                                 ),
                               ),
                               SizedBox(width: 10),
@@ -106,10 +122,7 @@ class _ProfilePlaylistWidgetState extends State<ProfilePlaylistWidget> {
                 SizedBox(width: 12),
                 Expanded(
                   child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: AppColors.darkGrey,
-                    ),
+                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), color: AppColors.darkGrey),
                     child: Material(
                       color: AppColors.transparent,
                       child: InkWell(
@@ -121,13 +134,19 @@ class _ProfilePlaylistWidgetState extends State<ProfilePlaylistWidget> {
                           padding: const EdgeInsets.all(12),
                           child: Row(
                             children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.asset(
-                                  AppImages.playlist,
-                                  width: 50,
-                                  height: 50,
-                                  fit: BoxFit.cover,
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()), width: 1),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.asset(
+                                    AppImages.playlist,
+                                    width: 50,
+                                    height: 50,
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
                               ),
                               SizedBox(width: 12),

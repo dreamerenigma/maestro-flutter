@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:jam_icons/jam_icons.dart';
 import 'package:maestro/features/library/screens/library/playlists/playlist_screen.dart';
+import 'package:maestro/features/library/screens/library/playlists/widgets/create_playlist_widget.dart';
 import 'package:maestro/features/utils/widgets/no_glow_scroll_behavior.dart';
 import '../../../../../api/apis.dart';
 import '../../../../../common/widgets/app_bar/app_bar.dart';
@@ -159,7 +160,9 @@ class ViewPlaylistsScreenState extends State<ViewPlaylistsScreen> {
                           },
                         ),
                       ),
-                      _buildCreatePlaylist(),
+                      CreatePlaylistWidget(onPlaylistCreated: () {
+                        showCreatePlaylistDialog(context, onPlaylistCreated);
+                      }),
                       _buildPlaylistsList(userData),
                     ],
                   ),
@@ -270,34 +273,6 @@ class ViewPlaylistsScreenState extends State<ViewPlaylistsScreen> {
         );
       },
       separatorBuilder: (context, index) => const SizedBox.shrink(),
-    );
-  }
-
-  Widget _buildCreatePlaylist() {
-    return InkWell(
-      onTap: () {
-        showCreatePlaylistDialog(context, onPlaylistCreated);
-      },
-      splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
-      highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
-      child: Padding(
-        padding: const EdgeInsets.only(left: 10, right: 10, top: 8, bottom: 14),
-        child: Row(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Container(
-                width: 65,
-                height: 65,
-                decoration: BoxDecoration(color: AppColors.steelGrey, borderRadius: BorderRadius.circular(8.0)),
-                child: Icon(Icons.add_circle_outline, color: AppColors.lightGrey, size: 30),
-              ),
-            ),
-            SizedBox(width: 16.0),
-            Text('Create playlist', style: TextStyle(color: AppColors.white, fontSize: 18.0)),
-          ],
-        ),
-      ),
     );
   }
 

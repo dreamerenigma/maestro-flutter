@@ -1,6 +1,7 @@
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import '../../../../generated/l10n/l10n.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
 import '../../../../utils/constants/app_vectors.dart';
@@ -19,7 +20,7 @@ class LatestArtistsFollowGridWidget extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text('Latest from artists you follow', style: TextStyle(fontSize: AppSizes.fontSizeBg, fontWeight: FontWeight.bold)),
+            child: Text(S.of(context).latestArtistsFollow, style: TextStyle(fontSize: AppSizes.fontSizeBg, fontWeight: FontWeight.bold)),
           ),
           SizedBox(height: 16),
           SizedBox(

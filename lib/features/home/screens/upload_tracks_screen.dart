@@ -20,6 +20,7 @@ import 'package:photo_manager/photo_manager.dart';
 import '../../../api/apis.dart';
 import '../../../common/widgets/app_bar/app_bar.dart';
 import '../../../common/widgets/input_fields/custom_text_field.dart';
+import '../../../generated/l10n/l10n.dart';
 import '../../../utils/constants/app_images.dart';
 import '../../../utils/constants/app_sizes.dart';
 import '../../../utils/constants/app_colors.dart';
@@ -66,10 +67,10 @@ class UploadTracksScreenState extends State<UploadTracksScreen> {
   AssetEntity? _selectedImage;
   String? _selectedFileName;
   String? selectedGenre;
-  String description = 'Describe your track';
-  String caption = 'Add a caption to your post (optional)';
+  String description = '';
+  String caption = '';
   File? _selectedFile;
-  bool _isConnected = true;
+  bool isConnected = true;
 
   @override
   void initState() {
@@ -80,24 +81,39 @@ class UploadTracksScreenState extends State<UploadTracksScreen> {
     _startUpload();
     _titleController.text = widget.songName;
     _titleController.addListener(_updateTitleCount);
+    description = S.of(context).describeYourTrack;
+    caption = S.of(context).addCaptionYourPost;
 
-    log("Selected file in UploadTracksScreen: ${widget.selectedFile?.path ?? 'No file selected'}");
+    Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> results) {
+      final result = results.isNotEmpty ? results.first : ConnectivityResult.none;
+      setState(() {
+        isConnected = result != ConnectivityResult.none;
+      });
+    });
 
     if (widget.shouldSelectFileImmediately) {
-      if (_isConnected) {
+      if (isConnected) {
         _selectMusicFile();
+      } else {
+        showNoInternetDialog(context);
       }
     }
   }
 
   Future<void> _checkInternetConnection() async {
-    final connectivityResult = await Connectivity().checkConnectivity();
+    bool hasConnection;
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      hasConnection = result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } catch (e) {
+      hasConnection = false;
+    }
 
     setState(() {
-      _isConnected = connectivityResult != ConnectivityResult.none;
+      isConnected = hasConnection;
     });
 
-    if (!_isConnected) {
+    if (!isConnected) {
       showNoInternetDialog(context);
     }
   }
@@ -132,7 +148,6 @@ class UploadTracksScreenState extends State<UploadTracksScreen> {
       _titleController.text = fileName;
     }
   }
-
 
   void _handleImageTap() {
     Navigator.pushReplacement(context, createPageRoute(SelectPicturesScreen(fromEditTrackScreen: false)));
@@ -203,7 +218,7 @@ class UploadTracksScreenState extends State<UploadTracksScreen> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        throw Exception('No user logged in');
+        throw Exception(S.of(context).noUserLoggedIn);
       }
 
       var userDoc = await FirebaseFirestore.instance.collection('Users').doc(user.uid).get();
@@ -215,7 +230,6 @@ class UploadTracksScreenState extends State<UploadTracksScreen> {
         return null;
       }
     } catch (e) {
-      log('Failed to get user image URL: $e');
       return null;
     }
   }
@@ -253,7 +267,8 @@ class UploadTracksScreenState extends State<UploadTracksScreen> {
   }
 
   Future<void> _selectMusicFile() async {
-    if (!_isConnected) {
+    if (!isConnected) {
+      showNoInternetDialog(context);
       return;
     }
 
@@ -263,11 +278,8 @@ class UploadTracksScreenState extends State<UploadTracksScreen> {
     });
 
     var permissionStatus = await Permission.manageExternalStorage.request();
-    log('Storage permission status: $permissionStatus');
 
     if (permissionStatus.isGranted) {
-      log('Permission granted, opening file picker...');
-
       Directory? directory = await getExternalStorageDirectory();
       String initialDirectory = directory?.path ?? "/storage/emulated/0/Sounds";
 
@@ -276,8 +288,6 @@ class UploadTracksScreenState extends State<UploadTracksScreen> {
         allowedExtensions: ['mp3', 'aac', 'wav', 'flac', 'alac', 'dsd', 'ogg'],
         initialDirectory: initialDirectory,
       );
-
-      log('File picker result: $result');
 
       if (result != null && result.files.isNotEmpty) {
         String? filePath = result.files.single.path;
@@ -294,7 +304,6 @@ class UploadTracksScreenState extends State<UploadTracksScreen> {
 
             _onFileSelected();
           });
-          log("File selected: $filePath");
         } else {
           log("File path is null or empty.");
         }
@@ -302,7 +311,6 @@ class UploadTracksScreenState extends State<UploadTracksScreen> {
         log("No file selected");
       }
     } else {
-      log('Storage permission denied or not granted.');
       openAppSettings();
     }
   }
@@ -311,7 +319,7 @@ class UploadTracksScreenState extends State<UploadTracksScreen> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        throw Exception('No user logged in');
+        throw Exception(S.of(context).noUserLoggedIn);
       }
 
       DocumentSnapshot userSnapshot = await FirebaseFirestore.instance.collection('Users').doc(user.uid).get();
@@ -326,8 +334,6 @@ class UploadTracksScreenState extends State<UploadTracksScreen> {
         await FirebaseFirestore.instance.collection('Users').doc(user.uid).update({
           'tracksCount': tracksCount,
         });
-
-        log('Tracks count updated for user: $userId');
       } else {
         log('User not found');
       }
@@ -340,8 +346,6 @@ class UploadTracksScreenState extends State<UploadTracksScreen> {
     try {
       var audioFile = await AudioTags.read(filePath);
 
-      log('Audio File Metadata: $audioFile');
-
       String? artist = audioFile?.trackArtist ?? audioFile?.albumArtist;
 
       if (artist == null || artist == 'Unknown Artist') {
@@ -351,7 +355,6 @@ class UploadTracksScreenState extends State<UploadTracksScreen> {
 
       return artist ?? 'Unknown Artist';
     } catch (e) {
-      log('Error reading artist from track: $e');
       return 'Unknown Artist';
     }
   }
@@ -369,7 +372,7 @@ class UploadTracksScreenState extends State<UploadTracksScreen> {
   Future<void> _uploadTrack(String description, String caption) async {
     if (_selectedFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No file selected')),
+        SnackBar(content: Text(S.of(context).noFileSelected)),
       );
       return;
     }
@@ -411,7 +414,6 @@ class UploadTracksScreenState extends State<UploadTracksScreen> {
 
         await uploadTask.whenComplete(() async {
           String fileURL = await storageReference.getDownloadURL();
-          log('File Uploaded: $fileURL');
 
           String title = _titleController.text;
           String genre = selectedGenre ?? 'Unknown';
@@ -427,16 +429,12 @@ class UploadTracksScreenState extends State<UploadTracksScreen> {
 
           await _updateTracksCount(uploadedBy);
 
-          log('Upload Complete');
-
           Get.snackbar('Success', 'Upload Complete');
         });
       } else {
-        log("File does not exist at the provided path.");
         Get.snackbar('Warning', 'File not found');
       }
     } catch (e) {
-      log('Failed to upload track: $e');
       Get.snackbar('Failed', 'Failed to upload track');
     }
   }
@@ -513,10 +511,10 @@ class UploadTracksScreenState extends State<UploadTracksScreen> {
                         onLongPressEnd: _onLongPressEnd,
                         showFilter: false,
                       ),
-                      CustomTextField(label: 'Title', controller: _titleController, maxLength: 100, currentLength: _titleController.text.length),
-                      UploadsOptionWidget(text: 'Pick genre', title: selectedGenre ?? 'Select genre', icon: Icons.arrow_forward_ios, onTap: _selectGenre),
-                      UploadsOptionWidget(text: 'Description', title: description, icon: Icons.arrow_forward_ios, onTap: _navigateToDescriptionPage),
-                      UploadsOptionWidget(text: 'Caption', title: caption, icon: Icons.arrow_forward_ios, onTap: _navigateToCaptionPage),
+                      CustomTextField(label: S.of(context).title, controller: _titleController, maxLength: 100, currentLength: _titleController.text.length),
+                      UploadsOptionWidget(text: S.of(context).pickGenre, title: selectedGenre ?? S.of(context).selectGenre, icon: Icons.arrow_forward_ios, onTap: _selectGenre),
+                      UploadsOptionWidget(text: S.of(context).description, title: description, icon: Icons.arrow_forward_ios, onTap: _navigateToDescriptionPage),
+                      UploadsOptionWidget(text: S.of(context).caption, title: caption, icon: Icons.arrow_forward_ios, onTap: _navigateToCaptionPage),
                       SizedBox(height: 20),
                       PrivacySettingWidget(isPublic: _isPublic, onToggle: _togglePrivacySetting),
                     ],
@@ -538,7 +536,7 @@ class UploadTracksScreenState extends State<UploadTracksScreen> {
         color: AppColors.red,
         padding: const EdgeInsets.all(4),
         child: Text(
-          'Uploading ${(_uploadProgress * 100).toStringAsFixed(0)}%',
+          '${S.of(context).uploading} ${(_uploadProgress * 100).toStringAsFixed(0)}%',
           style: const TextStyle(fontSize: AppSizes.fontSizeMd, color: AppColors.white),
           textAlign: TextAlign.center,
         ),
@@ -553,8 +551,8 @@ class UploadTracksScreenState extends State<UploadTracksScreen> {
         width: double.infinity,
         color: AppColors.red,
         padding: const EdgeInsets.all(4),
-        child: const Text(
-          'Your track is ready. Tap Save to continue.',
+        child: Text(
+          S.of(context).yourTrackReady,
           style: TextStyle(fontSize: AppSizes.fontSizeMd, color: AppColors.white),
           textAlign: TextAlign.center,
         ),

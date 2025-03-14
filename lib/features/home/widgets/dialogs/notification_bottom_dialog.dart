@@ -3,6 +3,7 @@ import 'package:feather_icons/feather_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import '../../../../generated/l10n/l10n.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
 import '../../../../utils/constants/app_vectors.dart';
@@ -35,7 +36,7 @@ Future<String?> showNotificationDialog(BuildContext context, String selectedOpti
               ),
               _buildNotificationOption(
                 context,
-                'Show all notifications',
+                S.of(context).showAllNotifications,
                 icon: Icons.notifications_none_outlined,
                 isSelected: selectedOption == 'Show all notifications',
                 onTap: () {
@@ -44,7 +45,7 @@ Future<String?> showNotificationDialog(BuildContext context, String selectedOpti
               ),
               _buildNotificationOption(
                 context,
-                'Comments',
+                S.of(context).comments,
                 svgIcon: SvgPicture.asset(
                   AppVectors.comment,
                   colorFilter: ColorFilter.mode(
@@ -61,7 +62,7 @@ Future<String?> showNotificationDialog(BuildContext context, String selectedOpti
               ),
               _buildNotificationOption(
                 context,
-                'Likes',
+                S.of(context).likes,
                 icon: Icons.favorite_border_rounded,
                 isSelected: selectedOption == 'Likes',
                 onTap: () {
@@ -70,7 +71,7 @@ Future<String?> showNotificationDialog(BuildContext context, String selectedOpti
               ),
               _buildNotificationOption(
                 context,
-                'Followings',
+                S.of(context).followings,
                 icon: FeatherIcons.user,
                 isSelected: selectedOption == 'Followings',
                 onTap: () {
@@ -79,7 +80,7 @@ Future<String?> showNotificationDialog(BuildContext context, String selectedOpti
               ),
               _buildNotificationOption(
                 context,
-                'Reposts',
+                S.of(context).reposts,
                 icon: CarbonIcons.repeat,
                 isSelected: selectedOption == 'Reposts',
                 rotationAngle: 1.57,

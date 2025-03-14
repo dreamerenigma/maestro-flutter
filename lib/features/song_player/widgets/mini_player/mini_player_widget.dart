@@ -28,6 +28,12 @@ class MiniPlayerWidget extends StatefulWidget {
 
 class _MiniPlayerWidgetState extends State<MiniPlayerWidget> {
   bool _isPressed = false;
+  int selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   String? _getArtistFromTitle(String? title) {
     if (title != null && title.contains('-')) {
@@ -79,7 +85,7 @@ class _MiniPlayerWidgetState extends State<MiniPlayerWidget> {
                   final songEntity = context.read<SongPlayerCubit>().currentSong;
 
                   if (songEntity != null) {
-                    Navigator.push(context, createPageRoute(SongPlayerScreen(song: songEntity, isPlaying: context.read<SongPlayerCubit>().isPlaying)));
+                    Navigator.push(context, createPageRoute(SongPlayerScreen(song: songEntity, isPlaying: context.read<SongPlayerCubit>().isPlaying, initialIndex: selectedIndex)));
                   } else {
                     log('No song available');
                   }
@@ -164,12 +170,7 @@ class _MiniPlayerWidgetState extends State<MiniPlayerWidget> {
                                     onPressed: () {},
                                   ),
                                 ],
-                                IconButton(
-                                  icon: const Icon(Icons.favorite_outline_outlined, color: AppColors.white),
-                                  onPressed: () {
-
-                                  },
-                                ),
+                                // FavoriteButton(songEntity: songEntity),
                               ],
                             ],
                           ),

@@ -8,6 +8,7 @@ import '../../../utils/helpers/helper_functions.dart';
 import '../../home/screens/home_screen.dart';
 import '../../home/widgets/nav_bar/bottom_nav_bar.dart';
 import '../../song_player/widgets/mini_player/mini_player_manager.dart';
+import '../../utils/screens/internet_aware_screen.dart';
 import '../widgets/sections/section_widget.dart';
 import '../widgets/switches.dart';
 import 'notification_settings_screen.dart';
@@ -57,36 +58,53 @@ class _InboxSettingsScreenState extends State<InboxSettingsScreen> {
           ),
         ],
       ),
-      body: MiniPlayerManager(
-        hideMiniPlayerOnSplash: false,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SectionWidget(
-              title: 'Receive messages from anyone',
-              content: 'If you turn this setting of, only people you follow will be able to send you messages.',
-              onTap: () {
-                setState(() {
-                  _receiveMessageAnyone = !_receiveMessageAnyone;
-                });
-                _saveSettings();
-              },
-              trailingWidget: CustomSwitch(
-                value: _receiveMessageAnyone,
-                onChanged: (bool value) {
-                  setState(() {
-                    _receiveMessageAnyone = value;
-                  });
-                  _saveSettings();
-                },
-                activeColor: AppColors.primary,
+      body: Stack(
+        children: [
+          MiniPlayerManager(
+            hideMiniPlayerOnSplash: false,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SectionWidget(
+                  title: 'Receive messages from anyone',
+                  content: 'If you turn this setting of, only people you follow will be able to send you messages.',
+                  onTap: () {
+                    setState(() {
+                      _receiveMessageAnyone = !_receiveMessageAnyone;
+                    });
+                    _saveSettings();
+                  },
+                  trailingWidget: CustomSwitch(
+                    value: _receiveMessageAnyone,
+                    onChanged: (bool value) {
+                      setState(() {
+                        _receiveMessageAnyone = value;
+                      });
+                      _saveSettings();
+                    },
+                    activeColor: AppColors.primary,
+                  ),
+                ),
+                _buildInboxSettingsOption('Notification settings', Icons.arrow_forward_ios, () {
+                  Navigator.push(context, createPageRoute(NotificationSettingsScreen(initialIndex: widget.initialIndex)));
+                }),
+              ],
+            ),
+          ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 60,
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: InternetAwareScreen(
+                title: 'Inbox Screen',
+                connectedScreen: Container(),
               ),
             ),
-            _buildInboxSettingsOption('Notification settings', Icons.arrow_forward_ios, () {
-              Navigator.push(context, createPageRoute(NotificationSettingsScreen(initialIndex: widget.initialIndex)));
-            }),
-          ],
-        ),
+          ),
+        ],
       ),
       bottomNavigationBar: BottomNavBar(
         selectedIndex: selectedIndex,

@@ -261,7 +261,7 @@ class SignUpScreenState extends State<SignUpScreen> {
             result.fold(
                   (l) => _showError(context, l),
                   (r) {
-                if (r == 'Google Sign-Up was Successful') {
+                if (r == S.of(context).googleSignUpSuccess) {
                   _showSuccess(context, r);
                 }
               },
@@ -280,7 +280,7 @@ class SignUpScreenState extends State<SignUpScreen> {
             result.fold(
                   (l) => _showError(context, l),
                   (r) {
-                if (r == 'Apple Sign-In was Successful') {
+                if (r == S.of(context).appleSignInSuccess) {
                   _showSuccess(context, r);
                 }
               },
@@ -301,9 +301,7 @@ class SignUpScreenState extends State<SignUpScreen> {
         child: Container(
           width: 60,
           height: 60,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-          ),
+          decoration: const BoxDecoration(shape: BoxShape.circle),
           child: Center(child: child),
         ),
       ),
@@ -314,7 +312,7 @@ class SignUpScreenState extends State<SignUpScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: AppColors.red,
       ),
     );
   }
@@ -323,10 +321,10 @@ class SignUpScreenState extends State<SignUpScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.green,
+        backgroundColor: AppColors.green,
       ),
     );
-    if (message == 'Google Sign-Up was Successful' || message == 'Apple Sign-In was Successful') {
+    if (message == S.of(context).googleSignUpSuccess || message == S.of(context).appleSignInSuccess) {
       Navigator.pushReplacement(context, createPageRoute(HomeScreen()));
     }
   }

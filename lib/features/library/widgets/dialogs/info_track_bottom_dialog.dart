@@ -13,18 +13,24 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:maestro/features/home/screens/inbox_screen.dart';
+import 'package:maestro/features/library/screens/profile_settings_screen.dart';
 import 'package:maestro/features/library/widgets/dialogs/qr_code_dialog.dart';
+import 'package:maestro/features/song_player/screens/comments_screen.dart';
 import 'package:maestro/features/utils/widgets/no_glow_scroll_behavior.dart';
 import 'package:maestro/utils/constants/app_vectors.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:typicons_flutter/typicons_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../domain/entities/comment/comment_entity.dart';
 import '../../../../domain/entities/song/song_entity.dart';
+import '../../../../domain/entities/station/station_entity.dart';
 import '../../../../routes/custom_page_route.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
 import '../../../../utils/popups/dialogs.dart';
 import '../../bloc/song/song_cubit.dart';
+import '../../screens/library/playlists/add_track_playlist_screen.dart';
+import '../../screens/library/station/station_screen.dart';
 import '../../screens/library/tracks/edit_track_screen.dart';
 
 void copyUserInfo(Map<String, dynamic> userData) {
@@ -94,17 +100,32 @@ void showInfoTrackBottomDialog(
   SongEntity song, {
   bool isEditMode = false,
   bool shouldShowRepost = true,
+  bool shouldShowPlayNext = true,
+  bool shouldShowPlayLast = true,
 }) {
   int initialIndex = 0;
   int selectedIndex = 0;
   onItemTapped(index) {}
   updateUnreadMessages(index) {}
+  double initialChildSize = 0.95;
+  double minChildSize = 0.6;
+  double maxChildSize = 0.95;
 
   void onDragUpdate(double offset) {
     if (offset < 0.1) {
       Navigator.of(context).pop();
     }
   }
+
+  if (!shouldShowPlayNext && !shouldShowPlayLast) {
+    initialChildSize = 0.82;
+    minChildSize = 0.6;
+    maxChildSize = 0.82;
+  }
+
+  List<CommentEntity> comments = [];
+  List<StationEntity> station = [];
+  List<SongEntity> songs = [];
 
   showModalBottomSheet(
     context: context,
@@ -115,11 +136,11 @@ void showInfoTrackBottomDialog(
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
     builder: (BuildContext context) {
       return DraggableScrollableSheet(
-        initialChildSize: 0.95,
-        minChildSize: 0.6,
-        maxChildSize: 0.95,
+        initialChildSize: initialChildSize,
+        minChildSize: minChildSize,
+        maxChildSize: maxChildSize,
         snap: true,
-        snapSizes: [0.6, 0.95],
+        snapSizes: [0.6, maxChildSize],
         shouldCloseOnMinExtent: false,
         builder: (BuildContext context, ScrollController scrollController) {
           return GestureDetector(
@@ -141,8 +162,8 @@ void showInfoTrackBottomDialog(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          height: 5,
-                          width: 40,
+                          height: 4,
+                          width: 38,
                           decoration: BoxDecoration(color: context.isDarkMode ? AppColors.white : AppColors.black, borderRadius: BorderRadius.circular(10)),
                           margin: const EdgeInsets.only(top: 10),
                         ),
@@ -321,28 +342,38 @@ void showInfoTrackBottomDialog(
                         ),
                         _buildSectionOption(context, 'Track insights', icon: Iconsax.diagram_outline, iconSize: 24, () {}),
                         Divider(height: 5, thickness: 1, color: context.isDarkMode ? AppColors.darkGrey : AppColors.lightGrey),
+                        if (shouldShowPlayNext)
                         _buildSectionOption(context, 'Play Next', svgIcon: SvgPicture.asset(
                           AppVectors.playNext,
                           colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn),
                           width: 22,
                           height: 22,
                         ), () {}),
+                        if (shouldShowPlayLast)
                         _buildSectionOption(context, 'Play Last', svgIcon: SvgPicture.asset(
                           AppVectors.playLast,
                           colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn),
                           width: 22,
                           height: 22,
                         ), () {}),
-                        _buildSectionOption(context, 'Add to playlist', icon: PixelArtIcons.add_box_multiple, () {}),
-                        _buildSectionOption(context, 'Start Station', icon: BoxIcons.bx_station, () {}),
+                        _buildSectionOption(context, 'Add to playlist', icon: PixelArtIcons.add_box_multiple, () {
+                          Navigator.push(context, createPageRoute(AddTrackPlaylistScreen(playlists: [], initialIndex: initialIndex)));
+                        }),
+                        _buildSectionOption(context, 'Start Station', icon: BoxIcons.bx_station, () {
+                          Navigator.push(context, createPageRoute(StationScreen(initialIndex: initialIndex, station: station, song: songs)));
+                        }),
                         Divider(height: 5, thickness: 1, color: context.isDarkMode ? AppColors.darkGrey : AppColors.lightGrey),
-                        _buildSectionOption(context, 'Go to artist profile', icon: FeatherIcons.user, () {}),
+                        _buildSectionOption(context, 'Go to artist profile', icon: FeatherIcons.user, () {
+                          Navigator.push(context, createPageRoute(ProfileSettingsScreen(initialIndex: initialIndex)));
+                        }),
                         _buildSectionOption(context, 'View comments', svgIcon: SvgPicture.asset(
                           AppVectors.comment,
                           colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn),
                           width: 22,
                           height: 22,
-                        ), () {}),
+                        ), () {
+                          Navigator.push(context, createPageRoute(CommentsScreen(song: song, comments: comments)));
+                        }),
                         if (shouldShowRepost) _buildSectionOption(context, 'Repost on Maestro', icon: CarbonIcons.repeat, rotationAngle: 1.57, () {}),
                         Divider(height: 5, thickness: 1, color: context.isDarkMode ? AppColors.darkGrey : AppColors.lightGrey),
                         _buildSectionOption(context, 'Behind this track', svgIcon: SvgPicture.asset(

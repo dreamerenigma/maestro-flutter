@@ -4,6 +4,7 @@ import 'package:maestro/features/home/screens/upload_tracks_screen.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'dart:typed_data';
 import '../../../common/widgets/app_bar/app_bar.dart';
+import '../../../generated/l10n/l10n.dart';
 import '../../../routes/custom_page_route.dart';
 import '../../../utils/constants/app_sizes.dart';
 import '../../../utils/constants/app_colors.dart';
@@ -27,7 +28,7 @@ class ChoosePictureScreenState extends State<ChoosePictureScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const BasicAppBar(title: Text('Choose Image'), hideBack: true),
+      appBar: BasicAppBar(title: Text(S.of(context).chooseImage), hideBack: true),
       body: Column(
         children: [
           Expanded(
@@ -53,7 +54,7 @@ class ChoosePictureScreenState extends State<ChoosePictureScreen> {
                       ),
                     );
                   } else {
-                    return const Center(child: Text('Failed to load image'));
+                    return Center(child: Text(S.of(context).failedLoadImage));
                   }
                 } else {
                   return const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)));
@@ -70,7 +71,7 @@ class ChoosePictureScreenState extends State<ChoosePictureScreen> {
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  child: const Text('Cancel', style: TextStyle(fontSize: AppSizes.fontSizeMd, color: AppColors.grey)),
+                  child: Text(S.of(context).cancel, style: TextStyle(fontSize: AppSizes.fontSizeMd, color: AppColors.grey)),
                 ),
                 TextButton(
                   onPressed: () {
@@ -97,7 +98,7 @@ class ChoosePictureScreenState extends State<ChoosePictureScreen> {
                       );
                     }
                   },
-                  child: const Text('Choose', style: TextStyle(fontSize: AppSizes.fontSizeMd, color: AppColors.grey)),
+                  child: Text(S.of(context).choose, style: TextStyle(fontSize: AppSizes.fontSizeMd, color: AppColors.grey)),
                 ),
               ],
             ),

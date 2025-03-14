@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:maestro/features/utils/widgets/no_glow_scroll_behavior.dart';
 import 'package:photo_manager/photo_manager.dart';
+import '../../../generated/l10n/l10n.dart';
 import '../../../routes/custom_page_route.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../../utils/constants/app_sizes.dart';
@@ -85,7 +86,7 @@ class SelectPicturesScreenState extends State<SelectPicturesScreen> {
                   children: [
                     GestureDetector(
                       onTap: () => Navigator.pop(context),
-                      child: const Text('Cancel', style: TextStyle(fontSize: AppSizes.fontSizeMd, color: AppColors.primary)),
+                      child: Text(S.of(context).cancel, style: TextStyle(fontSize: AppSizes.fontSizeMd, color: AppColors.primary)),
                     ),
                     Expanded(child: _tabBar()),
                   ],
@@ -118,12 +119,12 @@ class SelectPicturesScreenState extends State<SelectPicturesScreen> {
           height: 40,
           decoration: BoxDecoration(color: AppColors.darkGrey, borderRadius: BorderRadius.circular(12.0)),
           child: TabBar(
-            tabs: const [
+            tabs: [
               Tab(
                 child: SizedBox(
                   width: 105,
                   child: Center(
-                    child: Text('Photos'),
+                    child: Text(S.of(context).photos),
                   ),
                 ),
               ),
@@ -131,7 +132,7 @@ class SelectPicturesScreenState extends State<SelectPicturesScreen> {
                 child: SizedBox(
                   width: 105,
                   child: Center(
-                    child: Text('Albums'),
+                    child: Text(S.of(context).albums),
                   ),
                 ),
               ),
@@ -166,7 +167,7 @@ class SelectPicturesScreenState extends State<SelectPicturesScreen> {
                 controller: _searchController,
                 textCapitalization: TextCapitalization.sentences,
                 decoration: InputDecoration(
-                  hintText: 'Photos, People, Places...',
+                  hintText: S.of(context).photosPeoplePlaces,
                   hintStyle: TextStyle(fontSize: AppSizes.fontSizeMd, fontWeight: FontWeight.w200, color: context.isDarkMode ? AppColors.darkerGrey : AppColors.darkerGrey),
                   prefixIcon: Icon(Icons.search, color: context.isDarkMode ? AppColors.darkerGrey : AppColors.darkGrey),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(30), borderSide: BorderSide.none),
@@ -191,7 +192,7 @@ class SelectPicturesScreenState extends State<SelectPicturesScreen> {
     }
 
     if (_imageList.isEmpty) {
-      return const Center(child: Text('No images found'));
+      return Center(child: Text(S.of(context).noImagesFound));
     }
 
     return GridView.builder(
@@ -206,12 +207,7 @@ class SelectPicturesScreenState extends State<SelectPicturesScreen> {
             if (widget.fromEditTrackScreen) {
               Navigator.pop(context, _imageList[index]);
             } else {
-              Navigator.pushReplacement(
-                context,
-                createPageRoute(
-                  ChoosePictureScreen(image: _imageList[index], fromEditTrackScreen: false),
-                ),
-              );
+              Navigator.pushReplacement(context, createPageRoute(ChoosePictureScreen(image: _imageList[index], fromEditTrackScreen: false)));
             }
           },
           child: FutureBuilder<Uint8List?>(
@@ -224,7 +220,7 @@ class SelectPicturesScreenState extends State<SelectPicturesScreen> {
                     fit: BoxFit.cover,
                   );
                 } else {
-                  return const Center(child: Text('Failed to load image'));
+                  return Center(child: Text(S.of(context).failedLoadImage));
                 }
               } else {
                 return const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)));

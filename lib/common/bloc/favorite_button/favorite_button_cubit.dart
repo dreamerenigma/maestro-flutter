@@ -6,7 +6,7 @@ import '../../../service_locator.dart';
 class FavoriteButtonCubit extends Cubit<FavoriteButtonState> {
   FavoriteButtonCubit() : super(FavoriteButtonInitial());
 
-  void favoriteButtonUpdated(String songId) async {
+  void favoriteButtonUpdated(String songId, int currentLikeCount) async {
     var result = await sl<AddOrRemoveFavoriteSongsUseCase>().call(
       params: songId,
     );
@@ -14,8 +14,19 @@ class FavoriteButtonCubit extends Cubit<FavoriteButtonState> {
     result.fold(
       (l) {},
       (isFavorite) {
-        emit(FavoriteButtonUpdated(isFavorite: isFavorite));
+        if (isFavorite && currentLikeCount > 0) {
+          return;
+        } else if (!isFavorite && currentLikeCount == 0) {
+          return;
+        }
+
+        int newLikeCount = isFavorite ? currentLikeCount + 1 : currentLikeCount - 1;
+        emit(FavoriteButtonUpdated(isFavorite: isFavorite, likeCount: newLikeCount));
       }
     );
+  }
+
+  void loadInitialState(bool isFavorite, int likeCount) {
+    emit(FavoriteButtonUpdated(isFavorite: isFavorite, likeCount: likeCount));
   }
 }

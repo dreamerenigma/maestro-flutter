@@ -45,6 +45,7 @@ class LocalAudioScreenState extends State<LocalAudioScreen> {
   List<SongModelWithDownloadInfo> _songs = [];
   List<SongModelWithDownloadInfo> _filteredSongs = [];
   final TextEditingController _searchController = TextEditingController();
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -96,6 +97,10 @@ class LocalAudioScreenState extends State<LocalAudioScreen> {
   Future<void> _fetchSongs() async {
     log("Начинаю загрузку треков...");
 
+    setState(() {
+      isLoading = true;
+    });
+
     await Future.delayed(const Duration(milliseconds: 700));
 
     List<audio_query.SongModel> songs = await _audioQuery.querySongs();
@@ -115,6 +120,7 @@ class LocalAudioScreenState extends State<LocalAudioScreen> {
     setState(() {
       _songs = songsWithDownloadTime;
       _filteredSongs = songsWithDownloadTime;
+      isLoading = false;
     });
 
     log("Загрузка треков завершена.");
@@ -172,90 +178,107 @@ class LocalAudioScreenState extends State<LocalAudioScreen> {
                 Expanded(
                   child: _filteredSongs.isEmpty
                     ? ShimmerLoader(itemCount: 10)
-                    : ListView.builder(
-                      itemCount: _filteredSongs.length,
-                      itemBuilder: (context, index) {
-                        final songWithTime = _filteredSongs[index];
-                        final song = songWithTime.song;
-                        final downloadTime = songWithTime.downloadTime;
+                    : Stack(
+                      children: [
+                        ListView.builder(
+                          itemCount: _filteredSongs.length,
+                          itemBuilder: (context, index) {
+                            final songWithTime = _filteredSongs[index];
+                            final song = songWithTime.song;
+                            final downloadTime = songWithTime.downloadTime;
 
-                        return FutureBuilder<entity.SongEntity>(
-                          future: convertSongModelToEntity(song, fetchFromFirestore: false),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return ShimmerLoader(itemCount: 5);
-                            } else if (snapshot.hasError) {
-                              return Center(child: Text('Error: ${snapshot.error}'));
-                            } else if (!snapshot.hasData) {
-                              return const SizedBox.shrink();
-                            } else {
-                              final songEntity = snapshot.data!;
+                            return FutureBuilder<entity.SongEntity>(
+                              future: convertSongModelToEntity(song, fetchFromFirestore: false),
+                              builder: (context, snapshot) {
+                                log("Snapshot state: ${snapshot.connectionState}, Error: ${snapshot.error}, Data: ${snapshot.data}");
 
-                            return InkWell(
-                              onTap: () async {
-                                Navigator.push(context, createPageRoute(SongPlayerScreen(song: songEntity, isPlaying: context.read<SongPlayerCubit>().isPlaying)));
-                              },
-                              splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
-                              highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
-                                child: Row(
-                                  children: [
-                                    BlocBuilder<SongPlayerCubit, SongPlayerState>(
-                                      builder: (context, state) {
-                                        final isPlaying = state is SongPlayerLoaded && state.currentSong == songEntity && context.read<SongPlayerCubit>().audioPlayer.playing;
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return SizedBox.shrink();
+                                } else if (snapshot.hasError) {
+                                  return Center(child: Text('Error: ${snapshot.error}'));
+                                } else if (!snapshot.hasData || snapshot.data == null) {
+                                  return const SizedBox.shrink();
+                                } else {
+                                  final songEntity = snapshot.data!;
 
-                                        return Material(
-                                          color: AppColors.transparent,
-                                          child: InkWell(
-                                            onTap: () {
-                                              context.read<SongPlayerCubit>().playOrPauseSong(songEntity);
-                                            },
-                                            splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
-                                            highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
-                                            borderRadius: BorderRadius.circular(AppSizes.cardRadiusXl),
-                                            child: Stack(
-                                              alignment: Alignment.center,
-                                              children: [
-                                                RandomImageWidget(),
-                                                Icon(
-                                                  isPlaying ? Icons.pause : Icons.play_arrow_rounded,
-                                                  color: context.isDarkMode ? AppColors.darkGrey : AppColors.grey,
-                                                  size: 36,
+                                  return InkWell(
+                                    onTap: () async {
+                                      Navigator.push(
+                                        context,
+                                        createPageRoute(
+                                          SongPlayerScreen(song: songEntity, isPlaying: context.read<SongPlayerCubit>().isPlaying, initialIndex: selectedIndex),
+                                        ),
+                                      );
+                                    },
+                                    splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+                                    highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
+                                      child: Row(
+                                        children: [
+                                          BlocBuilder<SongPlayerCubit, SongPlayerState>(
+                                            builder: (context, state) {
+                                              final isPlaying = state is SongPlayerLoaded && state.currentSong == songEntity && context.read<SongPlayerCubit>().audioPlayer.playing;
+
+                                              return Material(
+                                                color: AppColors.transparent,
+                                                child: InkWell(
+                                                  onTap: () {
+                                                    context.read<SongPlayerCubit>().playOrPauseSong(songEntity);
+                                                  },
+                                                  splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+                                                  highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+                                                  borderRadius: BorderRadius.circular(AppSizes.cardRadiusXl),
+                                                  child: Stack(
+                                                    alignment: Alignment.center,
+                                                    children: [
+                                                      RandomImageWidget(),
+                                                      Icon(
+                                                        isPlaying ? Icons.pause : Icons.play_arrow_rounded,
+                                                        color: context.isDarkMode ? AppColors.darkGrey : AppColors.grey,
+                                                        size: 36,
+                                                      ),
+                                                    ],
+                                                  ),
                                                 ),
+                                              );
+                                            },
+                                          ),
+                                          SizedBox(width: 15),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  song.title,
+                                                  style: TextStyle(fontSize: AppSizes.fontSizeMd, fontWeight: FontWeight.w600),
+                                                  maxLines: 2,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                                SizedBox(height: 5),
+                                                Text(Formatter.formatDateAudio(downloadTime), maxLines: 1, overflow: TextOverflow.ellipsis),
                                               ],
                                             ),
                                           ),
-                                        );
-                                      },
-                                    ),
-                                    SizedBox(width: 15),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            song.title,
-                                            style: TextStyle(fontSize: AppSizes.fontSizeMd, fontWeight: FontWeight.w600),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          SizedBox(height: 5),
-                                          Text(Formatter.formatDateAudio(downloadTime), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                          SizedBox(width: 10),
+                                          Text(Formatter.formatFileSize(song.size), style: TextStyle(color: AppColors.lightGrey, fontSize: AppSizes.fontSizeLm)),
                                         ],
                                       ),
                                     ),
-                                    SizedBox(width: 10),
-                                    Text(Formatter.formatFileSize(song.size), style: TextStyle(color: AppColors.lightGrey, fontSize: AppSizes.fontSizeLm)),
-                                  ],
-                                ),
-                              ),
+                                  );
+                                }
+                              },
                             );
-                          }}
-                        );
-                      },
+                          },
+                        ),
+                        if (isLoading)
+                          Center(
+                            child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)),
+                          ),
+                      ],
                     ),
-                  ),
+                ),
+                SizedBox(height: 70),
               ],
             ),
           ),

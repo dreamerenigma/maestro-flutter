@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -22,6 +23,7 @@ import 'package:maestro/features/library/screens/library/your_upload_screen.dart
 import 'package:shimmer/shimmer.dart';
 import '../../../utils/constants/app_sizes.dart';
 import '../../../utils/helpers/helper_functions.dart';
+import '../widgets/items/recently_played_item.dart';
 import 'library/albums_screen.dart';
 import 'library/following_screen.dart';
 import 'library/station/stations_screen.dart';
@@ -46,9 +48,10 @@ class LibraryScreen extends StatefulWidget {
 class LibraryScreenState extends State<LibraryScreen> {
   String? _userAvatarUrl;
   List<String> recentlyPlayed = [];
+  List<String> listeningHistory = [];
   List<Map<String, dynamic>> playlists = [];
   final bool _isSeeAllTapped = false;
-  bool _isConnected = true;
+  bool isConnected = true;
 
   @override
   void initState() {
@@ -58,16 +61,23 @@ class LibraryScreenState extends State<LibraryScreen> {
 
     Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> results) {
       final result = results.isNotEmpty ? results.first : ConnectivityResult.none;
-      _isConnected = result != ConnectivityResult.none;
-
-      setState(() {});
+      log('Connectivity changed: $result');
+      setState(() {
+        isConnected = result != ConnectivityResult.none;
+      });
     });
   }
 
-  void _checkInternetConnection() async {
-    final connectivityResult = await Connectivity().checkConnectivity();
+  Future<void> _checkInternetConnection() async {
+    bool hasConnection;
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      hasConnection = result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } catch (e) {
+      hasConnection = false;
+    }
     setState(() {
-      _isConnected = connectivityResult != ConnectivityResult.none;
+      isConnected = hasConnection;
     });
   }
 
@@ -98,7 +108,7 @@ class LibraryScreenState extends State<LibraryScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _info(widget.onUpgradeTapped),
+          _buildInfo(widget.onUpgradeTapped),
           Expanded(
             child: ScrollConfiguration(
               behavior: NoGlowScrollBehavior(),
@@ -136,15 +146,21 @@ class LibraryScreenState extends State<LibraryScreen> {
                           _buildProfileOption('Your uploads', Icons.arrow_forward_ios, () {
                             Navigator.push(context, createPageRoute(YourUploadScreen(initialIndex: widget.initialIndex)));
                           }),
-                          _buildSection('Recently played', 'Find all your recently played content here.', () {
-                            Navigator.push(context, createPageRoute(RecentlyPlayedScreen(initialIndex: widget.initialIndex)));
-                          },
-                            recentlyPlayed
+                          _buildSection(
+                            'Recently played',
+                            'Find all your recently played content here.',
+                            () {
+                              Navigator.push(context, createPageRoute(RecentlyPlayedScreen(initialIndex: widget.initialIndex)));
+                            },
+                            recentlyPlayed: recentlyPlayed,
                           ),
-                          _buildSection('Listening history', 'Find all the tracks you\'ve listened to here.', () {
-                            Navigator.push(context, createPageRoute(ListeningHistoryScreen(initialIndex: widget.initialIndex)));
-                          },
-                            recentlyPlayed
+                          _buildSection(
+                            'Listening history',
+                            'Find all the tracks you\'ve listened to here.',
+                            () {
+                              Navigator.push(context, createPageRoute(ListeningHistoryScreen(initialIndex: widget.initialIndex)));
+                            },
+                            listeningHistory: listeningHistory,
                           ),
                         ],
                       ),
@@ -159,14 +175,14 @@ class LibraryScreenState extends State<LibraryScreen> {
     );
   }
 
-  Widget _info(VoidCallback onUpgradeTapped) {
+  Widget _buildInfo(VoidCallback onUpgradeTapped) {
     return Padding(
       padding: const EdgeInsets.only(left: 16, right: 16, top: 30, bottom: 20),
       child: Row(
         children: [
           const Text('Library', style: TextStyle(fontSize: AppSizes.fontSizeBg, fontWeight: FontWeight.bold)),
           const Spacer(),
-          _isConnected ? GestureDetector(
+          isConnected ? GestureDetector(
             onTap: onUpgradeTapped,
             child: const Text('UPGRADE', style: TextStyle(fontSize: AppSizes.fontSizeLm, fontWeight: FontWeight.bold, color: AppColors.primary)),
           ) : Container(),
@@ -232,7 +248,13 @@ class LibraryScreenState extends State<LibraryScreen> {
     );
   }
 
-  Widget _buildSection(String title, String content, VoidCallback onTap, List recentlyPlayed) {
+  Widget _buildSection(
+    String title,
+    String content,
+    VoidCallback onTap, {
+    List<dynamic> recentlyPlayed = const [],
+    List<dynamic> listeningHistory = const [],
+  }) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.only(top: 24, left: 16, right: 16, bottom: 16),
@@ -242,37 +264,65 @@ class LibraryScreenState extends State<LibraryScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title, style: const TextStyle(fontSize: AppSizes.fontSizeLg, fontWeight: FontWeight.bold)),
-              if (recentlyPlayed.isNotEmpty)
-              InkWell(
-                onTap: onTap,
-                splashColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-                highlightColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-                borderRadius: BorderRadius.circular(AppSizes.cardRadiusLg),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.darkGrey.withAlpha(30),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    'See All',
-                    style: TextStyle(
-                      fontSize: AppSizes.fontSizeLm,
-                      fontWeight: FontWeight.w500,
-                      color: _isSeeAllTapped ? (HelperFunctions.isDarkMode(context) ? AppColors.white : AppColors.black) : (HelperFunctions.isDarkMode(context)
-                        ? AppColors.white.withAlpha(150)
-                        : AppColors.black.withAlpha(150))
+              Text(
+                title,
+                style: const TextStyle(fontSize: AppSizes.fontSizeLg, fontWeight: FontWeight.bold),
+              ),
+              if (recentlyPlayed.isNotEmpty || listeningHistory.isNotEmpty)
+                InkWell(
+                  onTap: onTap,
+                  splashColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
+                  highlightColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
+                  borderRadius: BorderRadius.circular(AppSizes.cardRadiusLg),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(color: AppColors.darkGrey.withAlpha(30), borderRadius: BorderRadius.circular(16)),
+                    child: Text(
+                      'See All',
+                      style: TextStyle(
+                        fontSize: AppSizes.fontSizeLm,
+                        fontWeight: FontWeight.w500,
+                        color: _isSeeAllTapped
+                          ? (HelperFunctions.isDarkMode(context) ? AppColors.white : AppColors.black)
+                          : (HelperFunctions.isDarkMode(context) ? AppColors.white.withAlpha(150) : AppColors.black.withAlpha(150)),
+                      ),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
           Padding(
             padding: const EdgeInsets.only(top: 6),
             child: Text(content, style: const TextStyle(fontSize: AppSizes.fontSizeLm, color: AppColors.darkerGrey)),
           ),
+          if (recentlyPlayed.isNotEmpty)
+            Container(
+              height: 150,
+              padding: const EdgeInsets.only(top: 8),
+              child: GridView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: recentlyPlayed.length > 10 ? 10 : recentlyPlayed.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 1,
+                  mainAxisSpacing: 10,
+                  childAspectRatio: 1,
+                ),
+                itemBuilder: (context, index) {
+                  var item = recentlyPlayed[index];
+                  bool isPlaylist = item['isPlaylist'];
+                  bool isUserAvatar = item['isUserAvatar'];
+
+                  return RecentlyPlayedItem(
+                    isPlaylist: isPlaylist,
+                    isUserAvatar: isUserAvatar,
+                    imageUrl: item['imageUrl'],
+                    userName: isUserAvatar ? item['userName'] : null,
+                    onTap: () {},
+                  );
+                },
+              ),
+            ),
+          if (listeningHistory.isNotEmpty) Column(children: listeningHistory.map((item) => Text(item.toString())).toList()),
         ],
       ),
     );

@@ -20,23 +20,57 @@ typedef String MessageIfAbsent(String messageStr, List<dynamic> args);
 class MessageLookup extends MessageLookupByLibrary {
   String get localeName => 'en';
 
-  static String m0(userName) =>
+  static String m0(error) => "Google sign-in failed: ${error}";
+
+  static String m1(userName) =>
       "Hello! ${userName}! Thank you for downloading our application!";
+
+  static String m2(userName) => "Made for ${userName}";
+
+  static String m3(userName) => "Mixed for ${userName}";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
+        "addCaptionYourPost": MessageLookupByLibrary.simpleMessage(
+            "Add a caption to your post (optional)"),
+        "additionalInfo":
+            MessageLookupByLibrary.simpleMessage("Additional Info"),
+        "albums": MessageLookupByLibrary.simpleMessage("Albums"),
         "allFieldsFilled": MessageLookupByLibrary.simpleMessage(
             "Not all fields are filled in!"),
         "appName": MessageLookupByLibrary.simpleMessage("Maestro"),
+        "appleSignInSuccess": MessageLookupByLibrary.simpleMessage(
+            "Apple Sign-In was Successful"),
         "artists": MessageLookupByLibrary.simpleMessage("Artists"),
+        "artistsWatchOutFor":
+            MessageLookupByLibrary.simpleMessage("Artists to watch out for"),
+        "browse": MessageLookupByLibrary.simpleMessage("Browse"),
+        "buzzingElectronic":
+            MessageLookupByLibrary.simpleMessage("Buzzing Electronic"),
+        "cancel": MessageLookupByLibrary.simpleMessage("Cancel"),
+        "cancelUpload": MessageLookupByLibrary.simpleMessage("Cancel upload"),
+        "caption": MessageLookupByLibrary.simpleMessage("Caption"),
+        "choose": MessageLookupByLibrary.simpleMessage("Choose"),
+        "chooseImage": MessageLookupByLibrary.simpleMessage("Choose Image"),
         "chooseMode": MessageLookupByLibrary.simpleMessage("Choose Mode"),
         "clearSearchHistory":
             MessageLookupByLibrary.simpleMessage("Clear search history"),
+        "comments": MessageLookupByLibrary.simpleMessage("Comments"),
+        "concerts": MessageLookupByLibrary.simpleMessage("Concerts"),
         "continueButton": MessageLookupByLibrary.simpleMessage("Continue"),
+        "createAccount": MessageLookupByLibrary.simpleMessage("Create Account"),
+        "curatedYourTaste":
+            MessageLookupByLibrary.simpleMessage("Curated to your taste"),
+        "dailyDrops": MessageLookupByLibrary.simpleMessage("DAILY DROPS"),
         "dark": MessageLookupByLibrary.simpleMessage("Dark"),
-        "darkTheme": MessageLookupByLibrary.simpleMessage("Dark"),
         "dataSendingAdvertising": MessageLookupByLibrary.simpleMessage(
             " of user data and sending you advertising notices about our services. Please review our "),
+        "deletedUser": MessageLookupByLibrary.simpleMessage("Deleted user"),
+        "describeYourTrack":
+            MessageLookupByLibrary.simpleMessage("Describe your track"),
+        "description": MessageLookupByLibrary.simpleMessage("Description"),
+        "discoverStations":
+            MessageLookupByLibrary.simpleMessage("Discover with Stations"),
         "englishLanguage": MessageLookupByLibrary.simpleMessage("English"),
         "enjoy":
             MessageLookupByLibrary.simpleMessage("Enjoy Listening To Music"),
@@ -47,54 +81,121 @@ class MessageLookup extends MessageLookupByLibrary {
         "enterEmail": MessageLookupByLibrary.simpleMessage("Enter email"),
         "errorLoadingProfile":
             MessageLookupByLibrary.simpleMessage("Error loading profile"),
+        "failedLoadImage":
+            MessageLookupByLibrary.simpleMessage("Failed to load image"),
         "feed": MessageLookupByLibrary.simpleMessage("Feed"),
+        "female": MessageLookupByLibrary.simpleMessage("Female"),
+        "followings": MessageLookupByLibrary.simpleMessage("Followings"),
         "fullName": MessageLookupByLibrary.simpleMessage("Full name"),
         "getStarted": MessageLookupByLibrary.simpleMessage("Get Started"),
-        "helloUserMessage": m0,
+        "googleSignInFailed": m0,
+        "googleSignInSuccess":
+            MessageLookupByLibrary.simpleMessage("Google sign-in successful!"),
+        "googleSignUpSuccess": MessageLookupByLibrary.simpleMessage(
+            "Google Sign-Up was Successful"),
+        "guest": MessageLookupByLibrary.simpleMessage("guest"),
+        "helloUserMessage": m1,
         "home": MessageLookupByLibrary.simpleMessage("Home"),
         "inbox": MessageLookupByLibrary.simpleMessage("Inbox"),
+        "latestArtistsFollow": MessageLookupByLibrary.simpleMessage(
+            "Latest from artists you follow"),
         "library": MessageLookupByLibrary.simpleMessage("Library"),
         "light": MessageLookupByLibrary.simpleMessage("Light"),
-        "lightTheme": MessageLookupByLibrary.simpleMessage("Light"),
+        "likes": MessageLookupByLibrary.simpleMessage("Likes"),
+        "localAudioPlaylist":
+            MessageLookupByLibrary.simpleMessage("Local Audio Playlist"),
+        "localList": MessageLookupByLibrary.simpleMessage("LocalList"),
+        "madeFor": m2,
+        "male": MessageLookupByLibrary.simpleMessage("Male"),
+        "mixedFor": m3,
+        "moreWhatYouLike":
+            MessageLookupByLibrary.simpleMessage("More of what you like"),
+        "newArtists": MessageLookupByLibrary.simpleMessage("New!"),
+        "newMessage": MessageLookupByLibrary.simpleMessage("New message"),
+        "newReleases": MessageLookupByLibrary.simpleMessage(
+            "New releases based on your taste. Updated every day"),
         "news": MessageLookupByLibrary.simpleMessage("News"),
         "next": MessageLookupByLibrary.simpleMessage("Next"),
         "nextYouAgree": MessageLookupByLibrary.simpleMessage(
             "By clicking Next you agree to the "),
         "noDataFound": MessageLookupByLibrary.simpleMessage("No Data Found!"),
+        "noDateAvailable":
+            MessageLookupByLibrary.simpleMessage("No date available"),
+        "noFileSelected":
+            MessageLookupByLibrary.simpleMessage("No file selected"),
+        "noImagesFound":
+            MessageLookupByLibrary.simpleMessage("No images found"),
         "noName": MessageLookupByLibrary.simpleMessage("No name"),
         "noUserDataFound":
             MessageLookupByLibrary.simpleMessage("No user data found"),
+        "noUserLoggedIn":
+            MessageLookupByLibrary.simpleMessage("No user logged in"),
         "notMember": MessageLookupByLibrary.simpleMessage("Not a Member?"),
         "nothingHappenedYet":
             MessageLookupByLibrary.simpleMessage("Nothing happened yet"),
         "nothingHappenedYetSubtitle": MessageLookupByLibrary.simpleMessage(
             "Interact with people you follow to get some activities and updates"),
         "notifications": MessageLookupByLibrary.simpleMessage("Notifications"),
+        "ok": MessageLookupByLibrary.simpleMessage("OK"),
+        "other": MessageLookupByLibrary.simpleMessage("Other"),
         "password": MessageLookupByLibrary.simpleMessage("Password"),
+        "photos": MessageLookupByLibrary.simpleMessage("Photos"),
+        "photosPeoplePlaces":
+            MessageLookupByLibrary.simpleMessage("Photos, People, Places..."),
+        "pickGenre": MessageLookupByLibrary.simpleMessage("Pick genre"),
+        "pleaseSureInternetAvailable": MessageLookupByLibrary.simpleMessage(
+            "Please make sure your internet is available"),
         "podcasts": MessageLookupByLibrary.simpleMessage("Podcasts"),
         "privacyPolicy":
             MessageLookupByLibrary.simpleMessage("Privacy Policy."),
+        "recents": MessageLookupByLibrary.simpleMessage("Recents"),
         "register": MessageLookupByLibrary.simpleMessage("Register"),
         "registerNow": MessageLookupByLibrary.simpleMessage("Register Now"),
+        "reposts": MessageLookupByLibrary.simpleMessage("Reposts"),
+        "resume": MessageLookupByLibrary.simpleMessage("Resume"),
         "russianLanguage": MessageLookupByLibrary.simpleMessage("Russian"),
         "search": MessageLookupByLibrary.simpleMessage("Search"),
+        "seeAll": MessageLookupByLibrary.simpleMessage("See All"),
+        "selectAge": MessageLookupByLibrary.simpleMessage("Select Age"),
+        "selectGender": MessageLookupByLibrary.simpleMessage("Select Gender"),
+        "selectGenre": MessageLookupByLibrary.simpleMessage("Select genre"),
         "selectLanguage":
             MessageLookupByLibrary.simpleMessage("Select language"),
         "selectTheme": MessageLookupByLibrary.simpleMessage("Select theme"),
+        "showAllNotifications":
+            MessageLookupByLibrary.simpleMessage("Show all notifications"),
+        "showAllNotify":
+            MessageLookupByLibrary.simpleMessage("Show all notifications"),
         "signIn": MessageLookupByLibrary.simpleMessage("Sign In"),
         "signInSuccessful":
             MessageLookupByLibrary.simpleMessage("Sign In Successful"),
         "signinWasSuccessful":
             MessageLookupByLibrary.simpleMessage("Signin was Successful"),
+        "somethingWentWrong":
+            MessageLookupByLibrary.simpleMessage("Something went wrong"),
         "spanishLanguage": MessageLookupByLibrary.simpleMessage("Spanish"),
         "system": MessageLookupByLibrary.simpleMessage("System"),
-        "systemTheme": MessageLookupByLibrary.simpleMessage("System"),
         "termsOfUse": MessageLookupByLibrary.simpleMessage("terms of use"),
-        "upgrade": MessageLookupByLibrary.simpleMessage("Upgrade"),
+        "title": MessageLookupByLibrary.simpleMessage("Title"),
+        "trendingGenre":
+            MessageLookupByLibrary.simpleMessage("Trending by genre"),
+        "trendingMusic": MessageLookupByLibrary.simpleMessage("Trending Music"),
+        "typeYourMessage":
+            MessageLookupByLibrary.simpleMessage("Type your message"),
+        "updatedEveryMonday": MessageLookupByLibrary.simpleMessage(
+            "The best of Maestro just for you. Updated every Monday"),
+        "upgrade": MessageLookupByLibrary.simpleMessage("UPGRADE"),
+        "upgradeNav": MessageLookupByLibrary.simpleMessage("Upgrade"),
+        "uploading": MessageLookupByLibrary.simpleMessage("Uploading"),
+        "uploadingTrackStoppedDeleted": MessageLookupByLibrary.simpleMessage(
+            "Uploading this track will be stopped and deleted from Maestro."),
         "videos": MessageLookupByLibrary.simpleMessage("Videos"),
+        "weeklyWave": MessageLookupByLibrary.simpleMessage("WEEKLY WAVE"),
         "wentWrong":
             MessageLookupByLibrary.simpleMessage("Something went wrong."),
         "youHaveAccount":
-            MessageLookupByLibrary.simpleMessage("Do you have an account?")
+            MessageLookupByLibrary.simpleMessage("Do you have an account?"),
+        "yourTrackReady": MessageLookupByLibrary.simpleMessage(
+            "Your track is ready. Tap Save to continue.")
       };
 }
