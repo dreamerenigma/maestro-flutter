@@ -81,8 +81,6 @@ class UploadTracksScreenState extends State<UploadTracksScreen> {
     _startUpload();
     _titleController.text = widget.songName;
     _titleController.addListener(_updateTitleCount);
-    description = S.of(context).describeYourTrack;
-    caption = S.of(context).addCaptionYourPost;
 
     Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> results) {
       final result = results.isNotEmpty ? results.first : ConnectivityResult.none;
@@ -98,6 +96,13 @@ class UploadTracksScreenState extends State<UploadTracksScreen> {
         showNoInternetDialog(context);
       }
     }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    description = S.of(context).describeYourTrack;
+    caption = S.of(context).addCaptionYourPost;
   }
 
   Future<void> _checkInternetConnection() async {

@@ -48,8 +48,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "buzzingElectronic":
             MessageLookupByLibrary.simpleMessage("Buzzing Electronic"),
         "cancel": MessageLookupByLibrary.simpleMessage("Отмена"),
+        "cancelButton": MessageLookupByLibrary.simpleMessage("Отменить"),
         "cancelUpload":
-            MessageLookupByLibrary.simpleMessage("Отменить загрузку"),
+            MessageLookupByLibrary.simpleMessage("Отменить загрузку?"),
         "caption": MessageLookupByLibrary.simpleMessage("Подпись"),
         "choose": MessageLookupByLibrary.simpleMessage("Выбрать"),
         "chooseImage":
@@ -63,7 +64,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "createAccount":
             MessageLookupByLibrary.simpleMessage("Создать учетную запись"),
         "curatedYourTaste":
-            MessageLookupByLibrary.simpleMessage("Подобрано дял вас"),
+            MessageLookupByLibrary.simpleMessage("Подобрано для вас"),
         "dailyDrops": MessageLookupByLibrary.simpleMessage("ЕЖЕДНЕВНЫЕ ДРОПСЫ"),
         "dark": MessageLookupByLibrary.simpleMessage("Темная"),
         "dataSendingAdvertising": MessageLookupByLibrary.simpleMessage(
@@ -83,13 +84,15 @@ class MessageLookup extends MessageLookupByLibrary {
         "enjoyTitleSignUpSignIn": MessageLookupByLibrary.simpleMessage(
             "Маэстро — российский поставщик услуг потокового аудио и мультимедиа."),
         "enterEmail": MessageLookupByLibrary.simpleMessage("Введите email"),
+        "errorLoadingMessages":
+            MessageLookupByLibrary.simpleMessage("Ошибка загрузки сообщений"),
         "errorLoadingProfile":
             MessageLookupByLibrary.simpleMessage("Ошибка загрузки профиля"),
         "failedLoadImage": MessageLookupByLibrary.simpleMessage(
             "Не удалось загрузить изображение"),
         "feed": MessageLookupByLibrary.simpleMessage("Новости"),
         "female": MessageLookupByLibrary.simpleMessage("Женский"),
-        "followings": MessageLookupByLibrary.simpleMessage("Followings"),
+        "followings": MessageLookupByLibrary.simpleMessage("Подписчики"),
         "fullName": MessageLookupByLibrary.simpleMessage("Полное имя"),
         "getStarted": MessageLookupByLibrary.simpleMessage("Начать"),
         "googleSignInFailed": m0,
@@ -130,6 +133,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Файл не выбран"),
         "noImagesFound":
             MessageLookupByLibrary.simpleMessage("Изображения не найдены"),
+        "noMessages": MessageLookupByLibrary.simpleMessage("Нет сообщений"),
         "noName": MessageLookupByLibrary.simpleMessage("Без имени"),
         "noUserDataFound": MessageLookupByLibrary.simpleMessage(
             "Данные пользователя не найдены"),
@@ -192,6 +196,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "updatedEveryMonday": MessageLookupByLibrary.simpleMessage(
             "Лучшее от Maestro только для вас. Обновляется каждый понедельник"),
         "upgrade": MessageLookupByLibrary.simpleMessage("UPGRADE"),
+        "upgradeNav": MessageLookupByLibrary.simpleMessage("Маэстро+"),
         "uploading": MessageLookupByLibrary.simpleMessage("Загрузка"),
         "uploadingTrackStoppedDeleted": MessageLookupByLibrary.simpleMessage(
             "Загрузка этого трека будет остановлена и удалена из Maestro"),

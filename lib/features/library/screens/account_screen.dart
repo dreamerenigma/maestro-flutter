@@ -8,7 +8,7 @@ import '../../../utils/constants/app_sizes.dart';
 import '../../home/screens/home_screen.dart';
 import '../../home/widgets/nav_bar/bottom_nav_bar.dart';
 import '../../song_player/widgets/mini_player/mini_player_manager.dart';
-import '../widgets/dialogs/logout_confirm.dart';
+import '../widgets/dialogs/logout_confirmation_dialog.dart';
 import 'delete_account_screen.dart';
 
 class AccountScreen extends StatefulWidget {

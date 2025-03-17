@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -16,6 +17,7 @@ abstract class SongFirebaseService {
   Future<void> incrementListenCount(String songId);
   Future<Either<Exception, String>> deleteSong(String songId);
   Future<Either<Exception, String>> updateSong(String songId, String cover, String title, String genre, String description, String caption, bool isPublic);
+  Future<Either<String, List<SongEntity>>> addRepostSong(String songId, String caption);
 }
 
 class SongFirebaseServiceImpl extends SongFirebaseService {
@@ -88,27 +90,40 @@ class SongFirebaseServiceImpl extends SongFirebaseService {
       if (favoriteSongs.docs.isNotEmpty) {
         await favoriteSongs.docs.first.reference.delete();
         isFavorite = false;
+        log("Song removed from favorites.");
+
+        await firebaseFirestore.collection('Songs').doc(songId).update({
+          'likeCount': FieldValue.increment(-1),
+        });
+        log('Like count decremented.');
       } else {
         DocumentSnapshot songSnapshot = await firebaseFirestore.collection('Songs').doc(songId).get();
+        log('Song snapshot exists: ${songSnapshot.exists}');
+
         if (songSnapshot.exists) {
           var songData = songSnapshot.data() as Map<String, dynamic>;
+          log('Song data: $songData');
 
-          await firebaseFirestore.collection('Users')
-            .doc(uId)
-            .collection('Favorites')
-            .add({
-              'songId': songId,
-              'title': songData['title'],
-              'artist': songData['artist'],
-              'duration': songData['duration'],
-              'addedDate': Timestamp.now(),
-            });
+          await firebaseFirestore.collection('Users').doc(uId).collection('Favorites').add({
+            'songId': songId,
+            'title': songData['title'],
+            'artist': songData['artist'],
+            'cover': songData['cover'],
+            'uploadedBy': songData['uploadedBy'],
+            'duration': songData['duration'],
+            'addedDate': Timestamp.now(),
+            'listenCount': songData['listenCount'] ?? 0,
+            'likeCount': songData['likeCount'] ?? 0,
+          });
 
           isFavorite = true;
+          log('Song added to favorites.');
 
           await firebaseFirestore.collection('Songs').doc(songId).update({
             'likeCount': FieldValue.increment(1),
           });
+
+          log('Like count incremented.');
         } else {
           return const Left('Song not found');
         }
@@ -214,6 +229,44 @@ class SongFirebaseServiceImpl extends SongFirebaseService {
       return Right('Song updated successfully');
     } catch (e) {
       return Left(Exception('Failed to update song: $e'));
+    }
+  }
+
+  @override
+  Future<Either<String, List<SongEntity>>> addRepostSong(String songId, String caption) async {
+    try {
+      final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+      final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+
+      User? user = firebaseAuth.currentUser;
+      if (user == null) {
+        return Left('User not authenticated');
+      }
+
+      String repostBy = user.uid;
+
+      DocumentSnapshot songSnapshot = await firebaseFirestore.collection('Songs').doc(songId).get();
+      if (!songSnapshot.exists) {
+        return Left('Song not found');
+      }
+
+      var songData = songSnapshot.data() as Map<String, dynamic>;
+      var songModel = SongModel.fromJson(songData);
+
+      await firebaseFirestore.collection('Songs').doc(songId).collection('Reposts').add({
+        'songId': songId,
+        'caption': caption,
+        'repostBy': repostBy,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      log('Repost added for songId: $songId by $repostBy');
+
+      return Right([songModel.toEntity()]);
+
+    } catch (e) {
+      Logger().e(e);
+      return Left('An error occurred while reposting the song');
     }
   }
 }

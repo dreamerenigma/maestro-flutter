@@ -29,16 +29,6 @@ class AppImages {
   static const String defaultCover5 = '${basePath}default_cover_5.png';
   static const String defaultCover6 = '${basePath}default_cover_6.png';
 
-  /// -- Test images
-  static const String trackCover1 = '${basePath}track_cover_1.png';
-  static const String trackCover2 = '${basePath}track_cover_2.png';
-  static const String trackCover3 = '${basePath}track_cover_3.png';
-  static const String trackCover4 = '${basePath}track_cover_4.png';
-  static const String playlistCover1 = '${basePath}playlist_cover_1.png';
-  static const String playlistCover2 = '${basePath}playlist_cover_2.png';
-  static const String playlistCover3 = '${basePath}playlist_cover_3.png';
-  static const String playlistCover4 = '${basePath}playlist_cover_4.png';
-
   /// -- Icons
   static const String russiaFlag = '${iconsPath}flags/russia.png';
   static const String usaFlag = '${iconsPath}flags/usa.png';

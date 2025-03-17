@@ -80,7 +80,7 @@ class _AddWidgetsScreenState extends State<AddWidgetsScreen> {
         highlightColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
         child: Container(
           width: double.infinity,
-          padding: EdgeInsets.symmetric(vertical: 16),
+          padding: EdgeInsets.symmetric(vertical: 14),
           color: AppColors.darkGrey,
           child: Column(
             children: [
@@ -102,7 +102,7 @@ class _AddWidgetsScreenState extends State<AddWidgetsScreen> {
                 padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
                 child: Container(
                   width: double.infinity,
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                   decoration: BoxDecoration(color: AppColors.black, borderRadius: BorderRadius.circular(12)),
                   child: Column(
                     children: [
@@ -178,7 +178,7 @@ class _AddWidgetsScreenState extends State<AddWidgetsScreen> {
         highlightColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
         child: Container(
           width: double.infinity,
-          padding: EdgeInsets.only(top: 25, bottom: 18),
+          padding: EdgeInsets.only(top: 23, bottom: 16),
           color: AppColors.darkGrey,
           child: Column(
             children: [
@@ -199,7 +199,7 @@ class _AddWidgetsScreenState extends State<AddWidgetsScreen> {
                 padding: const EdgeInsets.only(left: 16, right: 16, top: 30, bottom: 8),
                 child: Container(
                   width: double.infinity,
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                   decoration: BoxDecoration(
                     color: AppColors.youngNight,
                     borderRadius: BorderRadius.circular(12),
@@ -210,8 +210,8 @@ class _AddWidgetsScreenState extends State<AddWidgetsScreen> {
                       Row(
                         children: [
                           Container(
-                            width: 75,
-                            height: 75,
+                            width: 70,
+                            height: 70,
                             decoration: BoxDecoration(
                               color: AppColors.darkGrey,
                               borderRadius: BorderRadius.circular(6),
@@ -247,8 +247,8 @@ class _AddWidgetsScreenState extends State<AddWidgetsScreen> {
                                         ];
 
                                         return Container(
-                                          width: 50,
-                                          height: 50,
+                                          width: 45,
+                                          height: 45,
                                           decoration: BoxDecoration(
                                             color: AppColors.black,
                                             shape: BoxShape.circle,
@@ -260,7 +260,7 @@ class _AddWidgetsScreenState extends State<AddWidgetsScreen> {
                                         );
                                       }),
                                     ),
-                                    SizedBox(width: 16),
+                                    SizedBox(width: 15),
                                     Icon(CarbonIcons.favorite, size: 36, color: AppColors.white),
                                   ],
                                 ),

@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -61,7 +60,6 @@ class LibraryScreenState extends State<LibraryScreen> {
 
     Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> results) {
       final result = results.isNotEmpty ? results.first : ConnectivityResult.none;
-      log('Connectivity changed: $result');
       setState(() {
         isConnected = result != ConnectivityResult.none;
       });
@@ -176,6 +174,10 @@ class LibraryScreenState extends State<LibraryScreen> {
   }
 
   Widget _buildInfo(VoidCallback onUpgradeTapped) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double spacing10 = screenWidth > 390 ? 10 : 5;
+    double spacing8 = screenWidth > 390 ? 8 : 4;
+
     return Padding(
       padding: const EdgeInsets.only(left: 16, right: 16, top: 30, bottom: 20),
       child: Row(
@@ -184,9 +186,12 @@ class LibraryScreenState extends State<LibraryScreen> {
           const Spacer(),
           isConnected ? GestureDetector(
             onTap: onUpgradeTapped,
-            child: const Text('UPGRADE', style: TextStyle(fontSize: AppSizes.fontSizeLm, fontWeight: FontWeight.bold, color: AppColors.primary)),
+            child: Padding(
+              padding: const EdgeInsets.only(left: 4, top: 3),
+              child: const Text('UPGRADE', style: TextStyle(fontSize: AppSizes.fontSizeLm, fontWeight: FontWeight.bold, color: AppColors.primary)),
+            ),
           ) : Container(),
-          const SizedBox(width: 10),
+          SizedBox(width: spacing10),
           IconButton(
             icon: Icon(HugeIcons.strokeRoundedTestTube01, size: 24),
             onPressed: () {
@@ -203,7 +208,7 @@ class LibraryScreenState extends State<LibraryScreen> {
               Navigator.push(context, createPageRoute(SettingsScreen(initialIndex: widget.initialIndex)));
             },
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: spacing8),
           GestureDetector(
             onTap: () {
               Navigator.push(context, createPageRoute(ProfileSettingsScreen(initialIndex: widget.initialIndex)));
@@ -239,7 +244,7 @@ class LibraryScreenState extends State<LibraryScreen> {
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
         child: Row(
           children: [
-            Text(text, style: const TextStyle(fontSize: AppSizes.fontSizeMd)),
+            Text(text, style: const TextStyle(fontSize: 17)),
             const Spacer(),
             Icon(icon, size: 22),
           ],

@@ -120,6 +120,7 @@ class StationScreenState extends State<StationScreen> {
                   return Center(child: Text(S.of(context).noUserDataFound));
                 } else {
                   final userData = snapshot.data!;
+                  final userName = userData['name'] as String?;
 
                   return ListView(
                     children: [
@@ -139,7 +140,7 @@ class StationScreenState extends State<StationScreen> {
                               );
                             },
                             onShowMorePressed: (context, userData) {
-                              showMoreDescriptionBottomDialog(context, userData);
+                              showMoreDescriptionBottomDialog(context, userData, 'Based on $userName');
                             },
                           ),
                           TracksList(tracks: myTracks, userData: {}, shouldShowLikesListRow: false),

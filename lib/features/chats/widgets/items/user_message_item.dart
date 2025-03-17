@@ -1,9 +1,11 @@
+import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:maestro/routes/custom_page_route.dart';
 import '../../../../api/apis.dart';
+import '../../../../domain/entities/user/user_entity.dart';
 import '../../../../generated/l10n/l10n.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
@@ -14,14 +16,16 @@ class UserMessageItem extends StatefulWidget {
   final int initialIndex;
   final String userName;
   final String message;
-  final String timeAgo;
+  final String sent;
+  final UserEntity user;
 
   const UserMessageItem({
     super.key,
     required this.initialIndex,
     required this.userName,
     required this.message,
-    required this.timeAgo,
+    required this.sent,
+    required this.user,
   });
 
   @override
@@ -32,6 +36,7 @@ class _UserMessageItemState extends State<UserMessageItem> {
   late Future<Map<String, dynamic>?> userDataFuture;
   late Future<bool> isDeletedUserFuture;
   late final int selectedIndex;
+  late Stream<List<Map<String, dynamic>>> messageStream;
 
   @override
   void initState() {
@@ -45,10 +50,14 @@ class _UserMessageItemState extends State<UserMessageItem> {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
+      log('No user logged in');
       throw Exception(S.of(context).noUserLoggedIn);
     }
 
     var userDoc = await FirebaseFirestore.instance.collection('Users').doc(user.uid).get();
+    if (!userDoc.exists) {
+      log('User does not exist in Firestore');
+    }
     return !userDoc.exists;
   }
 
@@ -75,7 +84,12 @@ class _UserMessageItemState extends State<UserMessageItem> {
               } else {
                 return InkWell(
                   onTap: () {
-                    Navigator.push(context, createPageRoute(UserMessageScreen(initialIndex: widget.initialIndex, selectedIndex: selectedIndex, userName: widget.userName)));
+                    Navigator.push(
+                      context,
+                      createPageRoute(
+                        UserMessageScreen(initialIndex: widget.initialIndex, selectedIndex: selectedIndex, user: widget.user),
+                      ),
+                    );
                   },
                   splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
                   highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
@@ -85,9 +99,15 @@ class _UserMessageItemState extends State<UserMessageItem> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
-                          decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.buttonDarkGrey, width: 1.2)),
-                          child: ClipOval(
-                            child: SvgPicture.asset(AppVectors.avatar, width: 46, height: 46, fit: BoxFit.cover),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(50),
+                            border: Border.all(color: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()), width: 1),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(50),
+                            child: widget.user.image.isNotEmpty
+                              ? Image.network(widget.user.image, width: 50, height: 50, fit: BoxFit.cover)
+                              : SvgPicture.asset(AppVectors.avatar, width: 50, height: 50),
                           ),
                         ),
                         const SizedBox(width: 20.0),
@@ -109,17 +129,19 @@ class _UserMessageItemState extends State<UserMessageItem> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    widget.message,
-                                    style: const TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.grey),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                  Expanded(
+                                    child: Text(
+                                      widget.message,
+                                      style: const TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.grey),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                   ),
                                   Row(
                                     children: [
                                       Text('·', style: TextStyle(fontSize: AppSizes.fontSizeMg, color: AppColors.grey, fontWeight: FontWeight.bold, height: 1)),
                                       SizedBox(width: 4),
-                                      Text(widget.timeAgo, style: const TextStyle(fontSize: AppSizes.fontSizeLm, color: AppColors.grey, height: 1)),
+                                      Text(widget.sent, style: const TextStyle(fontSize: AppSizes.fontSizeLm, color: AppColors.grey, height: 1)),
                                     ],
                                   ),
                                 ],

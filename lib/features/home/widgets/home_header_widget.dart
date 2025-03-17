@@ -59,6 +59,7 @@ class HomeScreenWidget extends StatefulWidget {
 class _HomeScreenWidgetState extends State<HomeScreenWidget> {
   late Future<Map<String, dynamic>?> userDataFuture;
   bool _isConnected = true;
+  late int selectedPlaylistIndex;
 
   @override
   void initState() {
@@ -71,6 +72,13 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
       _isConnected = result != ConnectivityResult.none;
       setState(() {});
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final routeArguments = ModalRoute.of(context)?.settings.arguments as Map?;
+    selectedPlaylistIndex = routeArguments?['selectedPlaylistIndex'] ?? 0;
   }
 
   Future<void> _reloadData() async {
@@ -129,7 +137,7 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
                                 onItemTap: () {
                                   Navigator.push(
                                     context,
-                                    createPageRoute(PlaylistsScreen(playlists: [], initialIndex: widget.initialIndex)),
+                                    createPageRoute(PlaylistScreen(playlist: [], initialIndex: widget.initialIndex, selectedPlaylistIndex: selectedPlaylistIndex)),
                                   );
                                 },
                               ),
@@ -290,6 +298,11 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
   }
 
   Widget _buildAppBar() {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double spacing20 = screenWidth > 390 ? 20 : 10;
+    double spacing10 = screenWidth > 390 ? 10 : 5;
+    double spacing8 = screenWidth > 390 ? 8 : 4;
+
     return Padding(
       padding: EdgeInsets.only(left: 8, right: 8, top: 35, bottom: 12),
       child: Row(
@@ -309,12 +322,12 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
                 child: _isConnected ? GestureDetector(
                   onTap: widget.onUpgradePressed,
                   child: Padding(
-                    padding: const EdgeInsets.only(top: 6),
+                    padding: const EdgeInsets.only(left: 4, top: 3),
                     child: Text(S.of(context).upgrade, style: TextStyle(fontSize: AppSizes.fontSizeLm, fontWeight: FontWeight.bold, color: AppColors.primary)),
                   ),
                 ) : Container(),
               ),
-              SizedBox(width: 20),
+              SizedBox(width: spacing20),
               InkWell(
                 onTap: () {},
                 splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
@@ -325,7 +338,7 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
                   child: Icon(Icons.cast, size: 22, color: context.isDarkMode ? AppColors.lightGrey : AppColors.black),
                 ),
               ),
-              SizedBox(width: 10),
+              SizedBox(width: spacing10),
               InkWell(
                 onTap: widget.onIconPressed,
                 splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
@@ -336,7 +349,7 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
                   child: widget.isLoading ? const CircularFillAnimation() : const Icon(Icons.arrow_circle_up_outlined, size: 24),
                 ),
               ),
-              SizedBox(width: 8),
+              SizedBox(width: spacing8),
               Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -368,7 +381,7 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
                     ),
                 ],
               ),
-              SizedBox(width: 8),
+              SizedBox(width: spacing8),
               InkWell(
                 onTap: widget.onNotificationsTapped,
                 splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),

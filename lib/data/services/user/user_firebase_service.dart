@@ -1,5 +1,7 @@
+import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
+import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import '../../../domain/entities/song/recommended_entity.dart';
 import '../../../domain/entities/song/song_entity.dart';
 import '../../../features/home/models/user_model.dart';
@@ -10,6 +12,8 @@ abstract class UserFirebaseService {
   Future<Either<String, bool>> updateUserPreferences(String id, Map<String, dynamic> preferences);
   Future<Either<String, List<SongEntity>>> getRecommendedTracks(String id);
   Future<Either<String, List<SongEntity>>> createRecommendedCollection(String id);
+  Future<Either<String, List<UserModel>>> getUsers(String currentUserId);
+  Future<Either<String, bool>> addFollowing(RxBool isFollowing, String currentUserId, String targetUserId);
 }
 
 class UserFirebaseServiceImpl extends UserFirebaseService {
@@ -39,6 +43,7 @@ class UserFirebaseServiceImpl extends UserFirebaseService {
         links: [],
         limitUploads: data['country'] ?? '',
         tracksCount: data['tracksCount'] ?? 0,
+        verifyAccount: data['tracksCount'] ?? false,
       );
 
       return Right(user);
@@ -172,6 +177,71 @@ class UserFirebaseServiceImpl extends UserFirebaseService {
       return Right(recommendedTracks);
     } catch (e) {
       return Left('Error creating recommended collection: $e');
+    }
+  }
+
+  @override
+  Future<Either<String, List<UserModel>>> getUsers(String currentUserId) async {
+    try {
+      QuerySnapshot snapshot = await _firestore.collection('Users').where(FieldPath.documentId, isNotEqualTo: currentUserId).get();
+
+      if (snapshot.docs.isEmpty) {
+        return Left('No users found');
+      }
+
+      List<UserModel> users = snapshot.docs.map((doc) {
+        var data = doc.data() as Map<String, dynamic>;
+        return UserModel(
+          id: doc.id,
+          name: data['name'] ?? '',
+          image: data['image'] ?? '',
+          bio: data['bio'] ?? '',
+          city: data['city'] ?? '',
+          country: data['country'] ?? '',
+          flag: data['flag'] ?? '',
+          backgroundImage: data['backgroundImage'] ?? '',
+          followers: data['followers'] ?? 0,
+          links: [],
+          limitUploads: data['limitUploads'] ?? 0,
+          tracksCount: data['tracksCount'] ?? 0,
+          verifyAccount: data['tracksCount'] ?? false,
+        );
+      }).toList();
+
+      return Right(users);
+    } catch (e) {
+      return Left('Error fetching users: $e');
+    }
+  }
+
+  @override
+  Future<Either<String, bool>> addFollowing(RxBool isFollowing, String currentUserId, String targetUserId) async {
+    if (currentUserId.isEmpty || targetUserId.isEmpty) {
+      log('Error: currentUserId or targetUserId is empty');
+      return Left('User IDs cannot be empty');
+    }
+
+    final userRef = FirebaseFirestore.instance.collection('Users');
+
+    try {
+      if (isFollowing.value) {
+        await userRef.doc(currentUserId).collection('Following').doc(targetUserId).set({
+          'followedAt': FieldValue.serverTimestamp(),
+        });
+
+        await userRef.doc(targetUserId).collection('Followers').doc(currentUserId).set({
+          'followedAt': FieldValue.serverTimestamp(),
+        });
+      } else {
+        await userRef.doc(currentUserId).collection('Following').doc(targetUserId).delete();
+
+        await userRef.doc(targetUserId).collection('Followers').doc(currentUserId).delete();
+      }
+
+      return Right(true);
+    } catch (e) {
+      log('Error updating Firestore: $e');
+      return Left<String, bool>('Error updating Firestore: $e');
     }
   }
 }

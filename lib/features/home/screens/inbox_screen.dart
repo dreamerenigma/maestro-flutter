@@ -1,19 +1,22 @@
+import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:get/get.dart';
-import 'package:icons_plus/icons_plus.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:maestro/common/widgets/app_bar/app_bar.dart';
 import 'package:maestro/utils/constants/app_sizes.dart';
-import 'package:timeago/timeago.dart' as timeago;
 import '../../../api/apis.dart';
+import '../../../domain/entities/user/user_entity.dart';
 import '../../../routes/custom_page_route.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../../generated/l10n/l10n.dart';
+import '../../../utils/formatters/formatter.dart';
 import '../../song_player/widgets/mini_player/mini_player_manager.dart';
 import '../../chats/widgets/lists/user_message_list.dart';
 import '../../utils/screens/internet_aware_screen.dart';
+import '../widgets/message_widget.dart';
 import '../widgets/nav_bar/bottom_nav_bar.dart';
 import 'home_screen.dart';
 import '../../chats/screens/new_message_screen.dart';
@@ -39,15 +42,94 @@ class InboxScreen extends StatefulWidget {
 class InboxScreenState extends State<InboxScreen> {
   late Future<Map<String, dynamic>?> userDataFuture;
   final GetStorage storage = GetStorage();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  late User? user;
+  List<Map<String, dynamic>> userMessages = [];
+  late Stream<List<Map<String, dynamic>>> messageStream;
+
+  bool get isMiniPlayerVisible {
+    return true;
+  }
+
+  double get fabBottomPosition {
+    return isMiniPlayerVisible ? 15.0 : 75.0;
+  }
 
   @override
   void initState() {
     super.initState();
+    user = _auth.currentUser;
     userDataFuture = APIs.fetchUserData();
+    messageStream = _fetchUserMessages();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.updateUnreadMessages(0);
     });
+    _fetchUserMessages();
   }
+
+  Stream<List<Map<String, dynamic>>> _fetchUserMessages() {
+  final user = FirebaseAuth.instance.currentUser;
+
+  if (user == null) {
+    throw Exception(S.of(context).noUserLoggedIn);
+  }
+
+  log('Current User ID: ${user.uid}');
+
+  return FirebaseFirestore.instance
+      .collection('Users')
+      .doc(user.uid)
+      .collection('Messages')
+      .orderBy('sent', descending: true)
+      .snapshots()
+      .asyncMap((snapshot) async {
+    List<Map<String, dynamic>> messages = [];
+    Set<String> processedUsers = {};
+
+    for (var doc in snapshot.docs) {
+      var data = doc.data();
+      log('Message Data: $data');
+
+      String toId = data['toId'];
+      if (processedUsers.contains(toId)) {
+        continue;
+      }
+
+      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance.collection('Users').doc(toId).get();
+      if (!userSnapshot.exists) {
+        continue;
+      }
+
+      var userData = userSnapshot.data() as Map<String, dynamic>;
+
+      messages.add({
+        'id': toId,
+        'name': userData['name'] ?? 'Unknown',
+        'message': data['message'] ?? '',
+        'sent': Formatter.formatTime((data['sent'] as Timestamp).toDate()),
+        'userEntity': UserEntity(
+          id: toId,
+          name: userData['name'] ?? '',
+          image: userData['image'] ?? '',
+          bio: '',
+          city: '',
+          country: '',
+          flag: '',
+          backgroundImage: '',
+          followers: 0,
+          links: [],
+          limitUploads: 0,
+          tracksCount: 0,
+          verifyAccount: false,
+        ),
+      });
+
+      processedUsers.add(toId);
+    }
+
+    return messages;
+  });
+}
 
   void _buildMarkMessageAsRead() {
     int newUnreadCount = 0;
@@ -100,10 +182,10 @@ class InboxScreenState extends State<InboxScreen> {
                           onTap: () {
                             _buildMarkMessageAsRead();
                           },
-                          child: _buildMessage(context, userData),
+                          child: MessageWidget(userData: userData),
                         ),
                         Expanded(
-                          child: UserMessageList(initialIndex: widget.initialIndex),
+                          child: UserMessageList(initialIndex: widget.initialIndex, messages: userMessages, messageStream: messageStream),
                         ),
                       ],
                     );
@@ -114,7 +196,7 @@ class InboxScreenState extends State<InboxScreen> {
           ),
           Positioned(
             right: 16.0,
-            bottom: 75,
+            bottom: fabBottomPosition,
             child: SizedBox(
               width: 56.0,
               height: 56.0,
@@ -146,61 +228,6 @@ class InboxScreenState extends State<InboxScreen> {
         onItemTapped: (index) {
           Navigator.pushReplacement(context, createPageRoute(HomeScreen(initialIndex: index)));
         },
-      ),
-    );
-  }
-
-  Widget _buildMessage(BuildContext context, Map<String, dynamic> userData) {
-    final userName = userData['name'] as String?;
-    final createdAtTimestamp = userData['createdAt'] as Timestamp?;
-    final createdAt = createdAtTimestamp?.toDate();
-    String timeAgo = createdAt != null ? timeago.format(createdAt) : S.of(context).noDateAvailable;
-
-    return Padding(
-      padding: const EdgeInsets.only(left: 16.0, right: 16, top: 16, bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.white, border: Border.all(color: AppColors.darkGrey, width: 1)),
-            child: const Icon(ZondIcons.music_notes, color: AppColors.black),
-          ),
-          const SizedBox(width: 20.0),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 6.0),
-                  child: Row(
-                    children: [
-                      Text(S.of(context).appName, style: const TextStyle(fontSize: AppSizes.fontSizeMd, fontWeight: FontWeight.bold, height: 1)),
-                      const SizedBox(width: 8.0),
-                      Container(
-                        padding: const EdgeInsets.all(2.0),
-                        decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.blue),
-                        child: const Icon(Icons.check, color: AppColors.white, size: 12.0),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 4.0),
-                Text(
-                  S.of(context).helloUserMessage(userName ?? S.of(context).noName),
-                  style: const TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.grey, height: 1),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8.0),
-          Padding(
-            padding: const EdgeInsets.only(top: 6.0),
-            child: Text('· $timeAgo', style: const TextStyle(fontSize: AppSizes.fontSizeLm, color: AppColors.grey)),
-          ),
-        ],
       ),
     );
   }

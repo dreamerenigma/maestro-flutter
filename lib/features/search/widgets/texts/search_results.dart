@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:maestro/features/utils/widgets/no_glow_scroll_behavior.dart';
 import '../../../../utils/constants/app_colors.dart';
@@ -77,6 +78,7 @@ class SearchResults extends StatelessWidget {
                     ),
                     child: CircleAvatar(
                       radius: 24,
+                      backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.lightGrey,
                       backgroundImage: image.isNotEmpty ? NetworkImage(image) : null,
                       child: image.isEmpty ? Icon(Icons.person, size: 28, color: AppColors.grey) : null,
                     ),
@@ -92,10 +94,7 @@ class SearchResults extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Transform.rotate(
-                    angle: 320 * 3.14159265359 / 180,
-                    child: Icon(HeroIcons.arrow_small_up, size: 28),
-                  ),
+                  Transform.rotate(angle: 320 * 3.14159265359 / 180, child: Icon(HeroIcons.arrow_small_up, size: 28)),
                 ],
               ),
             ),

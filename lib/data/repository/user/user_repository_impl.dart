@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:maestro/domain/entities/song/song_entity.dart';
 import 'package:maestro/domain/repository/users/user_repository.dart';
 import '../../../features/home/models/user_model.dart';
@@ -29,5 +30,10 @@ class UserRepositoryImpl extends UserRepository {
   @override
   Future<Either<String, List<SongEntity>>> createRecommendedCollection(String id) async {
     return await sl<UserFirebaseService>().createRecommendedCollection(id);
+  }
+
+  @override
+  Future<Either<String, bool>> addFollowing(RxBool isFollowing, String currentUserId, String targetUserId) async {
+    return await sl<UserFirebaseService>().addFollowing(isFollowing, currentUserId, targetUserId);
   }
 }

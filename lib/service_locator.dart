@@ -8,11 +8,13 @@ import 'package:maestro/data/services/station/station_firebase_service.dart';
 import 'package:maestro/data/services/user/user_firebase_service.dart';
 import 'package:maestro/domain/repository/authentication/auth_repository.dart';
 import 'package:maestro/domain/repository/comment/comment_repository.dart';
+import 'package:maestro/domain/repository/message/message_repository.dart';
 import 'package:maestro/domain/repository/concerts/concerts_repository.dart';
 import 'package:maestro/domain/repository/station/station_repository.dart';
 import 'package:maestro/domain/repository/users/user_repository.dart';
 import 'package:maestro/domain/usecases/authentication/signup.dart';
 import 'package:maestro/domain/usecases/concerts/get_concerts_use_cases.dart';
+import 'package:maestro/domain/usecases/message/add_message_use_cases.dart';
 import 'package:maestro/domain/usecases/playlist/update_playlist_use_cases.dart';
 import 'package:maestro/domain/usecases/song/add_or_remove_favorite_song_use_cases.dart';
 import 'package:maestro/domain/usecases/song/delete_song_use_cases.dart';
@@ -22,9 +24,11 @@ import 'package:maestro/domain/usecases/song/is_favorite_song_use_cases.dart';
 import 'package:maestro/domain/usecases/song/update_song_use_cases.dart';
 import 'package:maestro/domain/usecases/station/create_station_use_cases.dart';
 import 'data/repository/comment/comment_repository_impl.dart';
+import 'data/repository/message/message_repository_impl.dart';
 import 'data/repository/playlist/playlist_repository_impl.dart';
 import 'data/services/authentication/auth_firebase_service.dart';
-import 'data/services/messages/comment_service.dart';
+import 'data/services/comment/comment_firebase_service.dart';
+import 'data/services/message/message_firebase_service.dart';
 import 'data/services/playlist/playlist_firebase_service.dart';
 import 'data/services/song/song_firebase_service.dart';
 import 'domain/repository/playlist/playlists_repository.dart';
@@ -36,6 +40,7 @@ import 'domain/usecases/playlist/create_play_list_use_cases.dart';
 import 'domain/usecases/playlist/delete_playlist_use_cases.dart';
 import 'domain/usecases/playlist/get_play_list_use_cases.dart';
 import 'domain/usecases/playlist/is_favorite_playlist_use_cases.dart';
+import 'domain/usecases/user/add_following_use_cases.dart';
 import 'domain/usecases/user/create_recommended_tracks_use_case.dart';
 import 'domain/usecases/user/get_recommended_tracks_use_case.dart';
 import 'domain/usecases/user/get_user_details_use_cases.dart';
@@ -52,6 +57,7 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<UserFirebaseService>(UserFirebaseServiceImpl());
   sl.registerSingleton<StationFirebaseService>(StationFirebaseServiceImpl());
   sl.registerSingleton<CommentFirebaseService>(CommentFirebaseServiceImpl());
+  sl.registerSingleton<MessageFirebaseService>(MessageFirebaseServiceImpl());
 
   /// -- Repository Impl --
   sl.registerSingleton<AuthRepository>(AuthRepositoryImpl());
@@ -61,6 +67,7 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<ConcertsRepository>(ConcertRepositoryImpl());
   sl.registerSingleton<StationRepository>(StationRepositoryImpl());
   sl.registerSingleton<CommentRepository>(CommentRepositoryImpl());
+  sl.registerSingleton<MessageRepository>(MessageRepositoryImpl());
 
   /// -- Authentication Use Cases --
   sl.registerSingleton<SignupUseCase>(SignupUseCase());
@@ -87,6 +94,7 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<UpdateUserPreferencesUseCases>(UpdateUserPreferencesUseCases());
   sl.registerSingleton<GetRecommendedTracksUseCase>(GetRecommendedTracksUseCase());
   sl.registerSingleton<CreateRecommendedTracksUseCase>(CreateRecommendedTracksUseCase());
+  sl.registerSingleton<AddFollowingUseCases>(AddFollowingUseCases());
 
   /// -- Concert Use Cases --
   sl.registerSingleton<GetConcertsUseCase>(GetConcertsUseCase());
@@ -97,4 +105,7 @@ Future<void> initializeDependencies() async {
   /// -- Comment Use Cases --
   sl.registerSingleton<AddCommentUseCases>(AddCommentUseCases());
   sl.registerSingleton<DeleteCommentUseCases>(DeleteCommentUseCases());
+
+  /// -- Message Use Cases --
+  sl.registerSingleton<AddMessageUseCases>(AddMessageUseCases());
 }

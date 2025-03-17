@@ -9,7 +9,7 @@ import 'package:timeago/timeago.dart' as timeago;
 import 'package:maestro/domain/entities/comment/comment_entity.dart';
 import 'package:maestro/utils/constants/app_sizes.dart';
 import '../../../../api/apis.dart';
-import '../../../../data/services/messages/comment_service.dart';
+import '../../../../data/services/comment/comment_firebase_service.dart';
 import '../../../../service_locator.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/formatters/formatter.dart';
@@ -187,7 +187,6 @@ class _CommentItemState extends State<CommentItem> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 4),
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [

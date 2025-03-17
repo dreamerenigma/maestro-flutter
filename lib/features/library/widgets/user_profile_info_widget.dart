@@ -21,11 +21,14 @@ class UserProfileInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool hasCityAndCountry = (city != null && city!.isNotEmpty) && (country != null && country!.isNotEmpty);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(userName ?? 'No Name', style: const TextStyle(fontSize: AppSizes.fontSizeBg, fontWeight: FontWeight.bold)),
+        if (hasCityAndCountry)
         Text('$city, $country', style: const TextStyle(color: AppColors.buttonGrey, fontSize: AppSizes.fontSizeSm, fontWeight: FontWeight.normal)),
         const SizedBox(height: 4),
         Row(
@@ -36,7 +39,7 @@ class UserProfileInfo extends StatelessWidget {
               },
               splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
               highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
-              child: Text('346 Followers', style: const TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.buttonGrey, fontWeight: FontWeight.normal)),
+              child: Text('346 Followers', style: const TextStyle(fontSize: 13, color: AppColors.buttonGrey, fontWeight: FontWeight.normal)),
             ),
             const Text(' · ', style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.buttonGrey, fontWeight: FontWeight.normal)),
             InkWell(
@@ -45,7 +48,7 @@ class UserProfileInfo extends StatelessWidget {
               },
               splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
               highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
-              child: Text('18 Following', style: const TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.buttonGrey, fontWeight: FontWeight.normal)),
+              child: Text('18 Following', style: const TextStyle(fontSize: 13, color: AppColors.buttonGrey, fontWeight: FontWeight.normal)),
             ),
           ],
         ),

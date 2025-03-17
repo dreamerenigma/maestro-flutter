@@ -1,12 +1,11 @@
 import 'dart:ui';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:maestro/features/library/screens/library/playlists/widgets/action_icons_widget.dart';
+import 'package:maestro/features/library/screens/library/playlists/widgets/playlist_widget.dart';
 import 'package:maestro/utils/constants/app_images.dart';
-import 'package:timeago/timeago.dart' as timeago;
 import 'package:maestro/features/utils/widgets/no_glow_scroll_behavior.dart';
 import '../../../../../api/apis.dart';
 import '../../../../../common/widgets/app_bar/app_bar.dart';
@@ -16,19 +15,19 @@ import '../../../../../utils/constants/app_sizes.dart';
 import '../../../../home/screens/home_screen.dart';
 import '../../../../home/widgets/nav_bar/bottom_nav_bar.dart';
 import '../../../../song_player/widgets/mini_player/mini_player_manager.dart';
-import '../../profile_settings_screen.dart';
 
-class PlaylistsScreen extends StatefulWidget {
-  final List<Map<String, dynamic>> playlists;
+class PlaylistScreen extends StatefulWidget {
+  final List<Map<String, dynamic>> playlist;
   final int initialIndex;
+  final int selectedPlaylistIndex;
 
-  const PlaylistsScreen({super.key, required this.initialIndex, required this.playlists});
+  const PlaylistScreen({super.key, required this.initialIndex, required this.playlist, required this.selectedPlaylistIndex});
 
   @override
-  State<PlaylistsScreen> createState() => PlaylistsScreenState();
+  State<PlaylistScreen> createState() => PlaylistScreenState();
 }
 
-class PlaylistsScreenState extends State<PlaylistsScreen> {
+class PlaylistScreenState extends State<PlaylistScreen> {
   late Future<Map<String, dynamic>?> userDataFuture;
   late TextEditingController _searchController;
   final GetStorage _storageBox = GetStorage();
@@ -56,20 +55,6 @@ class PlaylistsScreenState extends State<PlaylistsScreen> {
       isShuffleActive = !isShuffleActive;
     });
     _storageBox.write('isShuffleActive', isShuffleActive);
-  }
-
-  String formatReleaseDate(dynamic releaseDate) {
-    if (releaseDate != null && releaseDate is Timestamp) {
-      try {
-        final date = releaseDate.toDate();
-        timeago.setLocaleMessages('ru_short', timeago.RuShortMessages());
-        return '${timeago.format(date, locale: 'ru_short')} назад';
-      } catch (e) {
-        return 'Invalid date format';
-      }
-    } else {
-      return 'Date not available';
-    }
   }
 
   Future<void> _reloadData() async {
@@ -107,6 +92,11 @@ class PlaylistsScreenState extends State<PlaylistsScreen> {
             return const Center(child: Text('No data available'));
           }
           final userData = snapshot.data!;
+          final playlist = widget.playlist.isNotEmpty ? widget.playlist[widget.selectedPlaylistIndex] : null;
+
+          if (playlist == null) {
+            return const Center(child: Text('No playlist available'));
+          }
 
           return MiniPlayerManager(
             hideMiniPlayerOnSplash: false,
@@ -117,23 +107,26 @@ class PlaylistsScreenState extends State<PlaylistsScreen> {
                 displacement: 0,
                 color: AppColors.primary,
                 backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.softGrey,
-                child: ListView.builder(
-                  itemCount: widget.playlists.length,
-                  itemBuilder: (context, index) {
-                    final playlist = widget.playlists[index];
-
-                    if (widget.playlists.isEmpty) {
-                      return const Center(child: Text('No playlists available'));
-                    }
-
-                    return Column(
-                      children: [
-                        _buildPlaylists(playlist, userData),
-                        ActionIconsWidget(playlists: widget.playlists, index: index, isShuffleActive: isShuffleActive, toggleShuffle: _toggleShuffle),
-                        _buildSuggestionNewPlaylist(context),
-                      ],
-                    );
-                  },
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      PlaylistWidget(
+                        playlist: playlist,
+                        userData: userData,
+                        onImageTap: () {
+                          _showImageDialog(context, playlist);
+                        },
+                        initialIndex: widget.initialIndex,
+                      ),
+                      ActionIconsWidget(
+                        playlists: widget.playlist,
+                        index: widget.selectedPlaylistIndex,
+                        isShuffleActive: isShuffleActive,
+                        toggleShuffle: _toggleShuffle,
+                      ),
+                      _buildSuggestionNewPlaylist(context),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -145,106 +138,6 @@ class PlaylistsScreenState extends State<PlaylistsScreen> {
         onItemTapped: (index) {
           Navigator.pushReplacement(context, createPageRoute(HomeScreen(initialIndex: index)));
         },
-      ),
-    );
-  }
-
-  Widget _buildPlaylists(Map<String, dynamic> playlist, Map<String, dynamic> userData) {
-    final userImage = userData['image'] as String?;
-
-    return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 8, top: 12, bottom: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              playlist['coverImage'] != null
-                ? GestureDetector(
-                    onTap: () => _showImageDialog(context, playlist),
-                    child: Container(
-                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.darkGrey, width: 0.8)),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          playlist['coverImage'],
-                          width: 110,
-                          height: 110,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                  )
-                : const Icon(Icons.music_note, size: 50, color: AppColors.grey),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Text(playlist['title'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: AppSizes.fontSizeLg)),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Row(
-                      children: [
-                        Row(
-                          children: [
-                            Text('Playlist · ${formatReleaseDate(playlist['releaseDate'])}', style: TextStyle(fontSize: AppSizes.fontSizeSm)),
-                            playlist['isPublic'] == false
-                              ? Padding(
-                                padding: const EdgeInsets.only(left: 6, top: 3),
-                                child: Container(
-                                  width: 15,
-                                  height: 15,
-                                  decoration: BoxDecoration(color: AppColors.grey, shape: BoxShape.circle),
-                                  child: Icon(Icons.lock, size: 13, color: AppColors.black),
-                                ),
-                              )
-                              : SizedBox.shrink(),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.push(context, createPageRoute(ProfileSettingsScreen(initialIndex: widget.initialIndex)));
-                      },
-                      splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
-                      highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
-                      borderRadius: BorderRadius.circular(AppSizes.cardRadiusMd),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-                        child: Row(
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(border: Border.all(color: AppColors.darkGrey), borderRadius: BorderRadius.circular(AppSizes.cardRadiusXl)),
-                              child: CircleAvatar(
-                                radius: 15,
-                                backgroundImage: userImage != null ? NetworkImage(userImage) : null,
-                                backgroundColor: AppColors.grey,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text('By', style: TextStyle(fontWeight: FontWeight.w400, fontSize: AppSizes.fontSizeSm, color: AppColors.grey)),
-                            const SizedBox(width: 4),
-                            Text(
-                              playlist['authorName'] ?? 'Unknown author',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: AppSizes.fontSizeSm, color: AppColors.grey),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }

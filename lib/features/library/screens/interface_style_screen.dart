@@ -86,10 +86,10 @@ class InterfaceStyleScreen extends StatelessWidget {
             Icon(icon, size: iconSize, color: context.isDarkMode ? AppColors.white : AppColors.black),
             SizedBox(width: horizontalSpacing),
             Expanded(
-              child: Text(label, style: const TextStyle(fontSize: AppSizes.fontSizeLg, fontWeight: FontWeight.normal)),
+              child: Text(label, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.normal)),
             ),
             if (currentMode == themeMode)
-              Icon(Icons.check, color: context.isDarkMode ? AppColors.white : AppColors.black),
+              Icon(Icons.check, color: context.isDarkMode ? AppColors.white : AppColors.black, size: 22),
           ],
         ),
       ),

@@ -25,14 +25,14 @@ class PlaylistList extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.only(left: 12, top: 6, bottom: 12),
+      padding: const EdgeInsets.only(left: 12, top: 6),
       child: Column(
         children: [
           if (shouldShowLikesListRow)
           PlaylistListRow(
             shouldShow: true,
             playlists: playlists,
-            initialIndex: 0,
+            initialIndex: initialIndex,
           ),
           SizedBox(
             height: 200,
@@ -47,7 +47,7 @@ class PlaylistList extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      createPageRoute(PlaylistsScreen(initialIndex: initialIndex, playlists: playlists)),
+                      createPageRoute(PlaylistScreen(initialIndex: initialIndex, selectedPlaylistIndex: index, playlist: playlists)),
                     );
                   },
                 );

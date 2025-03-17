@@ -350,10 +350,10 @@ class S {
     );
   }
 
-  /// `Upgrade`
+  /// `Maestro+`
   String get upgradeNav {
     return Intl.message(
-      'Upgrade',
+      'Maestro+',
       name: 'upgradeNav',
       desc: '',
       args: [],
@@ -1040,10 +1040,10 @@ class S {
     );
   }
 
-  /// `Cancel upload`
+  /// `Cancel this upload?`
   String get cancelUpload {
     return Intl.message(
-      'Cancel upload',
+      'Cancel this upload?',
       name: 'cancelUpload',
       desc: '',
       args: [],
@@ -1065,6 +1065,16 @@ class S {
     return Intl.message(
       'Resume',
       name: 'resume',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancel`
+  String get cancelButton {
+    return Intl.message(
+      'Cancel',
+      name: 'cancelButton',
       desc: '',
       args: [],
     );
@@ -1245,6 +1255,26 @@ class S {
     return Intl.message(
       'Browse',
       name: 'browse',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Error loading messages`
+  String get errorLoadingMessages {
+    return Intl.message(
+      'Error loading messages',
+      name: 'errorLoadingMessages',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No messages`
+  String get noMessages {
+    return Intl.message(
+      'No messages',
+      name: 'noMessages',
       desc: '',
       args: [],
     );

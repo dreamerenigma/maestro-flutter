@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:maestro/features/library/widgets/dialogs/delete_account.dart';
+import 'package:maestro/features/library/widgets/dialogs/delete_account_dialog.dart';
 import '../../../common/widgets/app_bar/app_bar.dart';
 import '../../../routes/custom_page_route.dart';
 import '../../../utils/constants/app_colors.dart';

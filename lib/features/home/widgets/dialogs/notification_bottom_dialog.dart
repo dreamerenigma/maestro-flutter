@@ -52,8 +52,8 @@ Future<String?> showNotificationDialog(BuildContext context, String selectedOpti
                     selectedOption == 'Comments' ? AppColors.primary : (context.isDarkMode ? AppColors.white : AppColors.black),
                     BlendMode.srcIn,
                   ),
-                  width: 22,
-                  height: 22,
+                  width: 24,
+                  height: 24,
                 ),
                 isSelected: selectedOption == 'Comments',
                 onTap: () {

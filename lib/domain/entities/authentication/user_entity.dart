@@ -1,9 +1,9 @@
-class UserEntity {
+class AuthEntity {
   String ? id;
   String ? name;
   String ? email;
 
-  UserEntity({
+  AuthEntity({
     this.id,
     this.name,
     this.email,

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 import 'package:bootstrap_icons/bootstrap_icons.dart';
+import 'package:feather_icons/feather_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -12,7 +13,6 @@ import 'package:maestro/common/widgets/buttons/favorite_button.dart';
 import 'package:maestro/features/library/screens/library/tracks/behind_this_track_screen.dart';
 import 'package:maestro/routes/custom_page_route.dart';
 import '../../../api/apis.dart';
-import '../../../common/bloc/favorite_button/favorite_button_cubit.dart';
 import '../../../common/widgets/app_bar/app_bar.dart';
 import '../../../data/services/song/song_firebase_service.dart';
 import '../../../utils/constants/app_images.dart';
@@ -25,7 +25,6 @@ import '../../library/widgets/dialogs/info_track_bottom_dialog.dart';
 import '../bloc/song_player_cubit.dart';
 import '../bloc/song_player_state.dart';
 import 'package:palette_generator/palette_generator.dart';
-
 import '../widgets/buttons/device_icon_button.dart';
 import '../widgets/dialogs/share_track_bottom_dialog.dart';
 import '../widgets/sliders/song_slider.dart';
@@ -262,20 +261,21 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
 
   Widget _buildSongDetail() {
     return Padding(
-      padding: const EdgeInsets.only(right: 6),
+      padding: const EdgeInsets.only(left: 16, right: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(
+          Material(
+            color: AppColors.transparent,
             child: InkWell(
               onTap: () {
-                Navigator.push(context, createPageRoute(BehindThisTrackScreen()));
+                Navigator.push(context, createPageRoute(BehindThisTrackScreen(song: widget.song, initialIndex: widget.initialIndex)));
               },
-              splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
-              highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+              splashColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
+              highlightColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
               borderRadius: BorderRadius.circular(12),
               child: Padding(
-                padding: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
+                padding: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -299,6 +299,7 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
               ),
             ),
           ),
+          Spacer(),
           IconButton(
             onPressed: () {},
             icon: const Icon(Icons.add_rounded, color: AppColors.buttonGrey, size: 30),
@@ -355,7 +356,7 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
                 ),
                 const SizedBox(height: 20),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
                       onPressed: () {
@@ -438,15 +439,18 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
     required IconData icon,
     required VoidCallback onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
-      highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
-      borderRadius: BorderRadius.circular(50),
-      child: Container(
-        padding: const EdgeInsets.all(15.0),
-        decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.transparent),
-        child: Icon(icon, color: AppColors.white, size: 36),
+    return Material(
+      color: AppColors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+        highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+        borderRadius: BorderRadius.circular(50),
+        child: Container(
+          padding: const EdgeInsets.all(15.0),
+          decoration: const BoxDecoration(shape: BoxShape.circle, color: AppColors.transparent),
+          child: Icon(icon, color: AppColors.white, size: 36),
+        ),
       ),
     );
   }
@@ -474,10 +478,7 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
                     padding: const EdgeInsets.all(10),
                     child: Row(
                       children: [
-                        BlocProvider(
-                          create: (context) => FavoriteButtonCubit(),
-                          child: FavoriteButton(songEntity: widget.song),
-                        ),
+                        FavoriteButton(songEntity: widget.song),
                       ],
                     ),
                   ),
@@ -496,11 +497,22 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
               borderRadius: BorderRadius.circular(AppSizes.cardRadiusXl),
               child: Padding(
                 padding: const EdgeInsets.all(10),
-                child: SvgPicture.asset(
-                  AppVectors.comment,
-                  colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn),
-                  width: 24,
-                  height: 24,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SvgPicture.asset(
+                      AppVectors.comment,
+                      colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn),
+                      width: 24,
+                      height: 24,
+                    ),
+                    const SizedBox(width: 8),
+                    if (widget.song.commentsCount > 0)
+                    Text(
+                      '${widget.song.commentsCount}',
+                      style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: context.isDarkMode ? AppColors.white : AppColors.black),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -509,7 +521,7 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
             onPressed: () {
               showShareTrackBottomDialog(context, userData, widget.song);
             },
-            icon: Icon(Icons.share_outlined, size: 26, color: context.isDarkMode ? AppColors.white : AppColors.black),
+            icon: Icon(FeatherIcons.share2, size: 26, color: context.isDarkMode ? AppColors.white : AppColors.black),
           ),
           IconButton(
             onPressed: () {
@@ -519,7 +531,15 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
           ),
           IconButton(
             onPressed: () {
-              showInfoTrackBottomDialog(context, userData, widget.song, shouldShowPlayNext: false, shouldShowPlayLast: false);
+              showInfoTrackBottomDialog(
+                context,
+                userData,
+                widget.song,
+                shouldShowPlayNext: false,
+                shouldShowPlayLast: false,
+                initialChildSize: 0.883,
+                maxChildSize: 0.883,
+              );
             },
             icon: Icon(Icons.more_vert_rounded, size: 24, color: context.isDarkMode ? AppColors.white : AppColors.black),
           ),

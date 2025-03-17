@@ -40,8 +40,6 @@ class _NextUpScreenState extends State<NextUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    List<Map<String, String>> tracks = List.generate(10, (index) => {'track': 'Track ${index + 1}', 'artist': 'Artist Name'});
-
     return Scaffold(
       appBar: BasicAppBar(
         padding: const EdgeInsets.only(left: 6, right: 10),

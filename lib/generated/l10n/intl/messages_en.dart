@@ -48,7 +48,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "buzzingElectronic":
             MessageLookupByLibrary.simpleMessage("Buzzing Electronic"),
         "cancel": MessageLookupByLibrary.simpleMessage("Cancel"),
-        "cancelUpload": MessageLookupByLibrary.simpleMessage("Cancel upload"),
+        "cancelButton": MessageLookupByLibrary.simpleMessage("Cancel"),
+        "cancelUpload":
+            MessageLookupByLibrary.simpleMessage("Cancel this upload?"),
         "caption": MessageLookupByLibrary.simpleMessage("Caption"),
         "choose": MessageLookupByLibrary.simpleMessage("Choose"),
         "chooseImage": MessageLookupByLibrary.simpleMessage("Choose Image"),
@@ -79,6 +81,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "enjoyTitleSignUpSignIn": MessageLookupByLibrary.simpleMessage(
             "Maestro is a proprietary Russian audio streaming and media services provider"),
         "enterEmail": MessageLookupByLibrary.simpleMessage("Enter email"),
+        "errorLoadingMessages":
+            MessageLookupByLibrary.simpleMessage("Error loading messages"),
         "errorLoadingProfile":
             MessageLookupByLibrary.simpleMessage("Error loading profile"),
         "failedLoadImage":
@@ -125,6 +129,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("No file selected"),
         "noImagesFound":
             MessageLookupByLibrary.simpleMessage("No images found"),
+        "noMessages": MessageLookupByLibrary.simpleMessage("No messages"),
         "noName": MessageLookupByLibrary.simpleMessage("No name"),
         "noUserDataFound":
             MessageLookupByLibrary.simpleMessage("No user data found"),
@@ -185,7 +190,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "updatedEveryMonday": MessageLookupByLibrary.simpleMessage(
             "The best of Maestro just for you. Updated every Monday"),
         "upgrade": MessageLookupByLibrary.simpleMessage("UPGRADE"),
-        "upgradeNav": MessageLookupByLibrary.simpleMessage("Upgrade"),
+        "upgradeNav": MessageLookupByLibrary.simpleMessage("Maestro+"),
         "uploading": MessageLookupByLibrary.simpleMessage("Uploading"),
         "uploadingTrackStoppedDeleted": MessageLookupByLibrary.simpleMessage(
             "Uploading this track will be stopped and deleted from Maestro."),

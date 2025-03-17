@@ -1,3 +1,5 @@
+import '../../../domain/entities/user/user_entity.dart';
+
 class UserModel {
   final String id;
   final String name;
@@ -11,6 +13,7 @@ class UserModel {
   final List<String> links;
   final int limitUploads;
   final int tracksCount;
+  final bool verifyAccount;
 
   UserModel({
     required this.id,
@@ -25,6 +28,7 @@ class UserModel {
     required this.links,
     required this.limitUploads,
     required this.tracksCount,
+    required this.verifyAccount,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> data, String documentId) {
@@ -37,10 +41,29 @@ class UserModel {
       country: data['country'] ?? '',
       flag: data['flag'] ?? '',
       backgroundImage: data['backgroundImage'] ?? '',
-      followers: data['followers'] ?? 0,
-      links: List<String>.from(data['links'] ?? []),
-      limitUploads: data['limitUploads'] ?? 0,
+      followers: data.containsKey('followers') ? data['followers'] : 0,
+      links: (data['links'] is List) ? List<String>.from(data['links'].map((link) => link['webOrEmail'] ?? '')) : [],
+      limitUploads: data.containsKey('limitUploads') ? data['limitUploads'] : 0,
       tracksCount: data['tracksCount'] ?? 0,
+      verifyAccount: data.containsKey('verifyAccount') ? data['verifyAccount'] : false,
+    );
+  }
+
+  UserEntity toUserEntity() {
+    return UserEntity(
+      id: id,
+      name: name,
+      image: image,
+      bio: bio,
+      city: city,
+      country: country,
+      flag: flag,
+      backgroundImage: backgroundImage,
+      followers: followers,
+      links: links,
+      limitUploads: limitUploads,
+      tracksCount: tracksCount,
+      verifyAccount: verifyAccount,
     );
   }
 }

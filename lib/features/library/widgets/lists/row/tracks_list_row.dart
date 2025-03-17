@@ -2,19 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../../../utils/constants/app_colors.dart';
 import '../../../../../../utils/constants/app_sizes.dart';
-import '../../../../../routes/custom_page_route.dart';
-import '../../../screens/profile/all_tracks_screen.dart';
 
 class TracksListRow extends StatelessWidget {
   final bool shouldShow;
   final List<dynamic> songs;
   final int initialIndex;
+  final String title;
+  final VoidCallback onPressedSeeAll;
 
   const TracksListRow({
     super.key,
     required this.shouldShow,
     required this.songs,
     required this.initialIndex,
+    required this.title,
+    required this.onPressedSeeAll,
   });
 
   @override
@@ -28,17 +30,12 @@ class TracksListRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text('Tracks', style: TextStyle(fontSize: AppSizes.fontSizeBg, fontWeight: FontWeight.w800, letterSpacing: -1.3)),
+          Text(title, style: TextStyle(fontSize: AppSizes.fontSizeBg, fontWeight: FontWeight.w800, letterSpacing: -1.3)),
           SizedBox(
             width: 65,
             height: 27,
             child: ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  createPageRoute(AllTracksScreen(songs: songs, initialIndex: initialIndex)),
-                );
-              },
+              onPressed: onPressedSeeAll,
               style: ElevatedButton.styleFrom(
                 backgroundColor: context.isDarkMode ? AppColors.darkGrey : AppColors.lightGrey,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),

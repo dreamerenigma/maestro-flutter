@@ -9,7 +9,7 @@ import 'package:maestro/routes/custom_page_route.dart';
 import '../../../api/apis.dart';
 import '../../../common/widgets/app_bar/app_bar.dart';
 import '../../../data/models/comment/comment_model.dart';
-import '../../../data/services/messages/comment_service.dart';
+import '../../../data/services/comment/comment_firebase_service.dart';
 import '../../../domain/entities/comment/comment_entity.dart';
 import '../../../service_locator.dart';
 import '../../../utils/constants/app_colors.dart';
@@ -220,7 +220,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
   Widget _buildTrackInfo(BuildContext context) {
     return InkWell(
       onTap: () {
-        Navigator.push(context, createPageRoute(BehindThisTrackScreen()));
+        Navigator.push(context, createPageRoute(BehindThisTrackScreen(song: widget.song, initialIndex: widget.initialIndex)));
       },
       splashColor: context.isDarkMode ? AppColors.darkGrey.withAlpha((0.4 * 255).toInt()) : AppColors.grey.withAlpha((0.4 * 255).toInt()),
       highlightColor: context.isDarkMode ? AppColors.darkGrey.withAlpha((0.4 * 255).toInt()) : AppColors.grey.withAlpha((0.4 * 255).toInt()),

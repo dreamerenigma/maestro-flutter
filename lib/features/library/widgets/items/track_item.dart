@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../../domain/entities/song/song_entity.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
+import '../../../../utils/formatters/formatter.dart';
 import '../../../song_player/bloc/song_player_cubit.dart';
 import '../../../song_player/bloc/song_player_state.dart';
 
@@ -25,13 +26,6 @@ class TrackItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-    String formatDuration(int durationInSeconds) {
-      int minutes = durationInSeconds ~/ 60;
-      int seconds = durationInSeconds % 60;
-      return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-    }
-
     return BlocBuilder<SongPlayerCubit, SongPlayerState>(
       builder: (context, state) {
         final isPlaying = state is SongPlayerLoaded && state.currentSong == song && context.read<SongPlayerCubit>().audioPlayer.playing;
@@ -88,7 +82,7 @@ class TrackItem extends StatelessWidget {
                           const SizedBox(width: 6),
                           const Text('·', style: TextStyle(color: AppColors.grey, fontSize: AppSizes.fontSizeSm)),
                           const SizedBox(width: 6),
-                          Text(formatDuration(song.duration.toInt()),
+                          Text(Formatter.formatDurationTrack(song.duration.toInt()),
                             style: TextStyle(fontSize: AppSizes.fontSizeSm, fontFamily: 'Roboto', fontWeight: FontWeight.normal),
                           ),
                         ],

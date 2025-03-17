@@ -12,6 +12,7 @@ import 'package:maestro/utils/devices/device_utility.dart';
 import 'package:maestro/utils/theme/theme.dart';
 import 'package:path_provider/path_provider.dart';
 import 'bindings/general_bindings.dart';
+import 'common/bloc/favorite_button/favorite_button_cubit.dart';
 import 'data/services/notification/notification_service.dart';
 import 'features/choose_mode/bloc/theme_cubit.dart';
 import 'features/library/bloc/language_cubit.dart';
@@ -72,6 +73,7 @@ class App extends StatelessWidget {
         BlocProvider(create: (_) => LanguageCubit()),
         BlocProvider(create: (_) => SongPlayerCubit()),
         BlocProvider(create: (_) => SongCubit()),
+        BlocProvider(create: (_) => FavoriteButtonCubit()),
       ],
       child: BlocListener<ThemeCubit, ThemeMode>(
         listener: (context, themeMode) {

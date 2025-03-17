@@ -48,7 +48,9 @@ class MessageLookup extends MessageLookupByLibrary {
         "buzzingElectronic":
             MessageLookupByLibrary.simpleMessage("Electrónica de moda"),
         "cancel": MessageLookupByLibrary.simpleMessage("Cancelar"),
-        "cancelUpload": MessageLookupByLibrary.simpleMessage("Cancelar subida"),
+        "cancelButton": MessageLookupByLibrary.simpleMessage("¿Cancelar"),
+        "cancelUpload":
+            MessageLookupByLibrary.simpleMessage("¿Cancelar esta subida?"),
         "caption": MessageLookupByLibrary.simpleMessage("Título"),
         "choose": MessageLookupByLibrary.simpleMessage("Seleccionar"),
         "chooseImage":
@@ -83,6 +85,8 @@ class MessageLookup extends MessageLookupByLibrary {
             "Maestro es un proveedor propietario de servicios multimedia y de transmisión de audio ruso."),
         "enterEmail": MessageLookupByLibrary.simpleMessage(
             "Introducir correo electrónico"),
+        "errorLoadingMessages":
+            MessageLookupByLibrary.simpleMessage("Error al cargar mensajes"),
         "errorLoadingProfile":
             MessageLookupByLibrary.simpleMessage("Error al cargar el perfil"),
         "failedLoadImage":
@@ -130,6 +134,7 @@ class MessageLookup extends MessageLookupByLibrary {
             "No se ha seleccionado ningún archivo"),
         "noImagesFound":
             MessageLookupByLibrary.simpleMessage("No se encontraron imágenes"),
+        "noMessages": MessageLookupByLibrary.simpleMessage("No hay mensajes"),
         "noName": MessageLookupByLibrary.simpleMessage("Sin nombre"),
         "noUserDataFound": MessageLookupByLibrary.simpleMessage(
             "No se encontraron datos de usuario"),
@@ -194,6 +199,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "updatedEveryMonday": MessageLookupByLibrary.simpleMessage(
             "Lo mejor de Maestro solo para ti. Actualizado cada lunes"),
         "upgrade": MessageLookupByLibrary.simpleMessage("ACTUALIZAR"),
+        "upgradeNav": MessageLookupByLibrary.simpleMessage("Maestra+"),
         "uploading": MessageLookupByLibrary.simpleMessage("Subiendo"),
         "uploadingTrackStoppedDeleted": MessageLookupByLibrary.simpleMessage(
             "La subida de esta pista se detendrá y se eliminará de Maestro."),

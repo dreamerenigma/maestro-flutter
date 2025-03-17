@@ -102,14 +102,14 @@
     "cancelUpload": "Отменить загрузку?",
     "uploadingTrackStoppedDeleted": "Загрузка этого трека будет остановлена и удалена из Maestro",
     "resume": "Возобновить",
-    "cancelUpload": "Отменить загрузку",
+    "cancelButton": "Отменить",
     "somethingWentWrong": "Что-то пошло не так",
     "pleaseSureInternetAvailable": "Убедитесь, что ваш интернет доступен",
     "ok": "ОК",
     "showAllNotifications": "Показать все уведомления",
     "comments": "Комментарии",
     "likes": "Нравится",
-    "followings": "Followings",
+    "followings": "Подписчики",
     "reposts": "Повторы",
     "latestArtistsFollow": "Последние от подписок",
     "newReleases": "Новые релизы на ваш вкус. Обновляется каждый день",
@@ -120,5 +120,7 @@
     "localList": "LocalList",
     "seeAll": "Посмотреть все",
     "recents": "Недавние",
-    "browse": "Просмотр"
+    "browse": "Просмотр",
+    "errorLoadingMessages": "Ошибка загрузки сообщений",
+    "noMessages": "Нет сообщений"
 }

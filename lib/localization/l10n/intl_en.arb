@@ -102,7 +102,7 @@
     "cancelUpload": "Cancel this upload?",
     "uploadingTrackStoppedDeleted": "Uploading this track will be stopped and deleted from Maestro.",
     "resume": "Resume",
-    "cancelUpload": "Cancel upload",
+    "cancelButton": "Cancel",
     "somethingWentWrong": "Something went wrong",
     "pleaseSureInternetAvailable": "Please make sure your internet is available",
     "ok": "OK",
@@ -120,5 +120,7 @@
     "localList": "LocalList",
     "seeAll": "See All",
     "recents": "Recents",
-    "browse": "Browse"
+    "browse": "Browse",
+    "errorLoadingMessages": "Error loading messages",
+    "noMessages": "No messages"
 }

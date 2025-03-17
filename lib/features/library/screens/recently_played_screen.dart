@@ -9,7 +9,7 @@ import '../../home/screens/home_screen.dart';
 import '../../home/widgets/nav_bar/bottom_nav_bar.dart';
 import '../../song_player/widgets/mini_player/mini_player_manager.dart';
 import '../../utils/widgets/no_glow_scroll_behavior.dart';
-import '../widgets/dialogs/clear_recently_played.dart';
+import '../widgets/dialogs/clear_recently_played_dialog.dart';
 
 class RecentlyPlayedScreen extends StatefulWidget {
   final int initialIndex;

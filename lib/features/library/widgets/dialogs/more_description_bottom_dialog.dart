@@ -3,9 +3,7 @@ import 'package:get/get.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
 
-void showMoreDescriptionBottomDialog(BuildContext context, Map<String, dynamic> userData) {
-  final userName = userData['name'] as String?;
-
+void showMoreDescriptionBottomDialog(BuildContext context, Map<String, dynamic> userData, String additionalText) {
   showModalBottomSheet(
     context: context,
     enableDrag: true,
@@ -54,7 +52,7 @@ void showMoreDescriptionBottomDialog(BuildContext context, Map<String, dynamic> 
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Based on $userName', style: TextStyle(fontSize: AppSizes.fontSizeMd, fontWeight: FontWeight.normal)),
+                  Text(additionalText, style: TextStyle(fontSize: 15, fontWeight: FontWeight.normal)),
                 ],
               ),
             ),
@@ -64,4 +62,3 @@ void showMoreDescriptionBottomDialog(BuildContext context, Map<String, dynamic> 
     },
   );
 }
-

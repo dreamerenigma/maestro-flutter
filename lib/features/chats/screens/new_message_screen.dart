@@ -27,6 +27,7 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
   final TextEditingController _searchController = TextEditingController();
   List<UserModel> filteredUsers = [];
   final FocusNode _focusNode = FocusNode();
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -38,11 +39,34 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       FocusScope.of(context).requestFocus(_focusNode);
     });
+
+    _loadData();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _focusNode.dispose();
+    super.dispose();
   }
 
   void _filterUsers() {
     setState(() {
       filteredUsers = widget.users.where((user) => user.name.toLowerCase().contains(_searchController.text.toLowerCase())).toList();
+    });
+  }
+
+  Future<void> _loadData() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    await Future.delayed(const Duration(seconds: 2));
+
+    List<UserModel> users = await fetchUsersFromFirestore();
+    setState(() {
+      filteredUsers = users;
+      isLoading = false;
     });
   }
 
@@ -58,13 +82,6 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
     return querySnapshot.docs.map((doc) {
       return UserModel.fromMap(doc.data(), doc.id);
     }).toList();
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    _focusNode.dispose();
-    super.dispose();
   }
 
   @override
@@ -97,6 +114,9 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
                   focusNode: _focusNode,
                 ),
               ),
+              if (isLoading)
+                Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(AppColors.primary))),
+              if (!isLoading)...filteredUsers.map((user) => ListTile(title: Text(user.name), subtitle: Text(user.city))),
             ],
           ),
         ),

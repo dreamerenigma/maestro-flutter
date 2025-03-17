@@ -102,7 +102,7 @@
     "cancelUpload": "¿Cancelar esta subida?",
     "uploadingTrackStoppedDeleted": "La subida de esta pista se detendrá y se eliminará de Maestro.",
     "resume": "Reanudar",
-    "cancelUpload": "Cancelar subida",
+    "cancelButton": "¿Cancelar",
     "somethingWentWrong": "Algo salió mal",
     "pleaseSureInternetAvailable": "Asegúrate de tener internet disponible",
     "ok": "OK",
@@ -118,7 +118,9 @@
     "weeklyWave": "OLA SEMANAL",
     "localAudioPlaylist": "Lista de reproducción de audio local",
     "localList": "Lista local",
-    "seeAll": "Ver todo",
+    "seeAll": "Ver Al",
     "recents": "Recientes",
-    "browse": "Explorar"
+    "browse": "Explorar",
+    "errorLoadingMessages": "Error al cargar mensajes",
+    "noMessages": "No hay mensajes"
 }

@@ -32,7 +32,9 @@ class ViewPlaylistsScreen extends StatefulWidget {
 
 class ViewPlaylistsScreenState extends State<ViewPlaylistsScreen> {
   late final int selectedIndex;
+  late int selectedPlaylistIndex;
   late Future<Map<String, dynamic>?> userDataFuture;
+  late Map<String, dynamic> userData;
   final TextEditingController _searchController = TextEditingController();
   List<Map<String, dynamic>> filteredPlaylists = [];
   List<Map<String, dynamic>> playlists = [];
@@ -45,13 +47,26 @@ class ViewPlaylistsScreenState extends State<ViewPlaylistsScreen> {
     selectedIndex = widget.initialIndex;
     filteredPlaylists = widget.playlists;
     _searchController.addListener(_filterPlaylists);
-    _loadPlaylists();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final routeArguments = ModalRoute.of(context)?.settings.arguments as Map?;
+    selectedPlaylistIndex = routeArguments?['selectedPlaylistIndex'] ?? 0;
   }
 
   Future<void> _loadPlaylists() async {
     try {
-      var snapshot = await FirebaseFirestore.instance.collection('Playlists').get();
-      log('Loaded ${snapshot.docs.length} playlists');
+      if (userData['name'] == null) {
+        log('User data is unavailable');
+        return;
+      }
+
+      var snapshot = await FirebaseFirestore.instance.collection('Playlists').where('authorName', isEqualTo: userData['name']).get();
+
+      log('Loaded ${snapshot.docs.length} playlists for current user');
+
       var playlistsData = snapshot.docs.map((doc) {
         return {
           'id': doc.id,
@@ -62,8 +77,6 @@ class ViewPlaylistsScreenState extends State<ViewPlaylistsScreen> {
           'authorName': doc['authorName'],
         };
       }).toList();
-
-      await Future.delayed(const Duration(milliseconds: 700));
 
       setState(() {
         playlists = playlistsData;
@@ -134,40 +147,42 @@ class ViewPlaylistsScreenState extends State<ViewPlaylistsScreen> {
             } else if (!snapshot.hasData || snapshot.data == null) {
               return Center(child: Text(S.of(context).noUserDataFound));
             } else {
-              final userData = snapshot.data!;
+              userData = snapshot.data!;
+
+              if (isLoading) {
+                _loadPlaylists();
+              }
 
               return isLoading
                 ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
                 : ScrollConfiguration(
-                behavior: NoGlowScrollBehavior(),
-                child: RefreshIndicator(
-                  onRefresh: _reloadData,
-                  displacement: 0,
-                  color: AppColors.primary,
-                  backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.softGrey,
-                  child: ListView(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 16, right: 6, top: 16, bottom: 12),
-                        child: InputField(
-                          controller: _searchController,
-                          hintText: userData['name'] == null || widget.playlists.where((playlist) => playlist['authorName'] == userData['name']).isEmpty
-                            ? 'Search playlists'
-                            : 'Search ${filteredPlaylists.length} playlists',
-                          icon: JamIcons.settingsAlt,
-                          onIconPressed: () {
-                            showFilterPlaylistsDialog(context);
-                          },
+                  behavior: NoGlowScrollBehavior(),
+                  child: RefreshIndicator(
+                    onRefresh: _reloadData,
+                    displacement: 0,
+                    color: AppColors.primary,
+                    backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.softGrey,
+                    child: ListView(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 16, right: 6, top: 16, bottom: 12),
+                          child: InputField(
+                            controller: _searchController,
+                            hintText: filteredPlaylists.isEmpty ? 'Search playlists' : 'Search ${filteredPlaylists.length} playlists',
+                            icon: JamIcons.settingsAlt,
+                            onIconPressed: () {
+                              showFilterPlaylistsDialog(context);
+                            },
+                          ),
                         ),
-                      ),
-                      CreatePlaylistWidget(onPlaylistCreated: () {
-                        showCreatePlaylistDialog(context, onPlaylistCreated);
-                      }),
-                      _buildPlaylistsList(userData),
-                    ],
+                        CreatePlaylistWidget(onPlaylistCreated: () {
+                          showCreatePlaylistDialog(context, onPlaylistCreated);
+                        }),
+                        _buildPlaylistsList(userData),
+                      ],
+                    ),
                   ),
-                ),
-              );
+                );
             }
           }
         ),
@@ -195,7 +210,7 @@ class ViewPlaylistsScreenState extends State<ViewPlaylistsScreen> {
 
         return InkWell(
           onTap: () {
-            Navigator.push(context, createPageRoute(PlaylistsScreen(initialIndex: widget.initialIndex, playlists: playlists)));
+            Navigator.push(context, createPageRoute(PlaylistScreen(initialIndex: widget.initialIndex, playlist: playlists, selectedPlaylistIndex: index)));
           },
           splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
           highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),

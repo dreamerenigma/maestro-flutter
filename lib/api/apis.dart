@@ -113,6 +113,19 @@ class APIs {
 
       for (var doc in snapshot.docs) {
         final data = doc.data();
+        log('Fetching liked track: ${data.toString()}');
+
+        int durationInSeconds = 0;
+        if (data['duration'] != null && data['duration'] is String) {
+          final durationParts = data['duration'].split(':');
+          if (durationParts.length == 2) {
+            int minutes = int.tryParse(durationParts[0]) ?? 0;
+            int seconds = int.tryParse(durationParts[1]) ?? 0;
+            durationInSeconds = minutes * 60 + seconds;
+          }
+        } else {
+          durationInSeconds = data['duration'] ?? 0;
+        }
 
         likedTracks.add(SongEntity(
           songId: doc.id,
@@ -121,17 +134,20 @@ class APIs {
           genre: data['genre'] ?? '',
           description: data['description'] ?? '',
           caption: data['caption'] ?? '',
-          duration: data['duration'] ?? 0,
+          duration: durationInSeconds,
           releaseDate: data['releaseDate'] != null ? (data['releaseDate'] as Timestamp) : Timestamp.now(),
           isFavorite: data['isFavorite'] ?? true,
           listenCount: data['listenCount'] ?? 0,
           likeCount: data['likeCount'] ?? 0,
           commentsCount: data['commentsCount'] ?? 0,
+          repostCount: data['repostCount'] ?? 0,
           fileURL: data['fileURL'] ?? '',
           cover: data['cover'] ?? '',
           uploadedBy: data['uploadedBy'] ?? '',
         ));
       }
+
+      log('Liked tracks fetched: ${likedTracks.length}');
       return likedTracks;
     } catch (e) {
       log("Error fetching liked tracks: $e");
@@ -197,6 +213,7 @@ class APIs {
           listenCount: data['listenCount'] ?? 0,
           likeCount: data['likeCount'] ?? 0,
           commentsCount: data['commentsCount'] ?? 0,
+          repostCount: data['repostCount'] ?? 0,
           fileURL: data['fileURL'] ?? '',
           cover: data['cover'] ?? '',
           uploadedBy: data['uploadedBy'] ?? '',

@@ -37,6 +37,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool _isLoading = false;
   int unreadMessages = 1;
   File? _selectedFile;
+  FocusNode searchFocusNode = FocusNode();
 
   late AnimationController _rotationController;
   late Animation<double> rotationAnimation;
@@ -268,6 +269,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         bottomNavigationBar: kIsWeb ? null : BottomNavBar(
           selectedIndex: _selectedIndex,
           onItemTapped: onItemTapped,
+          searchFocusNode: searchFocusNode,
         ),
       ),
     );

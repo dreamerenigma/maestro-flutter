@@ -14,6 +14,7 @@ class SongModel {
   int ? listenCount;
   int ? likeCount;
   int ? commentsCount;
+  int ? repostCount;
   String ? fileURL;
   String? uploadedBy;
 
@@ -30,6 +31,7 @@ class SongModel {
     required this.listenCount,
     required this.likeCount,
     required this.commentsCount,
+    required this.repostCount,
     required this.fileURL,
     required this.uploadedBy,
   });
@@ -47,6 +49,7 @@ class SongModel {
     listenCount = data['listenCount'] ?? 0;
     likeCount = data['likeCount'] ?? 0;
     commentsCount = data['commentsCount'] ?? 0;
+    repostCount = data['repostCount'] ?? 0;
     fileURL = data['fileURL'];
     uploadedBy = data['uploadedBy'];
   }
@@ -65,6 +68,7 @@ class SongModel {
       'listenCount': listenCount,
       'likeCount': likeCount,
       'commentsCount': commentsCount,
+      'repostCount': repostCount,
       'fileURL': fileURL,
       'uploadedBy': uploadedBy,
     };
@@ -86,6 +90,7 @@ extension SongModelX on SongModel {
       listenCount: listenCount!,
       likeCount: likeCount!,
       commentsCount: commentsCount!,
+      repostCount: repostCount!,
       fileURL: '',
       cover: '',
       uploadedBy: uploadedBy ?? '',

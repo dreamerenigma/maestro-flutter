@@ -472,13 +472,13 @@ class EditProfileScreenState extends State<EditProfileScreen> {
                   border: Border.all(color: AppColors.darkGrey, width: 1),
                 ),
                 child: CircleAvatar(
-                maxRadius: 65,
-                backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.lightGrey,
-                backgroundImage: _imageUrl != null
-                  ? (_imageUrl!.startsWith('http') ? NetworkImage(_imageUrl!) : FileImage(File(_imageUrl!)))
-                  : null,
-                child: _imageUrl == null ? const Icon(Icons.camera_alt_outlined, size: 30) : null,
-              ),
+                  maxRadius: 65,
+                  backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.lightGrey,
+                  backgroundImage: _imageUrl != null
+                    ? (_imageUrl!.startsWith('http') ? NetworkImage(_imageUrl!) : FileImage(File(_imageUrl!)))
+                    : null,
+                  child: _imageUrl == null ? const Icon(Icons.camera_alt_outlined, size: 30) : null,
+                ),
               ),
               Positioned.fill(
                 child: Container(

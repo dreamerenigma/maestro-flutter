@@ -2,7 +2,9 @@ import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../api/apis.dart';
 import '../../../../common/widgets/app_bar/app_bar.dart';
+import '../../../../generated/l10n/l10n.dart';
 import '../../../../routes/custom_page_route.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
@@ -24,19 +26,41 @@ class AllPlaylistsScreen extends StatefulWidget {
 
 class AllPlaylistsScreenState extends State<AllPlaylistsScreen> {
   late final int selectedIndex;
+  late Map<String, dynamic> userData;
+  late Future<Map<String, dynamic>?> userDataFuture;
   List<Map<String, dynamic>> playlists = [];
   bool isLoading = true;
+  late int selectedPlaylistIndex;
 
   @override
   void initState() {
     super.initState();
     selectedIndex = widget.initialIndex;
+    userDataFuture = APIs.fetchUserData();
     _loadPlaylists();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final routeArguments = ModalRoute.of(context)?.settings.arguments as Map?;
+    selectedPlaylistIndex = routeArguments?['selectedPlaylistIndex'] ?? 0;
   }
 
   Future<void> _loadPlaylists() async {
     try {
-      var snapshot = await FirebaseFirestore.instance.collection('Playlists').get();
+      if (userData['name'] == null) {
+        log('User data is unavailable');
+        return;
+      }
+
+      var snapshot = await FirebaseFirestore.instance
+        .collection('Playlists')
+        .where('authorName', isEqualTo: userData['name'])
+        .get();
+
+      log('Loaded ${snapshot.docs.length} playlists for current user');
+
       var playlistsData = snapshot.docs.map((doc) {
         return {
           'id': doc.id,
@@ -48,13 +72,10 @@ class AllPlaylistsScreenState extends State<AllPlaylistsScreen> {
         };
       }).toList();
 
-      await Future.delayed(const Duration(seconds: 1));
-
       setState(() {
         playlists = playlistsData;
         isLoading = false;
       });
-
     } catch (e) {
       log('Error loading playlists: $e');
     }
@@ -82,21 +103,40 @@ class AllPlaylistsScreenState extends State<AllPlaylistsScreen> {
       ),
       body: MiniPlayerManager(
         hideMiniPlayerOnSplash: false,
-        child: isLoading
-          ? const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)))
-          : ScrollConfiguration(
-          behavior: NoGlowScrollBehavior(),
-          child: RefreshIndicator(
-            onRefresh: _reloadData,
-            displacement: 0,
-            color: AppColors.primary,
-            backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.softGrey,
-            child: Column(
-              children: [
-                _buildPlaylists(),
-              ],
-            ),
-          ),
+        child: FutureBuilder<Map<String, dynamic>?>(
+          future: userDataFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)));
+            } else if (snapshot.hasError) {
+              return Center(child: Text(S.of(context).errorLoadingProfile));
+            } else if (!snapshot.hasData || snapshot.data == null) {
+              return Center(child: Text(S.of(context).noUserDataFound));
+            } else {
+              userData = snapshot.data!;
+
+              if (isLoading) {
+                _loadPlaylists();
+              }
+
+              return isLoading
+                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                : ScrollConfiguration(
+                  behavior: NoGlowScrollBehavior(),
+                  child: RefreshIndicator(
+                    onRefresh: _reloadData,
+                    displacement: 0,
+                    color: AppColors.primary,
+                    backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.softGrey,
+                    child: Column(
+                      children: [
+                        _buildPlaylists(),
+                      ],
+                    ),
+                  ),
+                );
+            }
+          },
         ),
       ),
       bottomNavigationBar: BottomNavBar(
@@ -118,7 +158,7 @@ class AllPlaylistsScreenState extends State<AllPlaylistsScreen> {
 
         return InkWell(
           onTap: () {
-            Navigator.push(context, createPageRoute(PlaylistsScreen(initialIndex: widget.initialIndex, playlists: playlists)));
+            Navigator.push(context, createPageRoute(PlaylistScreen(initialIndex: widget.initialIndex, playlist: playlists, selectedPlaylistIndex: index)));
           },
           splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
           highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
@@ -131,10 +171,7 @@ class AllPlaylistsScreenState extends State<AllPlaylistsScreen> {
                   children: [
                     playlist['coverImage'] != null
                       ? Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.darkGrey, width: 0.8),
-                        ),
+                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.darkGrey, width: 0.8)),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
                           child: Image.network(

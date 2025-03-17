@@ -7,6 +7,7 @@ import '../../../utils/constants/app_sizes.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../utils/screens/internet_aware_screen.dart';
 import '../widgets/bars/search_bar.dart' as search;
+import '../widgets/bars/tab_bar_widget.dart';
 import '../widgets/grids/genre_grid.dart';
 import '../widgets/texts/search_results.dart';
 import '../widgets/texts/search_prompt.dart';
@@ -20,14 +21,16 @@ class SearchScreen extends StatefulWidget {
   State<SearchScreen> createState() => _SearchScreenState();
 }
 
-class _SearchScreenState extends State<SearchScreen> {
+class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderStateMixin {
   bool _isLoading = true;
   bool _noResultsFound = false;
+  late TabController _tabController;
   final FocusNode _focusNode = FocusNode();
   bool _hasFocus = false;
   bool _hasText = false;
   bool _isTabLoading = false;
-  int _currentTabIndex = 0;
+  bool _isSearchResult = false;
+  bool _showTabBarWidget = false;
   final TextEditingController _searchController = TextEditingController();
   final SearchService _searchService = SearchService();
   List<QueryDocumentSnapshot> _searchResults = [];
@@ -36,6 +39,7 @@ class _SearchScreenState extends State<SearchScreen> {
   void initState() {
     super.initState();
     _loadData();
+    _tabController = TabController(length: 5, vsync: this);
 
     _focusNode.addListener(() {
       setState(() {
@@ -59,12 +63,14 @@ class _SearchScreenState extends State<SearchScreen> {
           _searchResults = searchResults;
           _noResultsFound = _searchResults.isEmpty;
           _isLoading = false;
+          _showTabBarWidget = true;
         });
       } else {
         setState(() {
           _searchResults = [];
           _isLoading = false;
           _noResultsFound = false;
+          _showTabBarWidget = false;
         });
       }
     });
@@ -72,6 +78,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   void dispose() {
+    _tabController.dispose();
     _searchController.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -94,6 +101,8 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() {
       _hasText = false;
       _noResultsFound = false;
+      _isSearchResult = false;
+      _showTabBarWidget = false;
     });
   }
 
@@ -105,14 +114,19 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   void _onResultTap(QueryDocumentSnapshot result) {
+    log('Result tapped: ${result.data()}');
+
     setState(() {
       _isTabLoading = true;
+      _isSearchResult = true;
     });
 
     Future.delayed(const Duration(seconds: 2), () {
       setState(() {
         _isTabLoading = false;
       });
+
+      log('Loading finished, state updated: _isTabLoading = $_isTabLoading');
     });
   }
 
@@ -141,7 +155,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           Expanded(
                             child: search.SearchBar(
                               searchController: _searchController,
-                              focusNode: _focusNode,
+                              searchFocusNode: _focusNode,
                               hasFocus: _hasFocus,
                               hasText: _hasText,
                               removeFocus: _removeFocus,
@@ -163,13 +177,25 @@ class _SearchScreenState extends State<SearchScreen> {
                           ),
                         ],
                       ),
-                      if (_hasText && !_isLoading)
+                      if (!_isTabLoading && _hasText && !_isLoading && !_isSearchResult)
                         SearchResults(
                           isLoading: _isLoading,
                           noResultsFound: _noResultsFound,
                           hasText: _hasText,
                           searchResults: _searchResults,
                           onResultTap: _onResultTap,
+                        ),
+                      if (_isTabLoading)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 30),
+                          child: const Center(
+                            child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)),
+                          ),
+                        ),
+                      if (!_isTabLoading && _isSearchResult && _showTabBarWidget)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: TabBarWidget(initialIndex: 0),
                         ),
                       if (!_hasFocus && _searchResults.isNotEmpty)
                         Align(
@@ -187,7 +213,6 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                   if (!_isLoading && !_hasFocus && !_noResultsFound)
                     GenreGrid(sectionTitle: "Vibes", initialIndex: widget.initialIndex),
-                  SizedBox(height: 60),
                 ],
               ),
               Positioned(
@@ -211,7 +236,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       Expanded(
                         child: search.SearchBar(
                           searchController: _searchController,
-                          focusNode: _focusNode,
+                          searchFocusNode: _focusNode,
                           hasFocus: _hasFocus,
                           hasText: _hasText,
                           removeFocus: _removeFocus,
@@ -233,13 +258,20 @@ class _SearchScreenState extends State<SearchScreen> {
                       ),
                     ],
                   ),
-                  if (_hasText && !_isLoading)
+                  if (!_isTabLoading && _hasText && !_isLoading && !_isSearchResult)
                     SearchResults(
                       isLoading: _isLoading,
                       noResultsFound: _noResultsFound,
                       hasText: _hasText,
                       searchResults: _searchResults,
                       onResultTap: _onResultTap,
+                    ),
+                  if (_isTabLoading)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 30),
+                      child: const Center(
+                        child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)),
+                      ),
                     ),
                   if (!_hasFocus && _searchResults.isNotEmpty)
                     Align(
@@ -257,9 +289,13 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
               if (!_isLoading && !_hasFocus && !_noResultsFound)
                 GenreGrid(sectionTitle: "Vibes", initialIndex: widget.initialIndex),
-              SizedBox(height: 60),
             ],
           ),
+          if (!_isTabLoading && _isSearchResult && _showTabBarWidget)
+            Padding(
+              padding: const EdgeInsets.only(top: 100),
+              child: TabBarWidget(initialIndex: 0),
+            ),
           Positioned(
             top: kToolbarHeight + 30,
             left: 0,
@@ -270,43 +306,5 @@ class _SearchScreenState extends State<SearchScreen> {
         ],
       ),
     );
-  }
-
-  Widget _buildTabBar() {
-    return DefaultTabController(
-      length: 4,
-      initialIndex: _currentTabIndex,
-      child: Column(
-        children: [
-          TabBar(
-            onTap: (index) {
-              setState(() {
-                _currentTabIndex = index;
-              });
-            },
-            tabs: const [
-              Tab(text: 'Tab 1'),
-              Tab(text: 'Tab 2'),
-              Tab(text: 'Tab 3'),
-              Tab(text: 'Tab 4'),
-            ],
-          ),
-          Expanded(
-            child: TabBarView(
-              children: [
-                _buildTabContent('Content 1'),
-                _buildTabContent('Content 2'),
-                _buildTabContent('Content 3'),
-                _buildTabContent('Content 4'),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTabContent(String content) {
-    return Center(child: Text(content));
   }
 }

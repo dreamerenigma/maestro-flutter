@@ -1,3 +1,5 @@
+import 'dart:developer';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:maestro/common/bloc/favorite_button/favorite_button_state.dart';
 import 'package:maestro/domain/usecases/song/add_or_remove_favorite_song_use_cases.dart';
@@ -7,22 +9,29 @@ class FavoriteButtonCubit extends Cubit<FavoriteButtonState> {
   FavoriteButtonCubit() : super(FavoriteButtonInitial());
 
   void favoriteButtonUpdated(String songId, int currentLikeCount) async {
-    var result = await sl<AddOrRemoveFavoriteSongsUseCase>().call(
-      params: songId,
-    );
+    var result = await sl<AddOrRemoveFavoriteSongsUseCase>().call(params: songId);
 
     result.fold(
-      (l) {},
-      (isFavorite) {
-        if (isFavorite && currentLikeCount > 0) {
-          return;
-        } else if (!isFavorite && currentLikeCount == 0) {
-          return;
-        }
+      (l) {
+        log("Error: $l");
+      },
+      (isFavorite) async {
+        await FirebaseFirestore.instance.collection('Songs').doc(songId).update({
+          'likeCount': FieldValue.increment(isFavorite ? 1 : -1),
+        });
 
-        int newLikeCount = isFavorite ? currentLikeCount + 1 : currentLikeCount - 1;
-        emit(FavoriteButtonUpdated(isFavorite: isFavorite, likeCount: newLikeCount));
-      }
+        var songSnapshot = await FirebaseFirestore.instance.collection('Songs').doc(songId).get();
+        if (songSnapshot.exists) {
+          var songData = songSnapshot.data() as Map<String, dynamic>;
+
+          emit(FavoriteButtonUpdated(
+            isFavorite: isFavorite,
+            likeCount: songData['likeCount'],
+          ));
+        } else {
+          log("Song not found after update.");
+        }
+      },
     );
   }
 

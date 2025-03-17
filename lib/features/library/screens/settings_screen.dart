@@ -23,7 +23,7 @@ import '../../home/screens/upload_tracks_screen.dart';
 import '../../home/widgets/nav_bar/bottom_nav_bar.dart';
 import '../../song_player/widgets/mini_player/mini_player_manager.dart';
 import '../controllers/language_controller.dart';
-import '../widgets/dialogs/logout_confirm.dart';
+import '../widgets/dialogs/logout_confirmation_dialog.dart';
 import 'account_screen.dart';
 import 'basic_settings_screen.dart';
 import 'inbox_settings_screen.dart';
@@ -74,7 +74,7 @@ class SettingsScreenState extends State<SettingsScreen> {
     }
 
     return {
-      'appVersion': '2025.03.10-release (${packageInfo.buildNumber})',
+      'appVersion': '2025.03.17-release (${packageInfo.buildNumber})',
       'troubleshootingId': savedTroubleshootingId,
     };
   }
@@ -100,6 +100,7 @@ class SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                SizedBox(height: 12),
                 _buildProfileOption('Account', Icons.arrow_forward_ios, () {
                   Navigator.push(context, createPageRoute(AccountScreen(initialIndex: widget.initialIndex)));
                 }),
@@ -186,7 +187,7 @@ class SettingsScreenState extends State<SettingsScreen> {
       splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
       highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
             Text(text, style: const TextStyle(fontSize: 17)),

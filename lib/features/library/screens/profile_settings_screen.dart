@@ -8,10 +8,12 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:maestro/api/apis.dart';
 import 'package:maestro/features/library/widgets/lists/playlist/playlist_list.dart';
+import 'package:maestro/features/library/widgets/lists/track/repost_tracks_list.dart';
 import 'package:maestro/features/utils/widgets/no_glow_scroll_behavior.dart';
 import 'package:maestro/utils/constants/app_sizes.dart';
 import '../../../data/services/song/song_firebase_service.dart';
 import '../../../domain/entities/song/song_entity.dart';
+import '../../../domain/entities/user/user_entity.dart';
 import '../../../routes/custom_page_route.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../../generated/l10n/l10n.dart';
@@ -21,9 +23,10 @@ import '../../song_player/widgets/mini_player/mini_player_manager.dart';
 import '../../utils/screens/internet_aware_screen.dart';
 import '../controllers/background_controller.dart';
 import '../controllers/profile_image_controller.dart';
-import '../widgets/dialogs/share_profile_bottom_dialog.dart';
 import '../widgets/dialogs/show_more_bio_info_bottom_dialog.dart';
 import '../widgets/icons/action_icons_widget.dart';
+import '../widgets/icons/fixed_icons_widget.dart';
+import '../widgets/lists/track/liked_tracks_list.dart';
 import '../widgets/lists/track/tracks_list.dart';
 import '../widgets/pinned_spotlight_widget.dart';
 import '../widgets/user_avatar_widget.dart';
@@ -33,8 +36,9 @@ import 'library/your_insights_screen.dart';
 
 class ProfileSettingsScreen extends StatefulWidget {
   final int initialIndex;
+  final UserEntity? user;
 
-  const ProfileSettingsScreen({super.key, required this.initialIndex});
+  const ProfileSettingsScreen({super.key, required this.initialIndex, this.user});
 
   @override
   ProfileSettingsScreenState createState() => ProfileSettingsScreenState();
@@ -51,15 +55,17 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   late final Function(int) onItemTapped;
   late ScrollController scrollController;
   String? songId;
-  String? _imageUrlBg;
-  String? _imageUrl;
+  String? imageUrlBg;
+  String? imageUrl;
   bool isShuffleActive = false;
   bool isConnected = true;
+  RxBool isFollowing = false.obs;
   double opacity = 1.0;
   double opacityUsername = 0;
   double lastOffset = 0;
   List<SongEntity> likedTracks = [];
   List<SongEntity> myTracks = [];
+  List<SongEntity> repostTracks = [];
   List<Map<String, dynamic>> playlists = [];
 
   @override
@@ -79,7 +85,7 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     backgroundController.backgroundImageUrl.listen((String? newBackground) {
       if (mounted) {
         setState(() {
-          _imageUrlBg = newBackground;
+          imageUrlBg = newBackground;
         });
       }
     });
@@ -87,7 +93,7 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     profileImageController.profileImageUrl.listen((String? newProfileImage) {
       if (mounted) {
         setState(() {
-          _imageUrl = newProfileImage;
+          imageUrl = newProfileImage;
         });
       }
     });
@@ -127,8 +133,8 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
   Future<void> _loadImageUrls() async {
     setState(() {
-      _imageUrlBg = _storageBox.read<String>('backgroundImage');
-      _imageUrl = _storageBox.read<String>('image');
+      imageUrlBg = _storageBox.read<String>('backgroundImage');
+      imageUrl = _storageBox.read<String>('image');
     });
   }
 
@@ -264,7 +270,7 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                   _buildBackground(context, userData),
                                   const SizedBox(height: 50),
                                   _buildUserProfile(userData),
-                                  ActionIconsWidget(isShuffleActive: isShuffleActive, toggleShuffle: toggleShuffle, initialIndex: widget.initialIndex),
+                                  ActionIconsWidget(isShuffleActive: isShuffleActive, toggleShuffle: toggleShuffle, initialIndex: widget.initialIndex, isFollowing: isFollowing),
                                   const SizedBox(height: 15),
                                   UserInfoWidget(
                                     userData: userData,
@@ -287,17 +293,15 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                   const SizedBox(height: 20),
                                   const PinnedSpotlightWidget(),
                                   const SizedBox(height: 10),
-                                  TracksList(tracks: myTracks, userData: {}),
+                                  TracksList(tracks: myTracks, userData: userData),
                                   PlaylistList(
                                     initialIndex: widget.initialIndex,
                                     playlists: playlists.where((playlist) {
                                       return playlist['authorName'] == (userData['name'] ?? '');
                                     }).toList(),
                                   ),
-                                  // LikedTracksList(
-                                  //   tracks: likedTracks ?? [],
-                                  //   userData: userData ?? {},
-                                  // ),
+                                  RepostTrackList(tracks: repostTracks, userData: userData),
+                                  LikedTracksList(tracks: likedTracks, userData: userData),
                                   SizedBox(height: 100),
                                 ],
                               ),
@@ -306,7 +310,7 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                         ),
                       ),
                     ),
-                    _buildFixedIcons(context, userData),
+                    FixedIconsWidget(userData: userData),
                     Positioned(
                       top: kToolbarHeight + 70,
                       left: 0,
@@ -342,7 +346,7 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     return Container(
       height: 150,
       decoration: BoxDecoration(
-        image: _imageUrlBg != null ? DecorationImage(image: NetworkImage(_imageUrlBg!), fit: BoxFit.cover) : null,
+        image: imageUrlBg != null ? DecorationImage(image: NetworkImage(imageUrlBg!), fit: BoxFit.cover) : null,
         color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkGrey : AppColors.lightBackground,
       ),
       child: Stack(
@@ -352,49 +356,6 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             top: 70,
             left: 20,
             child: UserAvatar(imageUrl: imageUrl),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFixedIcons(BuildContext context, Map<String, dynamic> userData) {
-    return Positioned(
-      left: 10,
-      right: 6,
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: Container(
-              height: 34,
-              width: 34,
-              decoration: BoxDecoration(color: AppColors.darkGrey, shape: BoxShape.circle),
-              child: Icon(Icons.arrow_back_ios_new, size: 20, color: context.isDarkMode ? AppColors.white : AppColors.black),
-            ),
-          ),
-          const Spacer(),
-          IconButton(
-            onPressed: () {},
-            icon: Container(
-              height: 34,
-              width: 34,
-              decoration: BoxDecoration(color: AppColors.darkGrey, shape: BoxShape.circle),
-              child: const Icon(Icons.cast, size: 21, color: AppColors.white),
-            ),
-          ),
-          IconButton(
-            onPressed: () {
-              showShareProfileDialog(context, userData);
-            },
-            icon: Container(
-              height: 34,
-              width: 34,
-              decoration: BoxDecoration(color: AppColors.darkGrey, shape: BoxShape.circle),
-              child: const Icon(Icons.more_vert, size: 21, color: AppColors.white),
-            ),
           ),
         ],
       ),

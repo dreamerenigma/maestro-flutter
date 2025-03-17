@@ -13,6 +13,7 @@ import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:maestro/features/home/screens/inbox_screen.dart';
+import 'package:maestro/features/library/screens/library/tracks/behind_this_track_screen.dart';
 import 'package:maestro/features/library/screens/profile_settings_screen.dart';
 import 'package:maestro/features/library/widgets/dialogs/qr_code_dialog.dart';
 import 'package:maestro/features/song_player/screens/comments_screen.dart';
@@ -102,14 +103,15 @@ void showInfoTrackBottomDialog(
   bool shouldShowRepost = true,
   bool shouldShowPlayNext = true,
   bool shouldShowPlayLast = true,
+  bool shouldShowBehindThisTrack = true,
+  double initialChildSize = 0.95,
+  double minChildSize = 0.6,
+  double maxChildSize = 0.95,
 }) {
   int initialIndex = 0;
   int selectedIndex = 0;
   onItemTapped(index) {}
   updateUnreadMessages(index) {}
-  double initialChildSize = 0.95;
-  double minChildSize = 0.6;
-  double maxChildSize = 0.95;
 
   void onDragUpdate(double offset) {
     if (offset < 0.1) {
@@ -118,9 +120,9 @@ void showInfoTrackBottomDialog(
   }
 
   if (!shouldShowPlayNext && !shouldShowPlayLast) {
-    initialChildSize = 0.82;
-    minChildSize = 0.6;
-    maxChildSize = 0.82;
+    initialChildSize = initialChildSize;
+    minChildSize = minChildSize;
+    maxChildSize = maxChildSize;
   }
 
   List<CommentEntity> comments = [];
@@ -374,14 +376,18 @@ void showInfoTrackBottomDialog(
                         ), () {
                           Navigator.push(context, createPageRoute(CommentsScreen(song: song, comments: comments)));
                         }),
-                        if (shouldShowRepost) _buildSectionOption(context, 'Repost on Maestro', icon: CarbonIcons.repeat, rotationAngle: 1.57, () {}),
+                        if (shouldShowRepost)
+                        _buildSectionOption(context, 'Repost on Maestro', icon: CarbonIcons.repeat, rotationAngle: 1.57, () {}),
                         Divider(height: 5, thickness: 1, color: context.isDarkMode ? AppColors.darkGrey : AppColors.lightGrey),
+                        if (shouldShowBehindThisTrack)
                         _buildSectionOption(context, 'Behind this track', svgIcon: SvgPicture.asset(
                           AppVectors.equalizer,
                           colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn),
                           width: 22,
                           height: 22,
-                        ), () {}),
+                        ), () {
+                          Navigator.push(context, createPageRoute(BehindThisTrackScreen(song: song, initialIndex: initialIndex)));
+                        }),
                         _buildSectionOption(context, 'Report', svgIcon: SvgPicture.asset(
                           AppVectors.flag,
                           colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn),

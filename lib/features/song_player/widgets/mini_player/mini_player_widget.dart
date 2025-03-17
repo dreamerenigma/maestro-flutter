@@ -10,6 +10,7 @@ import 'package:iconify_flutter_plus/icons/iconoir.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:maestro/features/song_player/screens/song_player_screen.dart';
 import 'package:maestro/routes/custom_page_route.dart';
+import '../../../../common/widgets/buttons/favorite_button.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_images.dart';
 import '../../../../utils/constants/app_sizes.dart';
@@ -58,11 +59,14 @@ class _MiniPlayerWidgetState extends State<MiniPlayerWidget> {
         if (state is SongPlayerLoaded) {
           final songPlayerCubit = context.read<SongPlayerCubit>();
           final songEntity = context.read<SongPlayerCubit>().currentSong;
+          if (songEntity == null) {
+            return Container();
+          }
           final isPlaying = context.read<SongPlayerCubit>().audioPlayer.playing;
           final currentPosition = context.read<SongPlayerCubit>().songPosition;
           final totalDuration = context.read<SongPlayerCubit>().songDuration;
           final progress = totalDuration.inMilliseconds > 0 ? currentPosition.inMilliseconds / totalDuration.inMilliseconds : 0.0;
-          final fileURL = songEntity?.fileURL ?? '';
+          final fileURL = songEntity.fileURL;
           final isLocalFile = fileURL.startsWith('file://') || fileURL.startsWith('/');
 
           final user = FirebaseAuth.instance.currentUser;
@@ -70,7 +74,7 @@ class _MiniPlayerWidgetState extends State<MiniPlayerWidget> {
             throw Exception('No user logged in');
           }
 
-          final isSongUploadedByCurrentUser = songEntity?.uploadedBy == user.uid;
+          final isSongUploadedByCurrentUser = songEntity.uploadedBy == user.uid;
 
           return Container(
             height: 60,
@@ -136,17 +140,17 @@ class _MiniPlayerWidgetState extends State<MiniPlayerWidget> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Text(
-                                        songEntity?.title.split('.').first ?? 'Unknown Title',
+                                        songEntity.title.split('.').first,
                                         style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.bold),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                       Text(
-                                        songEntity?.uploadedBy.isNotEmpty == true
-                                          ? songEntity!.uploadedBy
-                                          : (songEntity?.artist != null && songEntity?.artist.isNotEmpty == true && songEntity?.artist != '<unknown>')
-                                            ? songEntity!.artist
-                                            : _getArtistFromTitle(songEntity?.title) ?? 'Unknown Artist',
+                                        songEntity.uploadedBy.isNotEmpty == true
+                                          ? songEntity.uploadedBy
+                                          : (songEntity.artist.isNotEmpty == true && songEntity.artist != '<unknown>')
+                                            ? songEntity.artist
+                                            : _getArtistFromTitle(songEntity.title) ?? 'Unknown Artist',
                                         style: const TextStyle(color: AppColors.white),
                                       ),
                                     ],
@@ -170,7 +174,8 @@ class _MiniPlayerWidgetState extends State<MiniPlayerWidget> {
                                     onPressed: () {},
                                   ),
                                 ],
-                                // FavoriteButton(songEntity: songEntity),
+                                SizedBox(width: 6),
+                                FavoriteButton(songEntity: songEntity, showLikeCount: false),
                               ],
                             ],
                           ),

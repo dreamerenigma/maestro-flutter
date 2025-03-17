@@ -47,6 +47,7 @@ class FollowingListState extends State<FollowingList> {
               links: [],
               limitUploads: 0,
               tracksCount: 0,
+              verifyAccount: false,
             ));
             if (user != null) {
               return ListView(

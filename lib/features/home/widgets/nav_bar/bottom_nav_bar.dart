@@ -12,11 +12,13 @@ import '../../../../utils/constants/app_vectors.dart';
 class BottomNavBar extends StatefulWidget {
   final int selectedIndex;
   final void Function(int) onItemTapped;
+  final FocusNode? searchFocusNode;
 
   const BottomNavBar({
     super.key,
     required this.selectedIndex,
     required this.onItemTapped,
+    this.searchFocusNode,
   });
 
   @override
@@ -64,9 +66,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
       child: ClipRRect(
         borderRadius: const BorderRadius.only(topLeft: Radius.circular(18.0), topRight: Radius.circular(18.0)),
         child: Theme(
-          data: Theme.of(context).copyWith(
-            splashFactory: NoSplash.splashFactory,
-          ),
+          data: Theme.of(context).copyWith(splashFactory: NoSplash.splashFactory),
           child: BottomNavigationBar(
             backgroundColor: Theme.of(context).brightness == Brightness.dark ? AppColors.youngNight : AppColors.white,
             type: BottomNavigationBarType.fixed,
@@ -111,7 +111,12 @@ class _BottomNavBarState extends State<BottomNavBar> {
             currentIndex: safeSelectedIndex,
             selectedItemColor: AppColors.primary,
             unselectedItemColor: context.isDarkMode ? AppColors.white : AppColors.black,
-            onTap: widget.onItemTapped,
+            onTap: (index) {
+              widget.onItemTapped(index);
+              if (index == 2 && widget.searchFocusNode != null) {
+                FocusScope.of(context).requestFocus(widget.searchFocusNode);
+              }
+            },
             selectedFontSize: 12,
           ),
         ),
@@ -159,7 +164,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
       icon: Tooltip(
         richMessage: TextSpan(text: label, style: TextStyle(color: isDarkMode ? AppColors.white : AppColors.black)),
         decoration: BoxDecoration(
-          color: isDarkMode ? AppColors.red : AppColors.grey,
+          color: isDarkMode ? AppColors.darkGrey : AppColors.lightGrey,
           borderRadius: BorderRadius.circular(4),
         ),
         child: Container(

@@ -1,63 +1,42 @@
 import 'package:flutter/material.dart';
-import 'package:maestro/features/utils/widgets/no_glow_scroll_behavior.dart';
+import '../../../../generated/l10n/l10n.dart';
 import '../items/user_message_item.dart';
 
 class UserMessageList extends StatelessWidget {
   final int initialIndex;
+  final List<Map<String, dynamic>> messages;
+  final Stream<List<Map<String, dynamic>>> messageStream;
 
-  const UserMessageList({super.key, required this.initialIndex});
+  const UserMessageList({super.key, required this.initialIndex, required this.messages, required this.messageStream});
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, String>> messages = [
-      {
-        'userName': 'John Doe',
-        'message': 'Hey! How are you?',
-        'timeAgo': '2 minutes ago',
-      },
-      {
-        'userName': 'Jane Smith',
-        'message': 'Good morning!',
-        'timeAgo': '1 hour ago',
-      },
-      {
-        'userName': 'Sam Johnson',
-        'message': 'Check out this link.',
-        'timeAgo': 'Yesterday',
-      },
-      {
-        'userName': 'Sam Johnson',
-        'message': 'Check out this link.',
-        'timeAgo': 'Yesterday',
-      },
-      {
-        'userName': 'Sam Johnson',
-        'message': 'Check out this link.',
-        'timeAgo': 'Yesterday',
-      },
-      {
-        'userName': 'Sam Johnson',
-        'message': 'Check out this link.',
-        'timeAgo': 'Yesterday',
-      },
-    ];
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: messageStream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text(S.of(context).errorLoadingMessages));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text(S.of(context).noMessages));
+        } else {
+          final messages = snapshot.data!;
 
-    return ScrollConfiguration(
-      behavior: NoGlowScrollBehavior(),
-      child: Expanded(
-        child: ListView.builder(
-          itemCount: messages.length,
-          itemBuilder: (context, index) {
-            final messageData = messages[index];
-            return UserMessageItem(
-              userName: messageData['userName']!,
-              message: messageData['message']!,
-              timeAgo: messageData['timeAgo']!,
-              initialIndex: initialIndex,
-            );
-          },
-        ),
-      ),
+          return ListView.builder(
+            itemCount: messages.length,
+            itemBuilder: (context, index) {
+              return UserMessageItem(
+                message: messages[index]['message'] ?? '',
+                sent: messages[index]['sent'] ?? '',
+                user: messages[index]['userEntity'],
+                userName: messages[index]['name'] ?? 'Unknown',
+                initialIndex: initialIndex,
+              );
+            },
+          );
+        }
+      },
     );
   }
 }

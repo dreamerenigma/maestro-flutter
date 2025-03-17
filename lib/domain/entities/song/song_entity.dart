@@ -15,6 +15,7 @@ class SongEntity {
   final int listenCount;
   final int likeCount;
   final int commentsCount;
+  final int repostCount;
   final String fileURL;
   final String cover;
   final String uploadedBy;
@@ -32,6 +33,7 @@ class SongEntity {
     required this.listenCount,
     required this.likeCount,
     required this.commentsCount,
+    required this.repostCount,
     required this.fileURL,
     required this.cover,
     required this.uploadedBy,
@@ -56,6 +58,7 @@ class SongEntity {
       listenCount: data['listenCount'] ?? 0,
       likeCount: data['likeCount'] ?? 0,
       commentsCount: data['commentsCount'] ?? 0,
+      repostCount: data['repostCount'] ?? 0,
       fileURL: data['fileURL'] ?? '',
       cover: data['cover'] ?? '',
       uploadedBy: data['uploadedBy'] ?? '',
@@ -67,11 +70,13 @@ Future<SongEntity> convertSongModelToEntity(SongModel songModel, {bool fetchFrom
   int listenCount = 0;
   int likeCount = 0;
   int commentsCount = 0;
+  int repostCount = 0;
 
   if (fetchFromFirestore) {
     listenCount = await _fetchFieldFromFirestore(songModel.id.toString(), 'listenCount');
     likeCount = await _fetchFieldFromFirestore(songModel.id.toString(), 'likeCount');
     commentsCount = await _fetchFieldFromFirestore(songModel.id.toString(), 'commentsCount');
+    repostCount = await _fetchFieldFromFirestore(songModel.id.toString(), 'repostCount');
   }
 
   final String uploadedBy = await _fetchUploadedByFromFirestore(songModel.id.toString());
@@ -91,6 +96,7 @@ Future<SongEntity> convertSongModelToEntity(SongModel songModel, {bool fetchFrom
     listenCount: listenCount,
     likeCount: likeCount,
     commentsCount: commentsCount,
+    repostCount: repostCount,
     fileURL: songModel.data,
     cover: '',
     uploadedBy: uploadedBy,

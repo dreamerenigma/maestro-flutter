@@ -12,11 +12,25 @@ import '../../../bloc/likes/likes_cubit.dart';
 import '../../../bloc/likes/likes_state.dart';
 import '../../../screens/library/playlists/playlist_screen.dart';
 
-class LikesList extends StatelessWidget {
+class LikesList extends StatefulWidget {
   final List<Map<String, dynamic>> playlists;
   final int initialIndex;
 
   const LikesList({super.key, required this.initialIndex, required this.playlists});
+
+  @override
+  State<LikesList> createState() => _LikesListState();
+}
+
+class _LikesListState extends State<LikesList> {
+  late int selectedPlaylistIndex;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final routeArguments = ModalRoute.of(context)?.settings.arguments as Map?;
+    selectedPlaylistIndex = routeArguments?['selectedPlaylistIndex'] ?? 0;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +65,7 @@ class LikesList extends StatelessWidget {
                           onPressed: () {
                             Navigator.push(
                               context,
-                              createPageRoute(PlaylistsScreen(playlists: playlists, initialIndex: initialIndex)),
+                              createPageRoute(PlaylistScreen(playlist: widget.playlists, initialIndex: widget.initialIndex, selectedPlaylistIndex: selectedPlaylistIndex)),
                             );
                           },
                           style: ElevatedButton.styleFrom(
@@ -75,7 +89,7 @@ class LikesList extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 30),
-                  _songs(context, songs)
+                  _buildSongs(context, songs)
                 ],
               ),
             );
@@ -86,11 +100,12 @@ class LikesList extends StatelessWidget {
     );
   }
 
-  Widget _songs(BuildContext context, List<SongEntity> songs) {
+  Widget _buildSongs(BuildContext context, List<SongEntity> songs) {
     return ListView.separated(
       shrinkWrap: true,
       itemBuilder: (context, index) {
         final song = songs[index];
+
         return GestureDetector(
           onTap: () {},
           child: Row(

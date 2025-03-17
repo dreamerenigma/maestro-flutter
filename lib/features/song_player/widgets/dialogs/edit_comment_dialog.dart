@@ -7,7 +7,7 @@ import 'package:icons_plus/icons_plus.dart';
 import 'package:maestro/features/library/screens/profile_settings_screen.dart';
 import 'package:maestro/routes/custom_page_route.dart';
 import 'package:mono_icons/mono_icons.dart';
-import '../../../../data/services/messages/comment_service.dart';
+import '../../../../data/services/comment/comment_firebase_service.dart';
 import '../../../../domain/entities/comment/comment_entity.dart';
 import '../../../../service_locator.dart';
 import '../../../../utils/constants/app_colors.dart';

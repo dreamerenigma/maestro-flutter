@@ -38,7 +38,7 @@ class PlaylistListRow extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  createPageRoute(AllPlaylistsScreen(playlists: playlists, initialIndex: initialIndex)),
+                  createPageRoute(AllPlaylistsScreen(playlists: playlists, initialIndex: 3)),
                 );
               },
               style: ElevatedButton.styleFrom(

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:feather_icons/feather_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -93,7 +94,7 @@ class _YourInsightsScreenState extends State<YourInsightsScreen> {
           if (isConnected)
           IconButton(
             onPressed: () {},
-            icon: const Icon(Icons.share_outlined, size: 22, color: AppColors.grey),
+            icon: const Icon(FeatherIcons.share2, size: 22, color: AppColors.grey),
           ),
         ],
       ),

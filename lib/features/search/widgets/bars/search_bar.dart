@@ -7,7 +7,7 @@ import '../../../../utils/constants/app_sizes.dart';
 
 class SearchBar extends StatelessWidget {
   final TextEditingController searchController;
-  final FocusNode focusNode;
+  final FocusNode? searchFocusNode;
   final bool hasFocus;
   final bool hasText;
   final Function() removeFocus;
@@ -16,7 +16,7 @@ class SearchBar extends StatelessWidget {
 
   const SearchBar({
     required this.searchController,
-    required this.focusNode,
+    required this.searchFocusNode,
     required this.hasFocus,
     required this.hasText,
     required this.removeFocus,
@@ -40,15 +40,25 @@ class SearchBar extends StatelessWidget {
           child: TextField(
             textInputAction: hasText ? TextInputAction.done : TextInputAction.search,
             controller: searchController,
-            focusNode: focusNode,
+            focusNode: searchFocusNode,
             textCapitalization: TextCapitalization.sentences,
             decoration: InputDecoration(
               hintText: S.of(context).search,
               hintStyle: TextStyle(color: context.isDarkMode ? AppColors.darkerGrey : AppColors.darkerGrey, fontSize: AppSizes.fontSizeLg),
               prefixIcon: IconButton(
-                icon: Icon(hasFocus ? Icons.arrow_back : EvaIcons.search),
-                color: context.isDarkMode ? AppColors.white : AppColors.darkGrey,
-                onPressed: hasFocus ? removeFocus : () {},
+                icon: Icon(
+                  hasFocus ? Icons.arrow_back : EvaIcons.search,
+                  color: context.isDarkMode ? AppColors.white : AppColors.darkGrey,
+                ),
+                onPressed: () {
+                  if (hasFocus) {
+                    searchController.clear();
+                    onChanged('');
+                    removeFocus();
+                  } else {
+                    FocusScope.of(context).requestFocus(searchFocusNode);
+                  }
+                },
               ),
               suffixIcon: hasText ? IconButton(icon: const Icon(IonIcons.close_circle, color: AppColors.white), onPressed: clearSearch) : null,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(25), borderSide: BorderSide.none),

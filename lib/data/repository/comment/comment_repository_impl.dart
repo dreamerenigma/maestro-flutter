@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:maestro/data/models/comment/comment_model.dart';
-import 'package:maestro/data/services/messages/comment_service.dart';
+import 'package:maestro/data/services/comment/comment_firebase_service.dart';
 import '../../../domain/repository/comment/comment_repository.dart';
 import '../../../service_locator.dart';
 

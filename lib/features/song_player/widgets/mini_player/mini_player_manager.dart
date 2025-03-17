@@ -52,11 +52,10 @@ class _MiniPlayerManagerState extends State<MiniPlayerManager> {
               bottom: 0,
               left: 0,
               right: 0,
-              child: MiniPlayerWidget(onItemTapped: (int) {}),
+              child: MiniPlayerWidget(onItemTapped: (index) {}),
             ),
         ],
       ),
     );
   }
 }
-
