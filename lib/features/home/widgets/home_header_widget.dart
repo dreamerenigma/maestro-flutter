@@ -364,21 +364,21 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
                     ),
                   ),
                   if (widget.unreadMessages > 0)
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(color: AppColors.red, shape: BoxShape.circle),
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Center(
-                            child: Text('${widget.unreadMessages}', style: const TextStyle(color: AppColors.white, fontSize: 8, fontWeight: FontWeight.bold)),
-                          ),
+                  Positioned(
+                    right: 2,
+                    top: 5,
+                    child: Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(color: AppColors.red, shape: BoxShape.circle),
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Center(
+                          child: Text('${widget.unreadMessages}', style: const TextStyle(color: AppColors.white, fontSize: 8, fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ),
+                  ),
                 ],
               ),
               SizedBox(width: spacing8),

@@ -74,7 +74,7 @@ class SettingsScreenState extends State<SettingsScreen> {
     }
 
     return {
-      'appVersion': '2025.03.17-release (${packageInfo.buildNumber})',
+      'appVersion': '2025.03.24-release (${packageInfo.buildNumber})',
       'troubleshootingId': savedTroubleshootingId,
     };
   }
@@ -155,7 +155,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                   future: _getAppInfo(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(child: CircularProgressIndicator());
+                      return Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)));
                     } else if (snapshot.hasError) {
                       return Text('Error: ${snapshot.error}');
                     } else if (snapshot.hasData) {

@@ -3,8 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:maestro/features/search/screens/follow_screen.dart';
 import 'package:maestro/routes/custom_page_route.dart';
 import '../../../../api/apis.dart';
+import '../../../../domain/entities/song/song_entity.dart';
 import '../../../../domain/entities/user/user_entity.dart';
 import '../../../../generated/l10n/l10n.dart';
 import '../../../../utils/constants/app_colors.dart';
@@ -18,6 +20,7 @@ class UserMessageItem extends StatefulWidget {
   final String message;
   final String sent;
   final UserEntity user;
+  final SongEntity? selectedTrack;
 
   const UserMessageItem({
     super.key,
@@ -26,6 +29,7 @@ class UserMessageItem extends StatefulWidget {
     required this.message,
     required this.sent,
     required this.user,
+    this.selectedTrack,
   });
 
   @override
@@ -87,27 +91,33 @@ class _UserMessageItemState extends State<UserMessageItem> {
                     Navigator.push(
                       context,
                       createPageRoute(
-                        UserMessageScreen(initialIndex: widget.initialIndex, selectedIndex: selectedIndex, user: widget.user),
+                        UserMessageScreen(initialIndex: 0, user: widget.user),
                       ),
                     );
                   },
                   splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
                   highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+                  borderRadius: BorderRadius.circular(AppSizes.cardRadiusXl),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(50),
-                            border: Border.all(color: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()), width: 1),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(50),
-                            child: widget.user.image.isNotEmpty
-                              ? Image.network(widget.user.image, width: 50, height: 50, fit: BoxFit.cover)
-                              : SvgPicture.asset(AppVectors.avatar, width: 50, height: 50),
+                        InkWell(
+                          onTap: () {
+                            Navigator.push(context, createPageRoute(FollowScreen(initialIndex: widget.initialIndex, user: widget.user)));
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(50),
+                              border: Border.all(color: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()), width: 1),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(50),
+                              child: widget.user.image.isNotEmpty
+                                ? Image.network(widget.user.image, width: 40, height: 40, fit: BoxFit.cover)
+                                : SvgPicture.asset(AppVectors.avatar, width: 40, height: 40),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 20.0),

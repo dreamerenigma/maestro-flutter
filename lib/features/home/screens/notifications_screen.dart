@@ -34,7 +34,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   void initState() {
     super.initState();
-    selectedOption = _storageBox.read('selectedNotificationOption') ?? S.of(context).showAllNotify;
+    selectedOption = _storageBox.read('selectedNotificationOption') ?? 'Show all notifications';
 
     Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> results) {
       final result = results.isNotEmpty ? results.first : ConnectivityResult.none;
@@ -91,7 +91,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
           IconButton(
             onPressed: () {},
-            icon: const Icon(Icons.cast, size: 23),
+            icon: const Icon(Icons.cast, size: 22),
           ),
         ],
       ),
@@ -161,4 +161,3 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 }
-

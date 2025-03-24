@@ -46,14 +46,17 @@ Future<String?> showNotificationDialog(BuildContext context, String selectedOpti
               _buildNotificationOption(
                 context,
                 S.of(context).comments,
-                svgIcon: SvgPicture.asset(
-                  AppVectors.comment,
-                  colorFilter: ColorFilter.mode(
-                    selectedOption == 'Comments' ? AppColors.primary : (context.isDarkMode ? AppColors.white : AppColors.black),
-                    BlendMode.srcIn,
+                svgIcon: Padding(
+                  padding: const EdgeInsets.only(right: 2),
+                  child: SvgPicture.asset(
+                    AppVectors.comment,
+                    colorFilter: ColorFilter.mode(
+                      selectedOption == 'Comments' ? AppColors.primary : (context.isDarkMode ? AppColors.white : AppColors.black),
+                      BlendMode.srcIn,
+                    ),
+                    width: 24,
+                    height: 24,
                   ),
-                  width: 24,
-                  height: 24,
                 ),
                 isSelected: selectedOption == 'Comments',
                 onTap: () {
@@ -88,6 +91,7 @@ Future<String?> showNotificationDialog(BuildContext context, String selectedOpti
                   Navigator.pop(context, 'Reposts');
                 }
               ),
+              SizedBox(height: 8),
             ],
           );
         }

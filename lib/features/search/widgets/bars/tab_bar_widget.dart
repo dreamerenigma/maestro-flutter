@@ -73,7 +73,7 @@ class TabBarWidgetState extends State<TabBarWidget> with SingleTickerProviderSta
               controller: _tabController,
               physics: const NeverScrollableScrollPhysics(),
               children: [
-                const AllTab(),
+                AllTab(initialIndex: widget.initialIndex, searchQuery: ''),
                 const TracksTab(),
                 UsersTab(initialIndex: widget.initialIndex),
                 const PlaylistsTab(),

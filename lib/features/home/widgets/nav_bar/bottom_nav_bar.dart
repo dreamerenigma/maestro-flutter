@@ -100,13 +100,13 @@ class _BottomNavBarState extends State<BottomNavBar> {
                 index: 3,
               ),
               if (isConnected)
-                _buildBottomNavigationBarItem(
-                  context,
-                  activeIconData: FluentIcons.music_note_2_20_filled,
-                  inactiveIconData: FluentIcons.music_note_2_20_regular,
-                  label: S.of(context).upgradeNav,
-                  index: 4,
-                ),
+              _buildBottomNavigationBarItem(
+                context,
+                activeIconData: FluentIcons.music_note_2_20_filled,
+                inactiveIconData: FluentIcons.music_note_2_20_regular,
+                label: S.of(context).upgradeNav,
+                index: 4,
+              ),
             ],
             currentIndex: safeSelectedIndex,
             selectedItemColor: AppColors.primary,
@@ -145,10 +145,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
     if (activeSvgPath != null && inactiveSvgPath != null) {
       iconWidget = SvgPicture.asset(
         isSelected ? activeSvgPath : inactiveSvgPath,
-        colorFilter: ColorFilter.mode(
-          isSelected ? selectedColor : unselectedColor,
-          BlendMode.srcIn,
-        ),
+        colorFilter: ColorFilter.mode(isSelected ? selectedColor : unselectedColor, BlendMode.srcIn),
         width: isSelected ? activeIconSize : inactiveIconSize,
         height: isSelected ? activeIconSize : inactiveIconSize,
       );

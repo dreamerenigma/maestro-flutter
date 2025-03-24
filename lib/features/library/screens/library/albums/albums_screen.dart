@@ -4,16 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:jam_icons/jam_icons.dart';
 import 'package:maestro/common/widgets/app_bar/app_bar.dart';
-import '../../../../domain/entities/song/song_entity.dart';
-import '../../../../routes/custom_page_route.dart';
-import '../../../../utils/constants/app_colors.dart';
-import '../../../../utils/constants/app_sizes.dart';
-import '../../../home/screens/home_screen.dart';
-import '../../../home/widgets/nav_bar/bottom_nav_bar.dart';
-import '../../../song_player/widgets/mini_player/mini_player_manager.dart';
-import '../../../utils/widgets/no_glow_scroll_behavior.dart';
-import '../../widgets/dialogs/filter_albums_bottom_dialog.dart';
-import '../../widgets/input_fields/input_field.dart';
+import '../../../../../domain/entities/song/song_entity.dart';
+import '../../../../../routes/custom_page_route.dart';
+import '../../../../../utils/constants/app_colors.dart';
+import '../../../../../utils/constants/app_sizes.dart';
+import '../../../../home/screens/home_screen.dart';
+import '../../../../home/widgets/nav_bar/bottom_nav_bar.dart';
+import '../../../../song_player/widgets/mini_player/mini_player_manager.dart';
+import '../../../../utils/widgets/no_glow_scroll_behavior.dart';
+import '../../../widgets/dialogs/filter_albums_bottom_dialog.dart';
+import '../../../widgets/input_fields/input_field.dart';
 
 class AlbumsScreen extends StatefulWidget {
   final List<SongEntity> albums;
@@ -97,7 +97,7 @@ class _AlbumsScreenState extends State<AlbumsScreen> {
                   padding: const EdgeInsets.only(left: 16, right: 6, top: 16, bottom: 12),
                   child: InputField(
                     controller: _searchController,
-                    hintText: 'Search ${filteredAlbums.length} albums',
+                    hintText: filteredAlbums.isEmpty ? 'Search albums' : 'Search ${filteredAlbums.length} albums',
                     icon: JamIcons.settingsAlt,
                     onIconPressed: () {
                       showFilterAlbumsDialog(context);

@@ -38,7 +38,7 @@ class _AddWidgetsScreenState extends State<AddWidgetsScreen> {
         actions: [
           IconButton(
             onPressed: () {},
-            icon: Icon(Icons.cast, size: 23, color: AppColors.lightGrey),
+            icon: Icon(Icons.cast, size: 22, color: AppColors.lightGrey),
           ),
         ],
       ),

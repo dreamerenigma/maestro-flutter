@@ -16,10 +16,6 @@ class FavoriteButtonCubit extends Cubit<FavoriteButtonState> {
         log("Error: $l");
       },
       (isFavorite) async {
-        await FirebaseFirestore.instance.collection('Songs').doc(songId).update({
-          'likeCount': FieldValue.increment(isFavorite ? 1 : -1),
-        });
-
         var songSnapshot = await FirebaseFirestore.instance.collection('Songs').doc(songId).get();
         if (songSnapshot.exists) {
           var songData = songSnapshot.data() as Map<String, dynamic>;

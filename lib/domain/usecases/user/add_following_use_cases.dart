@@ -1,5 +1,7 @@
+import 'dart:developer';
 import 'package:dartz/dartz.dart';
-import 'package:get/get_rx/src/rx_types/rx_types.dart';
+import 'package:get/get.dart';
+import '../../../features/search/controllers/user_params_controller.dart';
 import '../../../service_locator.dart';
 import '../../../utils/usecase/usecase.dart';
 import '../../repository/users/user_repository.dart';
@@ -10,6 +12,19 @@ class AddFollowingUseCases implements UseCase<Either<String, bool>, String> {
     if (params == null) {
       return Left("User ID cannot be null");
     }
-    return await sl<UserRepository>().addFollowing(RxBool(true), "currentUserId", params);
+
+    final userParamsController = Get.find<UserParamsController>();
+    final userParams = userParamsController.userParamsValue;
+
+    if (userParams == null || userParams.currentUserId.isEmpty || params.isEmpty) {
+      log("Error: User IDs are missing or empty");
+      return Left("User IDs are missing or empty");
+    }
+
+    final currentUserId = userParams.currentUserId;
+    final targetUserId = params;
+
+    return await sl<UserRepository>().addFollowing(RxBool(true), currentUserId, targetUserId);
   }
 }
+

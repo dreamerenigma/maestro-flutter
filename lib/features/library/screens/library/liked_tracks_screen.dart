@@ -126,7 +126,7 @@ class _LikedTracksScreenState extends State<LikedTracksScreen> {
       body: MiniPlayerManager(
         hideMiniPlayerOnSplash: false,
         child: isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+          ? const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)))
           : ScrollConfiguration(
           behavior: NoGlowScrollBehavior(),
           child: RefreshIndicator(
@@ -140,7 +140,7 @@ class _LikedTracksScreenState extends State<LikedTracksScreen> {
                   padding: const EdgeInsets.only(left: 16, right: 6, top: 16, bottom: 12),
                   child: InputField(
                     controller: _searchController,
-                    hintText: 'Search ${filteredTracks.length} tracks',
+                    hintText: filteredTracks.isEmpty ? 'Search stations' : 'Search ${filteredTracks.length} tracks',
                     icon: JamIcons.settingsAlt,
                     onIconPressed: () {
                       showSortByLikedTracksBottomDialog(context);

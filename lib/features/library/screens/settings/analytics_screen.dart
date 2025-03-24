@@ -52,7 +52,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         actions: [
           IconButton(
             onPressed: () {},
-            icon: const Icon(Icons.cast, size: 23),
+            icon: const Icon(Icons.cast, size: 22),
           ),
         ],
       ),

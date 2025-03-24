@@ -120,7 +120,7 @@ class AllPlaylistsScreenState extends State<AllPlaylistsScreen> {
               }
 
               return isLoading
-                ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                ? const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)))
                 : ScrollConfiguration(
                   behavior: NoGlowScrollBehavior(),
                   child: RefreshIndicator(

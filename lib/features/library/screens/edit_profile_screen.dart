@@ -19,6 +19,7 @@ import '../controllers/profile_image_controller.dart';
 import '../widgets/dialogs/are_your_sure_dialog.dart';
 import '../widgets/dialogs/profile_image_bottom_dialog.dart';
 import 'library/bio_info_screen.dart';
+import 'library/verification_screen.dart';
 import 'library/your_links_screen.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -384,22 +385,8 @@ class EditProfileScreenState extends State<EditProfileScreen> {
                     _buildBioInfo(() {
                       Navigator.push(context, createPageRoute(BioInfoScreen()));
                     }),
-                    _buildYourLinks(() {
-                      Navigator.push(
-                        context,
-                        createPageRoute(
-                          YourLinksScreen(
-                            initialIndex: selectedIndex,
-                            links: links,
-                            onLinksUpdated: (List<Map<String, String>> updatedLinks) {
-                              setState(() {
-                                links = updatedLinks;
-                              });
-                            },
-                          ),
-                        ),
-                      );
-                    }),
+                    _buildYourLinks(),
+                    _buildVerificationProfile(),
                   ],
                 ),
               ),
@@ -411,27 +398,46 @@ class EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Widget _buildBackground(BuildContext context) {
-    return Positioned(
-      top: 0,
-      left: 0,
-      right: 0,
-      child: InkWell(
-        onTap: () {
-          showProfileImageBottomDialog(
-            context,
-            _pickImageBg,
-            _takePhotoProfile,
-            _clearBackgroundImage,
-            null,
-            'Delete header image',
-          );
-        },
-        child: Container(
-          height: 140,
-          decoration: BoxDecoration(
-            image: _imageUrlBg != null ? DecorationImage(image: NetworkImage(_imageUrlBg!), fit: BoxFit.cover) : null,
-            color: context.isDarkMode ? AppColors.black : AppColors.lightBackground,
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        InkWell(
+          onTap: () {
+            showProfileImageBottomDialog(
+              context,
+              _pickImageBg,
+              _takePhotoProfile,
+              _clearBackgroundImage,
+              null,
+              'Delete header image',
+            );
+          },
+          child: Container(
+            height: 140,
+            decoration: BoxDecoration(
+              image: _imageUrlBg != null ? DecorationImage(image: NetworkImage(_imageUrlBg!), fit: BoxFit.cover) : null,
+              color: context.isDarkMode ? AppColors.black : AppColors.lightBackground,
+            ),
+            child: Stack(
+              children: [
+                Container(
+                  height: 140,
+                  decoration: BoxDecoration(
+                    image: _imageUrlBg != null ? DecorationImage(image: NetworkImage(_imageUrlBg!), fit: BoxFit.cover) : null,
+                    color: context.isDarkMode ? AppColors.black : AppColors.lightBackground,
+                  ),
+                ),
+                Positioned.fill(
+                  child: Container(color: AppColors.white.withAlpha((0.3 * 255).toInt())),
+                ),
+              ],
+            ),
           ),
+        ),
+        Positioned(
+          top: 140,
+          left: 0,
+          right: 0,
           child: Stack(
             clipBehavior: Clip.none,
             children: [
@@ -441,7 +447,7 @@ class EditProfileScreenState extends State<EditProfileScreen> {
             ],
           ),
         ),
-      ),
+      ],
     );
   }
 
@@ -466,11 +472,7 @@ class EditProfileScreenState extends State<EditProfileScreen> {
             alignment: Alignment.center,
             children: [
               Container(
-                decoration: BoxDecoration(
-                  color: AppColors.darkGrey,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.darkGrey, width: 1),
-                ),
+                decoration: BoxDecoration(color: AppColors.darkGrey, shape: BoxShape.circle, border: Border.all(color: AppColors.darkGrey, width: 1)),
                 child: CircleAvatar(
                   maxRadius: 65,
                   backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.lightGrey,
@@ -632,12 +634,27 @@ class EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget _buildYourLinks(VoidCallback onTap) {
+  Widget _buildYourLinks() {
     String linksText = links.isNotEmpty ? links.map((link) => link['webOrEmail'] ?? '').join('; ') : 'No links added';
     String truncatedLinks = linksText.length > 38 ? '${linksText.substring(0, 38)}...' : linksText;
 
     return InkWell(
-      onTap: onTap,
+      onTap: () {
+        Navigator.push(
+          context,
+          createPageRoute(
+            YourLinksScreen(
+              initialIndex: selectedIndex,
+              links: links,
+              onLinksUpdated: (List<Map<String, String>> updatedLinks) {
+                setState(() {
+                  links = updatedLinks;
+                });
+              },
+            ),
+          ),
+        );
+      },
       splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
       highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
       child: Padding(
@@ -650,18 +667,37 @@ class EditProfileScreenState extends State<EditProfileScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Your links',
-                      style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.grey),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      truncatedLinks,
-                      style: TextStyle(fontSize: AppSizes.fontSizeMd),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    Text('Your links', style: TextStyle(fontSize: AppSizes.fontSizeSm, color: AppColors.grey), maxLines: 1, overflow: TextOverflow.ellipsis),
+                    Text(truncatedLinks, style: TextStyle(fontSize: AppSizes.fontSizeMd), maxLines: 1, overflow: TextOverflow.ellipsis),
+                  ],
+                ),
+              ],
+            ),
+            const Icon(Icons.arrow_forward_ios_rounded, size: 22),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVerificationProfile() {
+    return InkWell(
+      onTap: () {
+        Navigator.push(context, createPageRoute(VerificationScreen(initialIndex: selectedIndex)));
+      },
+      splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+      highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 25, right: 16, top: 14, bottom: 14),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Verification', style: TextStyle(fontSize: AppSizes.fontSizeMd), maxLines: 1, overflow: TextOverflow.ellipsis),
                   ],
                 ),
               ],

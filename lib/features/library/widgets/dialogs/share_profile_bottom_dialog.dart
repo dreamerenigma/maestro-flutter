@@ -6,6 +6,7 @@ import 'package:carbon_icons/carbon_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:get/get.dart';
 import 'package:icons_plus/icons_plus.dart';
@@ -13,14 +14,22 @@ import 'package:maestro/features/home/screens/inbox_screen.dart';
 import 'package:maestro/features/library/widgets/dialogs/qr_code_dialog.dart';
 import 'package:maestro/features/library/widgets/dialogs/show_more_bio_info_bottom_dialog.dart';
 import 'package:maestro/features/utils/widgets/no_glow_scroll_behavior.dart';
+import 'package:mono_icons/mono_icons.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:typicons_flutter/typicons_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../domain/entities/song/song_entity.dart';
+import '../../../../domain/entities/station/station_entity.dart';
+import '../../../../domain/entities/user/user_entity.dart';
 import '../../../../routes/custom_page_route.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
+import '../../../../utils/constants/app_vectors.dart';
 import '../../../../utils/formatters/formatter.dart';
 import '../../../../utils/popups/dialogs.dart';
+import '../../../search/widgets/dialogs/block_user_dialog.dart';
 import '../../screens/library/station/station_screen.dart';
+import '../../screens/report_screen.dart';
 
 void copyUserInfo(Map<String, dynamic> userData) {
   final userName = userData['userName'] as String?;
@@ -83,15 +92,33 @@ void shareContent(Map<String, dynamic> userData) {
   Share.share(content);
 }
 
-void showShareProfileDialog(BuildContext context, Map<String, dynamic> userData) {
-  final userImage = userData['image'] as String?;
-  final userName = userData['name'] as String?;
-  final trackCount = userData['tracksCount'] as int;
+Future<void> showShareProfileDialog(
+  BuildContext context,
+  Map<String, dynamic> userData,
+  UserEntity? userEntity, {
+  required bool isStartStation,
+  required bool isFollow,
+  required bool isMissingMusic,
+  required bool isReport,
+  required bool isBlockUser,
+  required Future<bool> Function(UserEntity?) checkIfBlocked,
+  }) async {
+  bool isUserData = userEntity == null;
+  bool isBlocked = false;
+  isBlocked = await checkIfBlocked(userEntity);
+
+  final userImage = userEntity == null ? userData['image'] as String? : (userData['id'] == userEntity.id ? userData['image'] as String? : userEntity.image);
+  final userName = userEntity == null ? userData['name'] as String? : (userData['id'] == userEntity.id ? userData['name'] as String? : userEntity.name);
+  final trackCount = userEntity == null ? userData['tracksCount'] as int : (userData['id'] == userEntity.id ? userData['tracksCount'] as int : userEntity.tracksCount);
 
   int initialIndex = 0;
   int selectedIndex = 0;
   onItemTapped(index) {}
   updateUnreadMessages(index) {}
+
+  List<UserEntity> user = [];
+  List<StationEntity> station = [];
+  List<SongEntity> songs = [];
 
   showModalBottomSheet(
     context: context,
@@ -118,13 +145,13 @@ void showShareProfileDialog(BuildContext context, Map<String, dynamic> userData)
                   decoration: BoxDecoration(
                     color: AppColors.darkGrey,
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.darkGrey, width: 1),
+                    border: Border.all(color: AppColors.darkerGrey.withAlpha((0.2 * 255).toInt()), width: 1),
                   ),
                   child: CircleAvatar(
                     maxRadius: 25,
                     backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.lightGrey,
-                    backgroundImage: userImage != null ? NetworkImage(userImage) : null,
-                    child: userImage == null ? const Icon(Icons.person, size: 22) : null,
+                    backgroundImage: userImage != null && userImage.isNotEmpty ? NetworkImage(userImage) : null,
+                    child: userImage == null || userImage.isEmpty ? SvgPicture.asset(AppVectors.avatar, width: 50, height: 50) : null,
                   ),
                 ),
                 SizedBox(width: 12),
@@ -276,44 +303,78 @@ void showShareProfileDialog(BuildContext context, Map<String, dynamic> userData)
           SizedBox(height: 15),
           Divider(height: 0, thickness: 1, color: context.isDarkMode ? AppColors.darkGrey : AppColors.lightGrey),
           SizedBox(height: 6),
-          InkWell(
-            onTap: () {
-              Navigator.pushReplacement(context, createPageRoute(StationScreen(initialIndex: initialIndex, station: [], song: [])));
-            },
-            splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
-            highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
-              child: Row(
-                children: [
-                  Icon(BoxIcons.bx_station, size: 24),
-                  SizedBox(width: 16),
-                  Text('Start station', style: TextStyle(fontSize: AppSizes.fontSizeMd, fontWeight: FontWeight.normal)),
-                ],
-              ),
-            ),
-          ),
-          InkWell(
-            onTap: () {
+          if (isStartStation && !isBlocked && isUserData)
+          _buildSectionOption(context, 'Start station', icon: BoxIcons.bx_station, iconSize: 24, () {
+            // Navigator.pushReplacement(context, createPageRoute(StationScreen(initialIndex: initialIndex, station: station, song: songs, user: user)));
+          }),
+          if (isFollow && !isBlocked)
+          _buildSectionOption(context, 'Follow', icon: MonoIcons.userAdd, iconSize: 24, () {
+            Navigator.pop(context);
+            showMoreBioInfoBottomDialog(context, userData, userEntity);
+          }),
+          _buildSectionOption(context, 'View info', icon: Icons.info_outline_rounded, iconSize: 24, () {
+            Navigator.pop(context);
+            showMoreBioInfoBottomDialog(context, userData, userEntity);
+          }),
+          if (isMissingMusic)
+          Divider(height: 5, thickness: 1, color: context.isDarkMode ? AppColors.darkGrey : AppColors.lightGrey),
+          if (isMissingMusic)
+          _buildSectionOption(context, 'Request Missing Music', icon: Typicons.pencil, iconSize: 24, () {
+            Navigator.pop(context);
+            showMoreBioInfoBottomDialog(context, userData, userEntity);
+          }),
+          if (isReport)
+          _buildSectionOption(context, 'Report', icon: BoxIcons.bx_station, iconSize: 24, svgIcon: SvgPicture.asset(
+            AppVectors.flag,
+            colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn),
+            width: 22,
+            height: 22,
+          ), () {
+            Navigator.pushReplacement(context, createPageRoute(ReportScreen()));
+          }),
+          if (isBlockUser)
+          _buildSectionOption(
+            context,
+            'Block user',
+            icon: Icons.block_flipped,
+            iconSize: 24,
+            () {
               Navigator.pop(context);
-              showMoreBioInfoBottomDialog(context, userData);
+              showBlockUserDialog(context, userEntity, isBlocked.obs);
             },
-            splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
-            highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14),
-              child: Row(
-                children: [
-                  Icon(Icons.info_outline, size: 24),
-                  SizedBox(width: 16),
-                  Text('View info', style: TextStyle(fontSize: AppSizes.fontSizeMd, fontWeight: FontWeight.normal)),
-                ],
-              ),
-            ),
           ),
           SizedBox(height: 12),
         ],
       );
-    },
+    }
+  );
+}
+
+Widget _buildSectionOption(
+  BuildContext context,
+  String text,
+  VoidCallback onTap,
+  {IconData? icon, Widget? svgIcon, Color? iconColor, Color? textColor, double iconSize = 24}
+) {
+  return InkWell(
+    onTap: onTap,
+    splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+    highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14),
+      child: Row(
+        children: [
+          if (svgIcon != null)
+            svgIcon
+          else if (icon != null)
+            Icon(icon, color: iconColor, size: iconSize),
+          if (icon != null || svgIcon != null) SizedBox(width: 16),
+          Text(
+            text,
+            style: TextStyle(color: textColor, fontSize: AppSizes.fontSizeMd, fontWeight: FontWeight.normal),
+          ),
+        ],
+      ),
+    ),
   );
 }

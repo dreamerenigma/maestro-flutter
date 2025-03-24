@@ -9,6 +9,7 @@ import 'package:maestro/features/library/screens/library/station/widgets/cover_s
 import 'package:maestro/features/library/screens/library/station/widgets/station_action_icons_widget.dart';
 import '../../../../../api/apis.dart';
 import '../../../../../domain/entities/station/station_entity.dart';
+import '../../../../../domain/entities/user/user_entity.dart';
 import '../../../../../generated/l10n/l10n.dart';
 import '../../../../../routes/custom_page_route.dart';
 import '../../../../../utils/constants/app_colors.dart';
@@ -24,9 +25,16 @@ import '../../../widgets/user_info_widget.dart';
 class StationScreen extends StatefulWidget {
   final List<SongEntity> song;
   final int initialIndex;
-  final List<StationEntity> station;
+  final StationEntity station;
+  final List<UserEntity> user;
 
-  const StationScreen({super.key, required this.initialIndex, required this.station, required this.song});
+  const StationScreen({
+    super.key,
+    required this.initialIndex,
+    required this.station,
+    required this.song,
+    required this.user,
+  });
 
   @override
   State<StationScreen> createState() => StationScreenState();
@@ -101,8 +109,8 @@ class StationScreenState extends State<StationScreen> {
       body: MiniPlayerManager(
         hideMiniPlayerOnSplash: false,
         child: isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-          : ScrollConfiguration(
+            ? const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)))
+            : ScrollConfiguration(
           behavior: NoGlowScrollBehavior(),
           child: RefreshIndicator(
             onRefresh: _reloadData,
@@ -120,27 +128,33 @@ class StationScreenState extends State<StationScreen> {
                   return Center(child: Text(S.of(context).noUserDataFound));
                 } else {
                   final userData = snapshot.data!;
-                  final userName = userData['name'] as String?;
 
                   return ListView(
                     children: [
                       Column(
                         children: [
-                          CoverStationWidget(userData: userData),
-                          StationActionIconsWidget(station: widget.station, isShuffleActive: isShuffleActive, toggleShuffle: _toggleShuffle),
+                          CoverStationWidget(station: widget.station),
+                          StationActionIconsWidget(
+                            station: widget.station,
+                            isShuffleActive: isShuffleActive,
+                            toggleShuffle: _toggleShuffle,
+                            showLikeCount: true,
+                            userData: {},
+                            song: widget.song,
+                          ),
                           UserInfoWidget(
                             userData: userData,
                             getInfoText: (userData) {
                               return Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 18),
                                 child: Text(
-                                  'Based on ${userData['name'] ?? 'Name not specified'}',
-                                  style: TextStyle(fontSize: 15, height: 1.2, letterSpacing: -0.3), maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.start,
+                                  'Based on ${widget.station.authorName} - ${widget.station.title}',
+                                  style: TextStyle(fontSize: 15, height: 1.4, letterSpacing: -0.3), maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.start,
                                 ),
                               );
                             },
                             onShowMorePressed: (context, userData) {
-                              showMoreDescriptionBottomDialog(context, userData, 'Based on $userName');
+                              showMoreDescriptionBottomDialog(context, userData, 'Based on ${widget.station.authorName} - ${widget.station.title}');
                             },
                           ),
                           TracksList(tracks: myTracks, userData: {}, shouldShowLikesListRow: false),
@@ -149,7 +163,7 @@ class StationScreenState extends State<StationScreen> {
                     ],
                   );
                 }
-              }
+              },
             ),
           ),
         ),

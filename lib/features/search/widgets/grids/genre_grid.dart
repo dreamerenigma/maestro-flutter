@@ -44,39 +44,37 @@ class GenreGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final List<Widget> tiles = _buildCardTiles();
 
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: ScrollConfiguration(
-          behavior: NoGlowScrollBehavior(),
-          child: CustomScrollView(
-            slivers: [
-              SliverList(
-                delegate: SliverChildListDelegate(
-                  [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 4, top: 16, bottom: 8),
-                      child: Text(sectionTitle, style: TextStyle(fontSize: AppSizes.fontSizeXl, fontWeight: FontWeight.bold, letterSpacing: -1.3)),
-                    ),
-                  ],
-                ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: ScrollConfiguration(
+        behavior: NoGlowScrollBehavior(),
+        child: CustomScrollView(
+          slivers: [
+            SliverList(
+              delegate: SliverChildListDelegate(
+                [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4, top: 16, bottom: 8),
+                    child: Text(sectionTitle, style: TextStyle(fontSize: AppSizes.fontSizeXl, fontWeight: FontWeight.bold, letterSpacing: -1.3)),
+                  ),
+                ],
               ),
-              SliverWaterfallFlow(
-                delegate: SliverChildBuilderDelegate(
-                  (BuildContext context, int index) {
-                    final tileHeight = _tileHeights[index];
-                    return SizedBox(height: tileHeight, child: tiles[index]);
-                  },
-                  childCount: tiles.length,
-                ),
-                gridDelegate: SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 4.0,
-                  crossAxisSpacing: 4.0,
-                ),
+            ),
+            SliverWaterfallFlow(
+              delegate: SliverChildBuilderDelegate(
+                (BuildContext context, int index) {
+                  final tileHeight = _tileHeights[index];
+                  return SizedBox(height: tileHeight, child: tiles[index]);
+                },
+                childCount: tiles.length,
               ),
-            ],
-          ),
+              gridDelegate: SliverWaterfallFlowDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 4.0,
+                crossAxisSpacing: 4.0,
+              ),
+            ),
+          ],
         ),
       ),
     );

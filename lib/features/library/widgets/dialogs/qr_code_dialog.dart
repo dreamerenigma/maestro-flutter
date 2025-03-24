@@ -29,11 +29,9 @@ showQrCodeDialog(BuildContext context) {
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-              decoration: BoxDecoration(
-                color: context.isDarkMode ? AppColors.youngNight : AppColors.light,
-                borderRadius: BorderRadius.circular(25),
-              ),
+              decoration: BoxDecoration(color: context.isDarkMode ? AppColors.youngNight : AppColors.light, borderRadius: BorderRadius.circular(25)),
               child: Stack(
+                clipBehavior: Clip.none,
                 children: [
                   Column(
                     mainAxisSize: MainAxisSize.min,
@@ -48,14 +46,8 @@ showQrCodeDialog(BuildContext context) {
                             version: QrVersions.auto,
                             size: 200.0,
                             gapless: true,
-                            dataModuleStyle: QrDataModuleStyle(
-                              dataModuleShape: QrDataModuleShape.square,
-                              color: context.isDarkMode ? AppColors.white : AppColors.black,
-                            ),
-                            eyeStyle: QrEyeStyle(
-                              eyeShape: QrEyeShape.square,
-                              color: context.isDarkMode ? AppColors.white : AppColors.black,
-                            ),
+                            dataModuleStyle: QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: context.isDarkMode ? AppColors.white : AppColors.black),
+                            eyeStyle: QrEyeStyle(eyeShape: QrEyeShape.square, color: context.isDarkMode ? AppColors.white : AppColors.black),
                           ),
                         ),
                       ),

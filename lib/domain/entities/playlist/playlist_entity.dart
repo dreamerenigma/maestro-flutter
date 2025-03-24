@@ -2,7 +2,9 @@ import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../data/models/playlist/playlist_model.dart';
 
-class PlaylistEntity {
+abstract class PlayableItem {}
+
+class PlaylistEntity implements PlayableItem {
   final String title;
   final String authorName;
   final String description;

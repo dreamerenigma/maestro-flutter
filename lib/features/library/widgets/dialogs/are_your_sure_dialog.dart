@@ -20,6 +20,7 @@ void showAreYouSureDialog(BuildContext context) {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
               decoration: BoxDecoration(color: context.isDarkMode ? AppColors.youngNight : AppColors.light, borderRadius: BorderRadius.circular(25)),
               child: Stack(
+                clipBehavior: Clip.none,
                 children: [
                   Column(
                     mainAxisSize: MainAxisSize.min,
@@ -48,7 +49,7 @@ void showAreYouSureDialog(BuildContext context) {
                                   backgroundColor: AppColors.red.withAlpha((0.2 * 255).toInt()),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                                 ),
-                                child: Text('DISCARD CHANGES', style: TextStyle(color: AppColors.red, fontWeight: FontWeight.bold, fontSize: AppSizes.fontSizeMd)),
+                                child: Text('Discard changes', style: TextStyle(color: AppColors.red, fontWeight: FontWeight.bold, fontSize: AppSizes.fontSizeMd)),
                               ),
                               const SizedBox(height: 8),
                               TextButton(
@@ -61,7 +62,7 @@ void showAreYouSureDialog(BuildContext context) {
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                                 ),
                                 child: Text(
-                                  'CONTINUE EDITING',
+                                  'Continue editing',
                                   style: TextStyle(color: context.isDarkMode ? AppColors.white : AppColors.black, fontWeight: FontWeight.bold, fontSize: AppSizes.fontSizeMd),
                                 ),
                               ),

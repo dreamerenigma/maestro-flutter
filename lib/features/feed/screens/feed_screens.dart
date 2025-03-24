@@ -103,7 +103,7 @@ class FeedScreenState extends State<FeedScreen> with SingleTickerProviderStateMi
           ) : Container(),
           const SizedBox(width: 10),
           IconButton(
-            icon: const Icon(Icons.cast),
+            icon: const Icon(Icons.cast, size: 22),
             onPressed: () {},
           ),
         ],

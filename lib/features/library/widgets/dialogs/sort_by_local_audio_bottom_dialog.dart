@@ -38,7 +38,7 @@ class LocalAudioItem extends StatelessWidget {
   }
 }
 
-void showSortByLocalAudioBottomDialog(BuildContext context) {
+void showSortByLocalAudioBottomDialog(BuildContext context, void Function(String) onFilterSelected) {
   final storage = GetStorage();
   RxString selectedOption = RxString(storage.read('selectedOption') ?? 'recentlyAdded');
 
@@ -90,6 +90,8 @@ void showSortByLocalAudioBottomDialog(BuildContext context) {
                 onTap: () {
                   selectedOption.value = 'recentlyAdded';
                   storage.write('selectedOption', selectedOption.value);
+                  onFilterSelected('recentlyAdded');
+                  Navigator.pop(context);
                 },
               ),
               LocalAudioItem(
@@ -99,6 +101,8 @@ void showSortByLocalAudioBottomDialog(BuildContext context) {
                 onTap: () {
                   selectedOption.value = 'firstAdded';
                   storage.write('selectedOption', selectedOption.value);
+                  onFilterSelected('firstAdded');
+                  Navigator.pop(context);
                 },
               ),
               LocalAudioItem(
@@ -108,6 +112,8 @@ void showSortByLocalAudioBottomDialog(BuildContext context) {
                 onTap: () {
                   selectedOption.value = 'title';
                   storage.write('selectedOption', selectedOption.value);
+                  onFilterSelected('title');
+                  Navigator.pop(context);
                 },
               ),
               LocalAudioItem(
@@ -117,6 +123,8 @@ void showSortByLocalAudioBottomDialog(BuildContext context) {
                 onTap: () {
                   selectedOption.value = 'artist';
                   storage.write('selectedOption', selectedOption.value);
+                  onFilterSelected('artist');
+                  Navigator.pop(context);
                 },
               ),
               const SizedBox(height: 16),

@@ -4,16 +4,19 @@ import 'package:maestro/data/repository/concerts/concert_repository_impl.dart';
 import 'package:maestro/data/repository/song/song_repository_impl.dart';
 import 'package:maestro/data/repository/station/station_repository_impl.dart';
 import 'package:maestro/data/repository/user/user_repository_impl.dart';
+import 'package:maestro/data/services/history/history_firebase_service.dart';
 import 'package:maestro/data/services/station/station_firebase_service.dart';
 import 'package:maestro/data/services/user/user_firebase_service.dart';
 import 'package:maestro/domain/repository/authentication/auth_repository.dart';
 import 'package:maestro/domain/repository/comment/comment_repository.dart';
+import 'package:maestro/domain/repository/history/history_repository.dart';
 import 'package:maestro/domain/repository/message/message_repository.dart';
 import 'package:maestro/domain/repository/concerts/concerts_repository.dart';
 import 'package:maestro/domain/repository/station/station_repository.dart';
 import 'package:maestro/domain/repository/users/user_repository.dart';
 import 'package:maestro/domain/usecases/authentication/signup.dart';
 import 'package:maestro/domain/usecases/concerts/get_concerts_use_cases.dart';
+import 'package:maestro/domain/usecases/history/fetch_listening_history_use_cases.dart';
 import 'package:maestro/domain/usecases/message/add_message_use_cases.dart';
 import 'package:maestro/domain/usecases/playlist/update_playlist_use_cases.dart';
 import 'package:maestro/domain/usecases/song/add_or_remove_favorite_song_use_cases.dart';
@@ -23,7 +26,9 @@ import 'package:maestro/domain/usecases/song/get_song_use_cases.dart';
 import 'package:maestro/domain/usecases/song/is_favorite_song_use_cases.dart';
 import 'package:maestro/domain/usecases/song/update_song_use_cases.dart';
 import 'package:maestro/domain/usecases/station/create_station_use_cases.dart';
+import 'package:maestro/domain/usecases/station/get_station_use_cases.dart';
 import 'data/repository/comment/comment_repository_impl.dart';
+import 'data/repository/history/history_repository_impl.dart';
 import 'data/repository/message/message_repository_impl.dart';
 import 'data/repository/playlist/playlist_repository_impl.dart';
 import 'data/services/authentication/auth_firebase_service.dart';
@@ -58,6 +63,7 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<StationFirebaseService>(StationFirebaseServiceImpl());
   sl.registerSingleton<CommentFirebaseService>(CommentFirebaseServiceImpl());
   sl.registerSingleton<MessageFirebaseService>(MessageFirebaseServiceImpl());
+  sl.registerSingleton<HistoryFirebaseService>(HistoryFirebaseServiceImpl());
 
   /// -- Repository Impl --
   sl.registerSingleton<AuthRepository>(AuthRepositoryImpl());
@@ -68,6 +74,7 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<StationRepository>(StationRepositoryImpl());
   sl.registerSingleton<CommentRepository>(CommentRepositoryImpl());
   sl.registerSingleton<MessageRepository>(MessageRepositoryImpl());
+  sl.registerSingleton<HistoryRepository>(HistoryRepositoryImpl());
 
   /// -- Authentication Use Cases --
   sl.registerSingleton<SignupUseCase>(SignupUseCase());
@@ -101,6 +108,7 @@ Future<void> initializeDependencies() async {
 
   /// -- Station Use Cases --
   sl.registerSingleton<CreateStationUseCases>(CreateStationUseCases());
+  sl.registerSingleton<GetStationUseCases>(GetStationUseCases());
 
   /// -- Comment Use Cases --
   sl.registerSingleton<AddCommentUseCases>(AddCommentUseCases());
@@ -108,4 +116,7 @@ Future<void> initializeDependencies() async {
 
   /// -- Message Use Cases --
   sl.registerSingleton<AddMessageUseCases>(AddMessageUseCases());
+
+  /// -- History Use Cases --
+  sl.registerSingleton<FetchListeningHistoryUseCases>(FetchListeningHistoryUseCases());
 }

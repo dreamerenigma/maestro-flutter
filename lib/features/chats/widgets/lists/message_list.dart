@@ -1,13 +1,22 @@
 import 'package:flutter/material.dart';
+import '../../../../domain/entities/user/user_entity.dart';
 import '../../models/message_model.dart';
 import '../messages/recipient_message.dart';
 import '../messages/sender_message.dart';
 
 class MessageList extends StatefulWidget {
+  final int initialIndex;
   final String currentUserId;
   final List<MessageModel> messages;
+  final UserEntity user;
 
-  const MessageList({super.key, required this.currentUserId, required this.messages});
+  const MessageList({
+    super.key,
+    required this.currentUserId,
+    required this.messages,
+    required this.user,
+    required this.initialIndex,
+  });
 
   @override
   MessageListState createState() => MessageListState();
@@ -52,7 +61,7 @@ class MessageListState extends State<MessageList> {
 
         return Align(
           alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-          child: isMe ? SenderMessage(message: message) : RecipientMessage(message: message),
+          child: isMe ? SenderMessage(message: message) : RecipientMessage(message: message, initialIndex: widget.initialIndex, user: widget.user),
         );
       },
     );

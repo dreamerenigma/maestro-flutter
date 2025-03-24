@@ -25,7 +25,7 @@ class _TestScreenState extends State<TestScreen> {
         actions: [
           IconButton(
             onPressed: () {},
-            icon: const Icon(Icons.cast, size: 23),
+            icon: const Icon(Icons.cast, size: 22),
           ),
         ],
       ),

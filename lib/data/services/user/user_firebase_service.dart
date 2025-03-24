@@ -12,8 +12,10 @@ abstract class UserFirebaseService {
   Future<Either<String, bool>> updateUserPreferences(String id, Map<String, dynamic> preferences);
   Future<Either<String, List<SongEntity>>> getRecommendedTracks(String id);
   Future<Either<String, List<SongEntity>>> createRecommendedCollection(String id);
-  Future<Either<String, List<UserModel>>> getUsers(String currentUserId);
+  Future<Either<String, List<UserModel>>> getUsers(String currentUserId, {String? searchQuery});
   Future<Either<String, bool>> addFollowing(RxBool isFollowing, String currentUserId, String targetUserId);
+  Future<Either<String, bool>> blockUser(String currentUserId, String targetUserId);
+  Future<Either<String, bool>> unblockUser(String currentUserId, String targetUserId);
 }
 
 class UserFirebaseServiceImpl extends UserFirebaseService {
@@ -43,7 +45,7 @@ class UserFirebaseServiceImpl extends UserFirebaseService {
         links: [],
         limitUploads: data['country'] ?? '',
         tracksCount: data['tracksCount'] ?? 0,
-        verifyAccount: data['tracksCount'] ?? false,
+        verifyAccount: data['verifyAccount'] ?? false,
       );
 
       return Right(user);
@@ -181,9 +183,15 @@ class UserFirebaseServiceImpl extends UserFirebaseService {
   }
 
   @override
-  Future<Either<String, List<UserModel>>> getUsers(String currentUserId) async {
+  Future<Either<String, List<UserModel>>> getUsers(String currentUserId, {String? searchQuery}) async {
     try {
-      QuerySnapshot snapshot = await _firestore.collection('Users').where(FieldPath.documentId, isNotEqualTo: currentUserId).get();
+      Query query = _firestore.collection('Users').where(FieldPath.documentId, isNotEqualTo: currentUserId);
+
+      if (searchQuery != null && searchQuery.isNotEmpty) {
+        query = query.where('name', isGreaterThanOrEqualTo: searchQuery).where('name', isLessThanOrEqualTo: '$searchQuery\uf8ff');
+      }
+
+      QuerySnapshot snapshot = await query.get();
 
       if (snapshot.docs.isEmpty) {
         return Left('No users found');
@@ -204,7 +212,7 @@ class UserFirebaseServiceImpl extends UserFirebaseService {
           links: [],
           limitUploads: data['limitUploads'] ?? 0,
           tracksCount: data['tracksCount'] ?? 0,
-          verifyAccount: data['tracksCount'] ?? false,
+          verifyAccount: data['verifyAccount'] ?? false,
         );
       }).toList();
 
@@ -216,6 +224,8 @@ class UserFirebaseServiceImpl extends UserFirebaseService {
 
   @override
   Future<Either<String, bool>> addFollowing(RxBool isFollowing, String currentUserId, String targetUserId) async {
+    log('Adding following: currentUserId=$currentUserId, targetUserId=$targetUserId');
+
     if (currentUserId.isEmpty || targetUserId.isEmpty) {
       log('Error: currentUserId or targetUserId is empty');
       return Left('User IDs cannot be empty');
@@ -225,6 +235,7 @@ class UserFirebaseServiceImpl extends UserFirebaseService {
 
     try {
       if (isFollowing.value) {
+        log('Performing follow operation...');
         await userRef.doc(currentUserId).collection('Following').doc(targetUserId).set({
           'followedAt': FieldValue.serverTimestamp(),
         });
@@ -233,15 +244,64 @@ class UserFirebaseServiceImpl extends UserFirebaseService {
           'followedAt': FieldValue.serverTimestamp(),
         });
       } else {
+        log('Performing unfollow operation...');
         await userRef.doc(currentUserId).collection('Following').doc(targetUserId).delete();
 
         await userRef.doc(targetUserId).collection('Followers').doc(currentUserId).delete();
       }
 
+      log('Follow operation completed successfully.');
       return Right(true);
     } catch (e) {
       log('Error updating Firestore: $e');
       return Left<String, bool>('Error updating Firestore: $e');
     }
   }
+
+  @override
+  Future<Either<String, bool>> blockUser(String currentUserId, String targetUserId) async {
+    try {
+      if (currentUserId.isEmpty || targetUserId.isEmpty) {
+        return Left('User IDs cannot be empty');
+      }
+
+      final userRef = FirebaseFirestore.instance.collection('Users');
+
+      await userRef
+        .doc(currentUserId)
+        .collection('BlockedUsers')
+        .doc(targetUserId)
+        .set({
+          'blockedAt': FieldValue.serverTimestamp(),
+        });
+
+      await userRef.doc(currentUserId).collection('Following').doc(targetUserId).delete();
+      await userRef.doc(targetUserId).collection('Followers').doc(currentUserId).delete();
+
+      return Right(true);
+    } catch (e) {
+      return Left('Error blocking user: $e');
+    }
+  }
+
+  @override
+  Future<Either<String, bool>> unblockUser(String currentUserId, String targetUserId) async {
+  try {
+    if (currentUserId.isEmpty || targetUserId.isEmpty) {
+      return Left('User IDs cannot be empty');
+    }
+
+    final userRef = FirebaseFirestore.instance.collection('Users');
+
+    await userRef
+      .doc(currentUserId)
+      .collection('BlockedUsers')
+      .doc(targetUserId)
+      .delete();
+
+    return Right(true);
+  } catch (e) {
+    return Left('Error unblocking user: $e');
+  }
+}
 }

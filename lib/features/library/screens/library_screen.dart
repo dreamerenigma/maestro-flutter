@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -9,7 +10,6 @@ import 'package:get/get.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:maestro/features/library/screens/library/playlists/view_playlists_screen.dart';
 import 'package:maestro/features/library/screens/library/your_insights_screen.dart';
-import 'package:maestro/features/library/screens/recently_played_screen.dart';
 import 'package:maestro/features/library/screens/settings_screen.dart';
 import 'package:maestro/features/utils/screens/test_screen.dart';
 import 'package:maestro/features/utils/widgets/no_glow_scroll_behavior.dart';
@@ -20,13 +20,19 @@ import 'package:maestro/features/library/screens/local_audio_screen.dart';
 import 'package:maestro/features/library/screens/profile_settings_screen.dart';
 import 'package:maestro/features/library/screens/library/your_upload_screen.dart';
 import 'package:shimmer/shimmer.dart';
+import '../../../api/apis.dart';
+import '../../../data/services/history/history_firebase_service.dart';
+import '../../../domain/entities/song/song_entity.dart';
+import '../../../domain/entities/user/user_entity.dart';
+import '../../../generated/l10n/l10n.dart';
+import '../../../service_locator.dart';
 import '../../../utils/constants/app_sizes.dart';
-import '../../../utils/helpers/helper_functions.dart';
-import '../widgets/items/recently_played_item.dart';
-import 'library/albums_screen.dart';
+import '../../song_player/widgets/mini_player/mini_player_manager.dart';
+import '../widgets/lists/history/listening_history_list.dart';
+import '../widgets/lists/history/recently_played_list.dart';
+import 'library/albums/albums_screen.dart';
 import 'library/following_screen.dart';
 import 'library/station/stations_screen.dart';
-import 'listening_history_screen.dart';
 
 class LibraryScreen extends StatefulWidget {
   final int initialIndex;
@@ -46,10 +52,11 @@ class LibraryScreen extends StatefulWidget {
 
 class LibraryScreenState extends State<LibraryScreen> {
   String? _userAvatarUrl;
-  List<String> recentlyPlayed = [];
-  List<String> listeningHistory = [];
+  List<SongEntity> listeningHistory = [];
+  List<UserEntity> recentlyPlayed = [];
   List<Map<String, dynamic>> playlists = [];
-  final bool _isSeeAllTapped = false;
+  late Map<String, dynamic> userData;
+  late Future<Map<String, dynamic>?> userDataFuture;
   bool isConnected = true;
 
   @override
@@ -57,7 +64,9 @@ class LibraryScreenState extends State<LibraryScreen> {
     super.initState();
     _loadUserData();
     _checkInternetConnection();
-
+    _loadListeningHistory();
+    _loadRecentlyPlayed();
+    userDataFuture = APIs.fetchUserData();
     Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> results) {
       final result = results.isNotEmpty ? results.first : ConnectivityResult.none;
       setState(() {
@@ -95,6 +104,72 @@ class LibraryScreenState extends State<LibraryScreen> {
     return null;
   }
 
+  void _loadListeningHistory() async {
+    try {
+      List<Map<String, dynamic>> history = await sl<HistoryFirebaseService>().fetchListeningHistory();
+      List<SongEntity> tracks = history.map((trackData) {
+      final duration = trackData['duration'] is String ? parseDuration(trackData['duration']) : trackData['duration'] ?? 0;
+
+        return SongEntity(
+          songId: trackData['songId'] ?? '',
+          title: trackData['title'] ?? 'Unknown Track',
+          artist: trackData['artist'] ?? 'Unknown Artist',
+          cover: trackData['cover'] ?? '',
+          releaseDate: trackData['timestamp'] ?? Timestamp.now(),
+          genre: trackData['genre'] ?? '',
+          description: trackData['description'] ?? '',
+          caption: trackData['caption'] ?? '',
+          duration: duration,
+          isFavorite: trackData['isFavorite'] ?? false,
+          listenCount: trackData['listenCount'] ?? 0,
+          likeCount: trackData['likeCount'] ?? 0,
+          commentsCount: trackData['commentsCount'] ?? 0,
+          repostCount: trackData['repostCount'] ?? 0,
+          fileURL: trackData['fileURL'] ?? '',
+          uploadedBy: trackData['uploadedBy'] ?? '',
+        );
+      }).toList();
+
+      setState(() {
+        listeningHistory = tracks;
+      });
+    } catch (e) {
+      log('Error loading listening history: $e');
+    }
+  }
+
+  void _loadRecentlyPlayed() async {
+    try {
+      List<Map<String, dynamic>> recently = await sl<HistoryFirebaseService>().fetchRecentlyPlayed();
+
+      List<UserEntity> userEntities = recently.map((data) {
+        return UserEntity(
+          id: data['id'] ?? '',
+          name: data['name'] ?? 'Unknown',
+          image: data['image'] ?? '',
+          followers: data['followers'] ?? 0,
+          bio: '',
+          city: '',
+          country: '',
+          flag: '',
+          backgroundImage: '',
+          links: [],
+          limitUploads: 0,
+          tracksCount: 0,
+          verifyAccount: false,
+        );
+      }).toList();
+
+      setState(() {
+        recentlyPlayed = userEntities;
+      });
+
+      log('Recently played users loaded: $recentlyPlayed');
+    } catch (e) {
+      log('Error loading recently played: $e');
+    }
+  }
+
   Future<void> _reloadData() async {
     await Future.delayed(const Duration(seconds: 1));
     setState(() {});
@@ -103,72 +178,77 @@ class LibraryScreenState extends State<LibraryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildInfo(widget.onUpgradeTapped),
-          Expanded(
-            child: ScrollConfiguration(
-              behavior: NoGlowScrollBehavior(),
-              child: RefreshIndicator(
-                onRefresh: _reloadData,
-                displacement: 0,
-                color: AppColors.primary,
-                backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.softGrey,
-                child: CustomScrollView(
-                  slivers: [
-                    SliverList(
-                      delegate: SliverChildListDelegate(
-                        [
-                          _buildProfileOption('Liked tracks', Icons.arrow_forward_ios, () {
-                            Navigator.push(context, createPageRoute(LikedTracksScreen(likedTracks: [], initialIndex: widget.initialIndex)));
-                          }),
-                          _buildProfileOption('Playlists', Icons.arrow_forward_ios, () {
-                            Navigator.push(context, createPageRoute(ViewPlaylistsScreen(playlists: playlists, initialIndex: widget.initialIndex)));
-                          }),
-                          _buildProfileOption('Albums', Icons.arrow_forward_ios, () {
-                            Navigator.push(context, createPageRoute(AlbumsScreen(initialIndex: widget.initialIndex, albums: [])));
-                          }),
-                          _buildProfileOption('Following', Icons.arrow_forward_ios, () {
-                            Navigator.push(context, createPageRoute(FollowingScreen(initialIndex: widget.initialIndex)));
-                          }),
-                          _buildProfileOption('Stations', Icons.arrow_forward_ios, () {
-                            Navigator.push(context, createPageRoute(StationsScreen(initialIndex: widget.initialIndex, stations: [])));
-                          }),
-                          _buildProfileOption('Local audio', Icons.arrow_forward_ios, () {
-                            Navigator.push(context, createPageRoute(LocalAudioScreen(initialIndex: widget.initialIndex, songs: [])));
-                          }),
-                          _buildProfileOption('Your insights', Icons.arrow_forward_ios, () {
-                            Navigator.push(context, createPageRoute(YourInsightsScreen(initialIndex: widget.initialIndex)));
-                          }),
-                          _buildProfileOption('Your uploads', Icons.arrow_forward_ios, () {
-                            Navigator.push(context, createPageRoute(YourUploadScreen(initialIndex: widget.initialIndex)));
-                          }),
-                          _buildSection(
-                            'Recently played',
-                            'Find all your recently played content here.',
-                            () {
-                              Navigator.push(context, createPageRoute(RecentlyPlayedScreen(initialIndex: widget.initialIndex)));
-                            },
-                            recentlyPlayed: recentlyPlayed,
-                          ),
-                          _buildSection(
-                            'Listening history',
-                            'Find all the tracks you\'ve listened to here.',
-                            () {
-                              Navigator.push(context, createPageRoute(ListeningHistoryScreen(initialIndex: widget.initialIndex)));
-                            },
-                            listeningHistory: listeningHistory,
+      body: MiniPlayerManager(
+        hideMiniPlayerOnSplash: false,
+        child: FutureBuilder<Map<String, dynamic>?>(
+          future: userDataFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)));
+            } else if (snapshot.hasError) {
+              return Center(child: Text(S.of(context).errorLoadingProfile));
+            } else if (!snapshot.hasData || snapshot.data == null) {
+              return Center(child: Text(S.of(context).noUserDataFound));
+            }
+
+            userData = snapshot.data!;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildInfo(widget.onUpgradeTapped),
+                Expanded(
+                  child: ScrollConfiguration(
+                    behavior: NoGlowScrollBehavior(),
+                    child: RefreshIndicator(
+                      onRefresh: _reloadData,
+                      displacement: 0,
+                      color: AppColors.primary,
+                      backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.softGrey,
+                      child: CustomScrollView(
+                        slivers: [
+                          SliverList(
+                            delegate: SliverChildListDelegate(
+                              [
+                                _buildProfileOption('Liked tracks', Icons.arrow_forward_ios, () {
+                                  Navigator.push(context, createPageRoute(LikedTracksScreen(likedTracks: [], initialIndex: widget.initialIndex)));
+                                }),
+                                _buildProfileOption('Playlists', Icons.arrow_forward_ios, () {
+                                  Navigator.push(context, createPageRoute(ViewPlaylistsScreen(playlists: playlists, initialIndex: widget.initialIndex)));
+                                }),
+                                _buildProfileOption('Albums', Icons.arrow_forward_ios, () {
+                                  Navigator.push(context, createPageRoute(AlbumsScreen(initialIndex: widget.initialIndex, albums: [])));
+                                }),
+                                _buildProfileOption('Following', Icons.arrow_forward_ios, () {
+                                  Navigator.push(context, createPageRoute(FollowingScreen(initialIndex: widget.initialIndex)));
+                                }),
+                                _buildProfileOption('Stations', Icons.arrow_forward_ios, () {
+                                  Navigator.push(context, createPageRoute(StationsScreen(initialIndex: widget.initialIndex, stations: [], song: [])));
+                                }),
+                                _buildProfileOption('Local audio', Icons.arrow_forward_ios, () {
+                                  Navigator.push(context, createPageRoute(LocalAudioScreen(initialIndex: widget.initialIndex, songs: [])));
+                                }),
+                                _buildProfileOption('Your insights', Icons.arrow_forward_ios, () {
+                                  Navigator.push(context, createPageRoute(YourInsightsScreen(initialIndex: widget.initialIndex)));
+                                }),
+                                _buildProfileOption('Your uploads', Icons.arrow_forward_ios, () {
+                                  Navigator.push(context, createPageRoute(YourUploadScreen(initialIndex: widget.initialIndex)));
+                                }),
+                                _buildRecentlyPlayed('Recently played', 'Find all your recently played content here.', userData),
+                                _buildListeningHistory('Listening history', 'Find all the tracks you\'ve listened to here.', userData),
+                                SizedBox(height: 50),
+                              ],
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          ),
-        ],
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -224,11 +304,11 @@ class LibraryScreenState extends State<LibraryScreen> {
                 ),
               )
             : CircleAvatar(
-                maxRadius: 16,
-                backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.lightGrey,
-                backgroundImage: CachedNetworkImageProvider(_userAvatarUrl!),
-                child: _userAvatarUrl == null ? const Icon(Icons.person, size: 16) : null,
-              ),
+              maxRadius: 16,
+              backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.lightGrey,
+              backgroundImage: CachedNetworkImageProvider(_userAvatarUrl!),
+              child: _userAvatarUrl == null ? const Icon(Icons.person, size: 16) : null,
+            ),
           ),
         ],
       ),
@@ -241,7 +321,7 @@ class LibraryScreenState extends State<LibraryScreen> {
       splashColor: context.isDarkMode ? AppColors.darkGrey.withAlpha((0.2 * 255).toInt()) : AppColors.grey.withAlpha((0.4 * 255).toInt()),
       highlightColor: context.isDarkMode ? AppColors.darkGrey.withAlpha((0.2 * 255).toInt()) : AppColors.grey.withAlpha((0.4 * 255).toInt()),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
             Text(text, style: const TextStyle(fontSize: 17)),
@@ -253,81 +333,65 @@ class LibraryScreenState extends State<LibraryScreen> {
     );
   }
 
-  Widget _buildSection(
-    String title,
-    String content,
-    VoidCallback onTap, {
-    List<dynamic> recentlyPlayed = const [],
-    List<dynamic> listeningHistory = const [],
-  }) {
+  Widget _buildRecentlyPlayed(String title, String content, Map<String, dynamic> userData) {
+    List<UserEntity> userEntities = recentlyPlayed;
+
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.only(top: 24, left: 16, right: 16, bottom: 16),
+      padding: const EdgeInsets.only(right: 6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                title,
-                style: const TextStyle(fontSize: AppSizes.fontSizeLg, fontWeight: FontWeight.bold),
+              if (recentlyPlayed.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(left: 16),
+                child: Text(title, style: const TextStyle(fontSize: AppSizes.fontSizeBg, fontWeight: FontWeight.bold)),
               ),
-              if (recentlyPlayed.isNotEmpty || listeningHistory.isNotEmpty)
-                InkWell(
-                  onTap: onTap,
-                  splashColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-                  highlightColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-                  borderRadius: BorderRadius.circular(AppSizes.cardRadiusLg),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(color: AppColors.darkGrey.withAlpha(30), borderRadius: BorderRadius.circular(16)),
-                    child: Text(
-                      'See All',
-                      style: TextStyle(
-                        fontSize: AppSizes.fontSizeLm,
-                        fontWeight: FontWeight.w500,
-                        color: _isSeeAllTapped
-                          ? (HelperFunctions.isDarkMode(context) ? AppColors.white : AppColors.black)
-                          : (HelperFunctions.isDarkMode(context) ? AppColors.white.withAlpha(150) : AppColors.black.withAlpha(150)),
-                      ),
-                    ),
-                  ),
-                ),
+              Expanded(
+                child: RecentlyPlayedList(users: userEntities, userData: userData, initialIndex: widget.initialIndex),
+              ),
             ],
           ),
+          if (recentlyPlayed.isEmpty)
           Padding(
-            padding: const EdgeInsets.only(top: 6),
+            padding: const EdgeInsets.only(left: 16, top: 6),
             child: Text(content, style: const TextStyle(fontSize: AppSizes.fontSizeLm, color: AppColors.darkerGrey)),
           ),
-          if (recentlyPlayed.isNotEmpty)
-            Container(
-              height: 150,
-              padding: const EdgeInsets.only(top: 8),
-              child: GridView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: recentlyPlayed.length > 10 ? 10 : recentlyPlayed.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 1,
-                  mainAxisSpacing: 10,
-                  childAspectRatio: 1,
-                ),
-                itemBuilder: (context, index) {
-                  var item = recentlyPlayed[index];
-                  bool isPlaylist = item['isPlaylist'];
-                  bool isUserAvatar = item['isUserAvatar'];
+        ],
+      ),
+    );
+  }
 
-                  return RecentlyPlayedItem(
-                    isPlaylist: isPlaylist,
-                    isUserAvatar: isUserAvatar,
-                    imageUrl: item['imageUrl'],
-                    userName: isUserAvatar ? item['userName'] : null,
-                    onTap: () {},
-                  );
-                },
+  Widget _buildListeningHistory(String title, String content, Map<String, dynamic> userData) {
+    List<SongEntity> convertedTracks = listeningHistory;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.only(right: 6, top: 24, bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              if (convertedTracks.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(left: 16),
+                  child: Text(title, style: const TextStyle(fontSize: AppSizes.fontSizeBg, fontWeight: FontWeight.bold)),
+                ),
+              Expanded(
+                child: ListeningHistoryList(tracks: convertedTracks, userData: userData),
               ),
+            ],
+          ),
+          if (convertedTracks.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(left: 16, top: 6),
+              child: Text(content, style: const TextStyle(fontSize: AppSizes.fontSizeLm, color: AppColors.darkerGrey)),
             ),
-          if (listeningHistory.isNotEmpty) Column(children: listeningHistory.map((item) => Text(item.toString())).toList()),
         ],
       ),
     );

@@ -1,11 +1,13 @@
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:maestro/features/utils/widgets/no_glow_scroll_behavior.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
+import '../../../../utils/constants/app_vectors.dart';
 
 class SearchResults extends StatelessWidget {
   final bool isLoading;
@@ -58,8 +60,7 @@ class SearchResults extends StatelessWidget {
           var data = result.data() as Map<String, dynamic>;
 
           String title = data['name'] ?? data['title'] ?? 'No title';
-          String description = data.containsKey('description') ? data['description'] : '';
-          String image = data['image'] ?? '';
+          String image = data['image'] ?? data['cover'] ?? '';
 
           return InkWell(
             onTap: () => onResultTap(result),
@@ -71,16 +72,12 @@ class SearchResults extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.darkerGrey.withAlpha((0.5 * 255).toInt()),
-                      borderRadius: BorderRadius.circular(30),
-                      border: Border.all(color: AppColors.darkGrey, width: 1),
-                    ),
+                    decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()), width: 1)),
                     child: CircleAvatar(
-                      radius: 24,
+                      radius: 25,
                       backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.lightGrey,
                       backgroundImage: image.isNotEmpty ? NetworkImage(image) : null,
-                      child: image.isEmpty ? Icon(Icons.person, size: 28, color: AppColors.grey) : null,
+                      child: image.isEmpty ? SvgPicture.asset(AppVectors.avatar, width: 50, height: 50) : null,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -88,9 +85,7 @@ class SearchResults extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(title.toLowerCase(), style: TextStyle(fontSize: AppSizes.fontSizeMd, fontWeight: FontWeight.w200)),
-                        if (description.isNotEmpty)
-                          Text(description.toLowerCase(), style: TextStyle(fontSize: AppSizes.fontSizeMd, color: AppColors.grey)),
+                        Text(title.toLowerCase().split('.').first, style: TextStyle(fontSize: AppSizes.fontSizeMd, fontWeight: FontWeight.w200)),
                       ],
                     ),
                   ),

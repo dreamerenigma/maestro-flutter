@@ -219,6 +219,19 @@ class UploadTracksScreenState extends State<UploadTracksScreen> {
     });
   }
 
+  Future<String> _getUserNameFromDatabase() async {
+    try {
+      var userData = await APIs.fetchUserData();
+      return userData?['name'] ?? 'anonymous';
+    } catch (e) {
+      return 'anonymous';
+    }
+  }
+
+  String formatDisplayName(String displayName) {
+    return displayName.toLowerCase().replaceAll(' ', '_');
+  }
+
   Future _getCurrentUserCoverURL() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -386,8 +399,10 @@ class UploadTracksScreenState extends State<UploadTracksScreen> {
       if (await _selectedFile!.exists()) {
         String fileName = _selectedFile!.path.split('/').last;
 
+        String userName = FirebaseAuth.instance.currentUser!.displayName ?? (await _getUserNameFromDatabase());
+        userName = formatDisplayName(userName);
 
-        Reference storageReference = FirebaseStorage.instance.ref().child('songs/$fileName');
+        Reference storageReference = FirebaseStorage.instance.ref().child('songs/$userName/$fileName');
 
         UploadTask uploadTask = storageReference.putFile(_selectedFile!);
 

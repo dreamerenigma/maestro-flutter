@@ -93,7 +93,7 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
         actions: [
           IconButton(
             onPressed: () {},
-            icon: Icon(Icons.cast, size: 23, color: AppColors.lightGrey),
+            icon: Icon(Icons.cast, size: 22, color: AppColors.lightGrey),
           ),
         ],
       ),
@@ -115,7 +115,7 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
                 ),
               ),
               if (isLoading)
-                Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(AppColors.primary))),
+                Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary))),
               if (!isLoading)...filteredUsers.map((user) => ListTile(title: Text(user.name), subtitle: Text(user.city))),
             ],
           ),

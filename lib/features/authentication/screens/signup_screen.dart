@@ -28,11 +28,10 @@ class SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _fullName = TextEditingController();
   final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
-
   final AuthFirebaseService _authService = AuthFirebaseServiceImpl();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
   bool _obscureText = true;
+  bool _isLoading = false;
 
   void _togglePasswordVisibility() {
     setState(() {
@@ -46,66 +45,85 @@ class SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
+  void _showError(BuildContext context, String message) {
+    Get.snackbar('Error', message);
+  }
+
+  void _showSuccess(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), backgroundColor: AppColors.green));
+    if (message == S.of(context).googleSignUpSuccess || message == S.of(context).appleSignInSuccess) {
+      Navigator.pushReplacement(context, createPageRoute(HomeScreen()));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: _sigInText(context),
-      appBar: BasicAppBar(
-        title: Image.asset(
-          AppImages.logo,
-          height: 160,
-          width: 160,
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+      appBar: BasicAppBar(title: Image.asset(AppImages.logo, height: 160, width: 160)),
+      body: Stack(
+        children: [
+          Column(
             children: [
-              _registerText(),
-              const SizedBox(height: 30),
-              _fullNameField(context),
-              const SizedBox(height: 20),
-              _emailField(context),
-              const SizedBox(height: 20),
-              _passwordField(context),
-              const SizedBox(height: 20),
-              BasicAppButton(
-                callback: () async {
-                  if (_formKey.currentState!.validate()) {
-                    await Navigator.push(
-                      context,
-                      createPageRoute(CreateInfoScreen(
-                          fullNameController: _fullName,
-                          emailController: _email,
-                          passwordController: _password,
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        _buildRegisterText(),
+                        const SizedBox(height: 30),
+                        _buildFullNameField(context),
+                        const SizedBox(height: 20),
+                        _buildEmailField(context),
+                        const SizedBox(height: 20),
+                        _buildPasswordField(context),
+                        const SizedBox(height: 20),
+                        BasicAppButton(
+                          callback: () async {
+                            if (_formKey.currentState!.validate()) {
+                              await Navigator.push(
+                                context,
+                                createPageRoute(CreateInfoScreen(fullNameController: _fullName, emailController: _email, passwordController: _password)),
+                              );
+                            }
+                          },
+                          title: S.of(context).next,
                         ),
-                      ),
-                    );
-                  }
-                },
-                title: S.of(context).next,
+                        _buildPrivacyText(context),
+                        const SizedBox(height: 20),
+                        _buildSocialButtons(),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-              _privacyText(context),
-              const SizedBox(height: 20),
-              _socialButtons(),
             ],
           ),
-        ),
+          if (_isLoading)
+          Positioned.fill(
+            child: Container(
+              color: AppColors.black.withAlpha((0.5 * 255).toInt()),
+              child: const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary))),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: _buildSigInText(context),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _registerText() {
-    return Text(
-      S.of(context).register,
-      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: AppSizes.fontSizeXl),
-    );
+  Widget _buildRegisterText() {
+    return Text(S.of(context).register, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: AppSizes.fontSizeXl));
   }
 
-  Widget _fullNameField(BuildContext context) {
+  Widget _buildFullNameField(BuildContext context) {
     return TextSelectionTheme(
       data: TextSelectionThemeData(
         cursorColor: AppColors.primary,
@@ -133,7 +151,7 @@ class SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _emailField(BuildContext context) {
+  Widget _buildEmailField(BuildContext context) {
     return TextSelectionTheme(
       data: TextSelectionThemeData(
         cursorColor: AppColors.primary,
@@ -160,7 +178,7 @@ class SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _passwordField(BuildContext context) {
+  Widget _buildPasswordField(BuildContext context) {
     return TextSelectionTheme(
       data: TextSelectionThemeData(
         cursorColor: AppColors.primary,
@@ -195,7 +213,7 @@ class SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _privacyText(BuildContext context) {
+  Widget _buildPrivacyText(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Column(
@@ -246,44 +264,42 @@ class SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _socialButtons() {
+  Widget _buildSocialButtons() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _socialButton(
-          child: SvgPicture.asset(
-            AppVectors.google,
-            width: 24,
-            height: 24,
-          ),
+        _buildSocialButton(
+          child: SvgPicture.asset(AppVectors.google, width: 24, height: 24),
           onPressed: () async {
+
+            setState(() {
+              _isLoading = true;
+            });
+
             final result = await _authService.googleSignUp();
             result.fold(
-                  (l) => _showError(context, l),
-                  (r) {
-                if (r == S.of(context).googleSignUpSuccess) {
-                  _showSuccess(context, r);
+              (l) {
+                _showError(context, l);
+                if (mounted) {
+                  setState(() {
+                    _isLoading = false;
+                  });
                 }
+              },
+              (r) {
+                _showSuccess(context, r);
               },
             );
           },
         ),
         const SizedBox(width: 20),
-        _socialButton(
-          child: const Icon(
-            Icons.apple,
-            size: 24,
-            color: AppColors.black,
-          ),
+        _buildSocialButton(
+          child: const Icon(Icons.apple, size: 36, color: AppColors.black),
           onPressed: () async {
             final result = await _authService.appleSignIn();
             result.fold(
-                  (l) => _showError(context, l),
-                  (r) {
-                if (r == S.of(context).appleSignInSuccess) {
-                  _showSuccess(context, r);
-                }
-              },
+              (l) => _showError(context, l),
+              (r) => _showSuccess(context, r),
             );
           },
         ),
@@ -291,7 +307,7 @@ class SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _socialButton({required Widget child, required VoidCallback onPressed}) {
+  Widget _buildSocialButton({required Widget child, required VoidCallback onPressed}) {
     return Material(
       shape: const CircleBorder(),
       color: context.isDarkMode ? AppColors.white : AppColors.lightGrey,
@@ -308,35 +324,11 @@ class SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  void _showError(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.red,
-      ),
-    );
-  }
-
-  void _showSuccess(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.green,
-      ),
-    );
-    if (message == S.of(context).googleSignUpSuccess || message == S.of(context).appleSignInSuccess) {
-      Navigator.pushReplacement(context, createPageRoute(HomeScreen()));
-    }
-  }
-
-  Widget _sigInText(BuildContext context) {
+  Widget _buildSigInText(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(
-          S.of(context).youHaveAccount,
-          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: AppSizes.fontSizeSm),
-        ),
+        Text(S.of(context).youHaveAccount, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: AppSizes.fontSizeSm)),
         TextButton(
           onPressed: () {
             Navigator.pushReplacement(context, createPageRoute(SignInScreen()));

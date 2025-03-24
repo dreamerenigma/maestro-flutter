@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -27,6 +28,7 @@ import '../widgets/dialogs/show_more_bio_info_bottom_dialog.dart';
 import '../widgets/icons/action_icons_widget.dart';
 import '../widgets/icons/fixed_icons_widget.dart';
 import '../widgets/lists/track/liked_tracks_list.dart';
+import '../widgets/lists/track/top_tracks_list.dart';
 import '../widgets/lists/track/tracks_list.dart';
 import '../widgets/pinned_spotlight_widget.dart';
 import '../widgets/user_avatar_widget.dart';
@@ -48,7 +50,7 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   final GetStorage _storageBox = GetStorage();
   final BackgroundController backgroundController = Get.put(BackgroundController());
   final ProfileImageController profileImageController = Get.put(ProfileImageController());
-  final ValueNotifier<double> opacityNotifier = ValueNotifier<double>(1.0);
+  final ValueNotifier<double> opacityNotifier = ValueNotifier<double>(0);
   final SongFirebaseServiceImpl songService = SongFirebaseServiceImpl();
   late Future<Map<String, dynamic>?> userDataFuture;
   late final int selectedIndex;
@@ -78,7 +80,7 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     scrollController = ScrollController();
 
     scrollController.addListener(() {
-      double newOpacity = (1 - (scrollController.offset / 100)).clamp(0.0, 1.0);
+      double newOpacity = (scrollController.offset / 100).clamp(0.0, 1.0);
       opacityNotifier.value = newOpacity;
     });
 
@@ -143,7 +145,6 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       User? user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         final List<SongEntity> tracks = await APIs.fetchLikedTracks(user.uid);
-        log('Tracks fetched from API: $tracks');
         if (mounted) {
           setState(() {
             likedTracks = tracks;
@@ -254,12 +255,29 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                 builder: (context, opacity, child) {
                                   return Opacity(opacity: opacity, child: child!);
                                 },
-                                child: Text(
-                                  userData['name'] as String? ?? 'No Name',
-                                  style: TextStyle(
-                                    color: Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black,
-                                    fontSize: 20,
-                                  ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: AppColors.darkGrey,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(color: AppColors.darkerGrey.withAlpha((0.2 * 255).toInt()), width: 1),
+                                      ),
+                                      child: CircleAvatar(
+                                        radius: 18,
+                                        backgroundImage: NetworkImage(userData['image'] ?? ''),
+                                        backgroundColor: AppColors.lightGrey,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      userData['name'] as String? ?? 'No Name',
+                                      style: TextStyle(
+                                        color: Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black,
+                                        fontSize: 20,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -270,13 +288,18 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                   _buildBackground(context, userData),
                                   const SizedBox(height: 50),
                                   _buildUserProfile(userData),
-                                  ActionIconsWidget(isShuffleActive: isShuffleActive, toggleShuffle: toggleShuffle, initialIndex: widget.initialIndex, isFollowing: isFollowing),
+                                  ActionIconsWidget(
+                                    isShuffleActive: isShuffleActive,
+                                    toggleShuffle: toggleShuffle,
+                                    initialIndex: widget.initialIndex,
+                                    isFollowing: isFollowing,
+                                  ),
                                   const SizedBox(height: 15),
                                   UserInfoWidget(
                                     userData: userData,
                                     getInfoText: (userData) {
                                       return Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 18),
+                                        padding: const EdgeInsets.symmetric(horizontal: 16),
                                         child: Text(
                                           userData['bio'] ?? 'Bio not specified',
                                           style: TextStyle(fontSize: 15, height: 1.2, letterSpacing: -0.3), maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.start,
@@ -284,7 +307,7 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                       );
                                     },
                                     onShowMorePressed: (context, userData) {
-                                      showMoreBioInfoBottomDialog(context, userData);
+                                      showMoreBioInfoBottomDialog(context, userData, widget.user);
                                     },
                                   ),
                                   _buildYourInsights('Your insights', Icons.arrow_forward_ios, () {
@@ -293,6 +316,7 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                   const SizedBox(height: 20),
                                   const PinnedSpotlightWidget(),
                                   const SizedBox(height: 10),
+                                  TopTracksList(tracks: myTracks, userData: userData),
                                   TracksList(tracks: myTracks, userData: userData),
                                   PlaylistList(
                                     initialIndex: widget.initialIndex,
@@ -310,19 +334,21 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                         ),
                       ),
                     ),
-                    FixedIconsWidget(userData: userData),
+                    FixedIconsWidget(
+                      userData: userData,
+                      user: widget.user,
+                      isStartStation: true.obs,
+                      isFollow: false.obs,
+                      isMissingMusic: false.obs,
+                      isReport: false.obs,
+                      isBlockUser: false.obs,
+                    ),
                     Positioned(
                       top: kToolbarHeight + 70,
                       left: 0,
                       right: 0,
                       bottom: 0,
-                      child: Align(
-                        alignment: Alignment.topCenter,
-                        child: InternetAwareScreen(
-                          title: 'Profile Screen',
-                          connectedScreen: Container(),
-                        ),
-                      ),
+                      child: Align(alignment: Alignment.topCenter, child: InternetAwareScreen(title: 'Profile Screen', connectedScreen: Container())),
                     ),
                   ],
                 ),
@@ -346,17 +372,13 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     return Container(
       height: 150,
       decoration: BoxDecoration(
-        image: imageUrlBg != null ? DecorationImage(image: NetworkImage(imageUrlBg!), fit: BoxFit.cover) : null,
+        image: imageUrlBg != null ? DecorationImage(image: CachedNetworkImageProvider(imageUrlBg!), fit: BoxFit.cover) : null,
         color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkGrey : AppColors.lightBackground,
       ),
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          Positioned(
-            top: 70,
-            left: 20,
-            child: UserAvatar(imageUrl: imageUrl),
-          ),
+          Positioned(top: 70, left: 20, child: UserAvatar(imageUrl: imageUrl)),
         ],
       ),
     );
@@ -370,7 +392,7 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     final displayCountry = country ?? 'Country not specified';
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -394,7 +416,7 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         splashColor: context.isDarkMode ? AppColors.darkGrey.withAlpha((0.2 * 255).toInt()) : AppColors.grey.withAlpha((0.4 * 255).toInt()),
         highlightColor: context.isDarkMode ? AppColors.darkGrey.withAlpha((0.2 * 255).toInt()) : AppColors.grey.withAlpha((0.4 * 255).toInt()),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
             children: [
               Text(text, style: const TextStyle(fontSize: AppSizes.fontSizeMd)),

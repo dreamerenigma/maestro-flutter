@@ -28,6 +28,7 @@ class SignInScreen extends StatefulWidget {
 
 class SignInScreenState extends State<SignInScreen> {
   bool _obscureText = true;
+  bool _isLoading = false;
   final TextEditingController _email = TextEditingController();
   final TextEditingController _password = TextEditingController();
   final AuthFirebaseService _authService = AuthFirebaseServiceImpl();
@@ -54,6 +55,14 @@ class SignInScreenState extends State<SignInScreen> {
     }
   }
 
+  void _showError(BuildContext context, String message) {
+    Get.snackbar('Error', message);
+  }
+
+  void _showSuccess(BuildContext context, String message) {
+    Navigator.pushReplacement(context, createPageRoute(HomeScreen()));
+  }
+
   void _togglePasswordVisibility() {
     setState(() {
       _obscureText = !_obscureText;
@@ -63,59 +72,74 @@ class SignInScreenState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: _signupText(context),
       appBar: BasicAppBar(title: Image.asset(AppImages.logo, height: 160, width: 160)),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            _registerText(),
-            const SizedBox(height: 30),
-            _emailField(context),
-            const SizedBox(height: 20),
-            _passwordField(context),
-            const SizedBox(height: 20),
-            BasicAppButton(
-              callback: () async {
-                var result = await sl<SigninUseCase>().call(
-                  params: SignInUserReq(
-                    email: _email.text.toString(),
-                    password: _password.text.toString(),
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      _buildRegisterText(),
+                      const SizedBox(height: 30),
+                      _buildEmailField(context),
+                      const SizedBox(height: 20),
+                      _buildPasswordField(context),
+                      const SizedBox(height: 20),
+                      BasicAppButton(
+                        callback: () async {
+                          var result = await sl<SigninUseCase>().call(
+                            params: SignInUserReq(
+                              email: _email.text.toString(),
+                              password: _password.text.toString(),
+                            ),
+                          );
+                          result.fold(
+                            (l) {
+                              Dialogs.showSnackBarMargin(context, S.of(context).allFieldsFilled, margin: const EdgeInsets.only(bottom: 10, left: 10, right: 10));
+                            },
+                            (r) {
+                              Dialogs.showSnackBarMargin(context, S.of(context).signInSuccessful, margin: const EdgeInsets.only(bottom: 10, left: 10, right: 10));
+                              Navigator.pushAndRemoveUntil(context, createPageRoute(HomeScreen()), (route) => false);
+                            },
+                          );
+                        },
+                        title: S.of(context).signIn,
+                      ),
+                      const SizedBox(height: 20),
+                      _buildSocialButtons(),
+                    ],
                   ),
-                );
-                result.fold(
-                  (l) {
-                    Dialogs.showSnackBarMargin(context, S.of(context).allFieldsFilled,
-                      margin: const EdgeInsets.only(bottom: 10, left: 10, right: 10),
-                    );
-                  },
-                  (r) {
-                    Dialogs.showSnackBarMargin(context, S.of(context).signInSuccessful,
-                      margin: const EdgeInsets.only(bottom: 10, left: 10, right: 10),
-                    );
-                    Navigator.pushAndRemoveUntil(context, createPageRoute(HomeScreen()), (route) => false);
-                  },
-                );
-              },
-              title: S.of(context).signIn,
+                ),
+              ),
+            ],
+          ),
+          if (_isLoading)
+          Positioned.fill(
+            child: Container(
+              color: AppColors.black.withAlpha((0.5 * 255).toInt()),
+              child: const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary))),
             ),
-            const SizedBox(height: 20),
-            _socialButtons(),
-          ],
-        ),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: _buildSignupText(context),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _registerText() {
-    return Text(
-      S.of(context).signIn,
-      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: AppSizes.fontSizeXl),
-    );
+  Widget _buildRegisterText() {
+    return Text(S.of(context).signIn, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: AppSizes.fontSizeXl));
   }
 
-  Widget _emailField(BuildContext context) {
+  Widget _buildEmailField(BuildContext context) {
     return TextSelectionTheme(
       data: TextSelectionThemeData(
         cursorColor: AppColors.primary,
@@ -139,7 +163,7 @@ class SignInScreenState extends State<SignInScreen> {
     );
   }
 
-  Widget _passwordField(BuildContext context) {
+  Widget _buildPasswordField(BuildContext context) {
     return TextSelectionTheme(
       data: TextSelectionThemeData(
         cursorColor: AppColors.primary,
@@ -158,7 +182,7 @@ class SignInScreenState extends State<SignInScreen> {
             suffixIcon: IconButton(
               icon: Icon(
                 _obscureText ? Icons.visibility : Icons.visibility_off,
-                color: Colors.blue,
+                color: AppColors.blue,
               ),
               onPressed: _togglePasswordVisibility,
             ),
@@ -171,38 +195,38 @@ class SignInScreenState extends State<SignInScreen> {
     );
   }
 
-  Widget _socialButtons() {
+  Widget _buildSocialButtons() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _socialButton(
-          child: SvgPicture.asset(
-            AppVectors.google,
-            width: 24,
-            height: 24,
-          ),
+        _buildSocialButton(
+          child: SvgPicture.asset(AppVectors.google, width: 24, height: 24),
           onPressed: () async {
-            try {
-              GoogleAuthProvider googleProvider = GoogleAuthProvider();
 
-              UserCredential userCredential =
-                  await FirebaseAuth.instance.signInWithPopup(googleProvider);
+            setState(() {
+              _isLoading = true;
+            });
 
-              if (userCredential.user != null) {
-                _showSuccess(context, S.of(context).googleSignInSuccess);
-              }
-            } catch (e) {
-              _showError(context, "Google sign-in failed: $e");
-            }
+            final result = await _authService.googleSignIn();
+
+            result.fold(
+              (l) {
+                _showError(context, l);
+                if (mounted) {
+                  setState(() {
+                    _isLoading = false;
+                  });
+                }
+              },
+              (r) {
+                _showSuccess(context, r);
+              },
+            );
           },
         ),
         const SizedBox(width: 20),
-        _socialButton(
-          child: const Icon(
-            Icons.apple,
-            size: 36,
-            color: Colors.black,
-          ),
+        _buildSocialButton(
+          child: const Icon(Icons.apple, size: 36, color: AppColors.black),
           onPressed: () async {
             final result = await _authService.appleSignIn();
             result.fold(
@@ -215,7 +239,7 @@ class SignInScreenState extends State<SignInScreen> {
     );
   }
 
-  Widget _socialButton({required Widget child, required VoidCallback onPressed}) {
+  Widget _buildSocialButton({required Widget child, required VoidCallback onPressed}) {
     return Material(
       shape: const CircleBorder(),
       color: context.isDarkMode ? AppColors.white : AppColors.lightGrey,
@@ -236,27 +260,11 @@ class SignInScreenState extends State<SignInScreen> {
     );
   }
 
-  void _showError(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
-  }
-
-  void _showSuccess(BuildContext context, String message) {
-    Navigator.pushReplacement(context, createPageRoute(HomeScreen()));
-  }
-
-  Widget _signupText(BuildContext context) {
+  Widget _buildSignupText(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(
-          S.of(context).notMember,
-          style: const TextStyle(
-            fontWeight: FontWeight.w500,
-            fontSize: AppSizes.fontSizeSm,
-          ),
-        ),
+        Text(S.of(context).notMember, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: AppSizes.fontSizeSm)),
         TextButton(
           onPressed: () {
             Navigator.pushReplacement(context, createPageRoute(SignUpScreen()));

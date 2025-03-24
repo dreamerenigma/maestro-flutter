@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:maestro/features/chats/models/message_model.dart';
@@ -13,16 +14,18 @@ class MessageFirebaseServiceImpl extends MessageFirebaseService {
   @override
   Future<Either<String, MessageModel>> addMessage(MessageModel message) async {
     try {
-      await _firestore.collection('Users').doc(message.fromId).collection('Messages').add({
+      String chatId = getChatId(message.fromId, message.toId);
+
+      await _firestore.collection('Chats').doc(chatId).collection('Messages').add({
         'fromId': message.fromId,
         'message': message.message,
         'read': message.read,
         'sent': Timestamp.fromDate(message.sent),
         'toId': message.toId,
       });
+      log('Message added to chat\'s messages collection');
 
       return Right(message);
-
     } catch (e) {
       return Left('Failed to send message: $e');
     }
@@ -30,11 +33,12 @@ class MessageFirebaseServiceImpl extends MessageFirebaseService {
 
   @override
   Stream<List<MessageModel>> getMessages(String fromId, String toId) {
+    String chatId = getChatId(fromId, toId);
+
     return _firestore
-      .collection('Users')
-      .doc(fromId)
+      .collection('Chats')
+      .doc(chatId)
       .collection('Messages')
-      .where('toId', isEqualTo: toId)
       .orderBy('sent', descending: false)
       .snapshots()
       .map((snapshot) {
@@ -50,5 +54,10 @@ class MessageFirebaseServiceImpl extends MessageFirebaseService {
           );
         }).toList();
       });
+  }
+
+  String getChatId(String user1Id, String user2Id) {
+    List<String> ids = [user1Id, user2Id]..sort();
+    return '${ids[0]}_${ids[1]}';
   }
 }

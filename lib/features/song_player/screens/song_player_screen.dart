@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 import 'package:bootstrap_icons/bootstrap_icons.dart';
-import 'package:feather_icons/feather_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
@@ -134,11 +133,11 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
           borderRadius: BorderRadius.circular(AppSizes.cardRadiusXl),
           onTap: () {},
           child: Padding(
-            padding: const EdgeInsets.only(left: 8, right: 6, top: 8, bottom: 8),
+            padding: const EdgeInsets.only(left: 12, right: 8, top: 10, bottom: 10),
             child: SvgPicture.asset(
               AppVectors.playNext,
-              width: 22,
-              height: 22,
+              width: 21,
+              height: 21,
               colorFilter: ColorFilter.mode(
                 context.isDarkMode ? AppColors.white : AppColors.black,
                 BlendMode.srcIn,
@@ -158,6 +157,7 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
             return const Center(child: Text('No data available'));
           }
           final userData = snapshot.data!;
+
           return Stack(
             children: [
               Positioned.fill(
@@ -261,47 +261,51 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
 
   Widget _buildSongDetail() {
     return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 6),
+      padding: const EdgeInsets.only(left: 8, right: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Material(
-            color: AppColors.transparent,
-            child: InkWell(
-              onTap: () {
-                Navigator.push(context, createPageRoute(BehindThisTrackScreen(song: widget.song, initialIndex: widget.initialIndex)));
-              },
-              splashColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-              highlightColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
-              borderRadius: BorderRadius.circular(12),
-              child: Padding(
-                padding: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.song.title.split('.').first,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: AppSizes.fontSizeXl),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      widget.song.uploadedBy.isNotEmpty == true
-                        ? widget.song.uploadedBy
-                        : (widget.song.artist.isNotEmpty == true && widget.song.artist != '<unknown>')
-                          ? widget.song.artist
-                          : _getArtistFromTitle(widget.song.title) ?? 'Unknown Artist',
-                      style: const TextStyle(color: AppColors.white),
-                    ),
-                  ],
+          Expanded(
+            child: Material(
+              color: AppColors.transparent,
+              child: InkWell(
+                onTap: () {
+                  Navigator.push(context, createPageRoute(BehindThisTrackScreen(song: widget.song, initialIndex: widget.initialIndex)));
+                },
+                splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+                highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(widget.song.title.split('.').first, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: AppSizes.fontSizeXl),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        widget.song.uploadedBy.isNotEmpty
+                          ? widget.song.uploadedBy
+                          : (widget.song.artist.isNotEmpty && widget.song.artist != '<unknown>')
+                            ? widget.song.artist
+                            : _getArtistFromTitle(widget.song.title) ?? 'Unknown Artist',
+                        style: const TextStyle(color: AppColors.white),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-          Spacer(),
           IconButton(
+            splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+            highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
             onPressed: () {},
+            padding: EdgeInsets.zero,
             icon: const Icon(Icons.add_rounded, color: AppColors.buttonGrey, size: 30),
           ),
           DeviceIconButton(),
@@ -368,7 +372,7 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
                       icon: Icon(Bootstrap.shuffle, color: isShuffleActive ? AppColors.primary : AppColors.darkerGrey, size: 22),
                     ),
                     const SizedBox(width: 16),
-                    _controlButton(
+                    _buildControlButton(
                       context: context,
                       icon: FontAwesome.backward_step_solid,
                       onTap: () {
@@ -398,7 +402,7 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
                       ),
                     ),
                     const SizedBox(width: 20),
-                    _controlButton(
+                    _buildControlButton(
                       context: context,
                       icon: FontAwesome.forward_step_solid,
                       onTap: () {
@@ -434,7 +438,7 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
     );
   }
 
-  Widget _controlButton({
+  Widget _buildControlButton({
     required BuildContext context,
     required IconData icon,
     required VoidCallback onTap,
@@ -506,6 +510,7 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
                       width: 24,
                       height: 24,
                     ),
+                    if (widget.song.commentsCount > 0)
                     const SizedBox(width: 8),
                     if (widget.song.commentsCount > 0)
                     Text(
@@ -521,7 +526,7 @@ class SongPlayerScreenState extends State<SongPlayerScreen> {
             onPressed: () {
               showShareTrackBottomDialog(context, userData, widget.song);
             },
-            icon: Icon(FeatherIcons.share2, size: 26, color: context.isDarkMode ? AppColors.white : AppColors.black),
+            icon: Icon(BoxIcons.bx_share_alt, size: 27, color: context.isDarkMode ? AppColors.white : AppColors.black),
           ),
           IconButton(
             onPressed: () {

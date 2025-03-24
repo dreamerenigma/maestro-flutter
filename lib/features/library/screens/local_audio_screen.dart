@@ -3,6 +3,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:jam_icons/jam_icons.dart';
 import 'package:maestro/common/widgets/app_bar/app_bar.dart';
 import 'package:maestro/features/song_player/screens/song_player_screen.dart';
@@ -46,6 +47,7 @@ class LocalAudioScreenState extends State<LocalAudioScreen> {
   List<SongModelWithDownloadInfo> _filteredSongs = [];
   final TextEditingController _searchController = TextEditingController();
   bool isLoading = true;
+  String _selectedFilter = 'recentlyAdded';
 
   @override
   void initState() {
@@ -53,6 +55,7 @@ class LocalAudioScreenState extends State<LocalAudioScreen> {
     selectedIndex = widget.initialIndex;
     _requestPermission();
     _searchController.addListener(_filterSongs);
+    _loadSelectedFilter();
   }
 
   @override
@@ -135,6 +138,44 @@ class LocalAudioScreenState extends State<LocalAudioScreen> {
     });
   }
 
+  void _applyFilter(String filter) {
+    setState(() {
+      _selectedFilter = filter;
+      _filteredSongs = _filterSongsByOption(_selectedFilter);
+    });
+
+    _saveSelectedFilter(filter);
+  }
+
+  void _saveSelectedFilter(String filter) async {
+    final box = GetStorage();
+    await box.write('selectedFilter', filter);
+  }
+
+  Future<void> _loadSelectedFilter() async {
+    final box = GetStorage();
+    final savedFilter = box.read('selectedFilter') ?? 'recentlyAdded';
+    setState(() {
+      _selectedFilter = savedFilter;
+      _filteredSongs = _filterSongsByOption(savedFilter);
+    });
+  }
+
+  List<SongModelWithDownloadInfo> _filterSongsByOption(String option) {
+    switch (option) {
+      case 'recentlyAdded':
+        return _songs..sort((a, b) => a.downloadTime.compareTo(b.downloadTime));
+      case 'firstAdded':
+        return _songs..sort((a, b) => a.downloadTime.compareTo(b.downloadTime));
+      case 'title':
+        return _songs..sort((a, b) => a.song.title.compareTo(b.song.title));
+      case 'artist':
+        return _songs..sort((a, b) => a.song.artist?.compareTo(b.song.artist ?? '') ?? 0);
+      default:
+        return _songs..sort((a, b) => b.downloadTime.compareTo(a.downloadTime));
+    }
+  }
+
   Future<void> _reloadData() async {
     await Future.delayed(const Duration(seconds: 1));
     setState(() {});
@@ -171,7 +212,7 @@ class LocalAudioScreenState extends State<LocalAudioScreen> {
                     hintText: 'Search ${_filteredSongs.length} tracks',
                     icon: JamIcons.settingsAlt,
                     onIconPressed: () {
-                      showSortByLocalAudioBottomDialog(context);
+                      showSortByLocalAudioBottomDialog(context, _applyFilter);
                     },
                   ),
                 ),
@@ -272,13 +313,10 @@ class LocalAudioScreenState extends State<LocalAudioScreen> {
                           },
                         ),
                         if (isLoading)
-                          Center(
-                            child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)),
-                          ),
+                          Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary))),
                       ],
                     ),
                 ),
-                SizedBox(height: 70),
               ],
             ),
           ),

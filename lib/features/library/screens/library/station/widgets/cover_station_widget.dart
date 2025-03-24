@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:icons_plus/icons_plus.dart';
+import 'package:maestro/domain/entities/station/station_entity.dart';
 import '../../../../../../utils/constants/app_colors.dart';
 import '../../../../../../utils/constants/app_images.dart';
 import '../../../../../../utils/constants/app_sizes.dart';
 import '../../../profile/widgets/image_dialog.dart';
 
 class CoverStationWidget extends StatelessWidget {
-  final Map<String, dynamic> userData;
+  final StationEntity station;
 
-  const CoverStationWidget({super.key, required this.userData});
+  const CoverStationWidget({super.key, required this.station});
 
   @override
   Widget build(BuildContext context) {
-    final userName = userData['name'] as String?;
-
     return Padding(
       padding: const EdgeInsets.only(left: 16, right: 6, top: 16, bottom: 6),
       child: Row(
@@ -40,13 +39,13 @@ class CoverStationWidget extends StatelessWidget {
               child: Align(
                 alignment: Alignment.bottomLeft,
                 child: Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.only(left: 8, right: 8, bottom: 12),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('STATION', style: TextStyle(color: AppColors.white, fontSize: 11, fontWeight: FontWeight.bold, fontStyle: FontStyle.italic, fontFamily: 'Roboto')),
-                      Text('$userName', style: TextStyle(color: AppColors.lightGrey, fontSize: 10, height: 1)),
+                      Text(station.title, style: TextStyle(color: AppColors.lightGrey, fontSize: 10, height: 1), maxLines: 1, overflow: TextOverflow.ellipsis),
                     ],
                   ),
                 ),
@@ -57,12 +56,12 @@ class CoverStationWidget extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('$userName', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+              Text(station.title, style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
               Row(
                 children: [
                   Icon(BoxIcons.bx_station, size: 20),
                   SizedBox(width: 4),
-                  Text('Artist station · 2:55:12', style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal, fontFamily: 'Roboto')),
+                  Text('${station.type} station · 2:55:12', style: TextStyle(fontSize: 13, fontWeight: FontWeight.normal, fontFamily: 'Roboto')),
                 ],
               ),
             ],

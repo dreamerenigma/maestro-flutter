@@ -1,14 +1,18 @@
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:maestro/domain/entities/user/user_entity.dart';
 import '../../../data/services/search/search_service.dart';
 import '../../../utils/constants/app_sizes.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../utils/screens/internet_aware_screen.dart';
+import '../../../test/fake_query_document_snapshot.dart';
 import '../widgets/bars/search_bar.dart' as search;
 import '../widgets/bars/tab_bar_widget.dart';
 import '../widgets/grids/genre_grid.dart';
+import '../widgets/items/search_history_item.dart';
 import '../widgets/texts/search_results.dart';
 import '../widgets/texts/search_prompt.dart';
 
@@ -25,6 +29,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
   bool _isLoading = true;
   bool _noResultsFound = false;
   late TabController _tabController;
+  UserEntity? user;
   final FocusNode _focusNode = FocusNode();
   bool _hasFocus = false;
   bool _hasText = false;
@@ -34,12 +39,15 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
   final TextEditingController _searchController = TextEditingController();
   final SearchService _searchService = SearchService();
   List<QueryDocumentSnapshot> _searchResults = [];
+  List<Map<String, dynamic>> _searchHistory = [];
 
   @override
   void initState() {
     super.initState();
     _loadData();
+    _loadSearchHistory();
     _tabController = TabController(length: 5, vsync: this);
+    _loadUserData();
 
     _focusNode.addListener(() {
       setState(() {
@@ -65,6 +73,11 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
           _isLoading = false;
           _showTabBarWidget = true;
         });
+
+        FocusScope.of(context).requestFocus(_focusNode);
+        setState(() {
+          _searchResults = searchResults;
+        });
       } else {
         setState(() {
           _searchResults = [];
@@ -82,6 +95,20 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
     _searchController.dispose();
     _focusNode.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadUserData() async {
+    final firebaseUser = FirebaseAuth.instance.currentUser;
+
+    if (firebaseUser != null) {
+      DocumentSnapshot doc = await FirebaseFirestore.instance.collection('Users').doc(firebaseUser.uid).get();
+
+      user = UserEntity.fromFirestore(doc);
+
+      setState(() {});
+    } else {
+      log('No user is logged in');
+    }
   }
 
   Future<void> _loadData() async {
@@ -110,11 +137,32 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
     _focusNode.unfocus();
     setState(() {
       _hasFocus = false;
+      _searchResults.clear();
     });
   }
 
-  void _onResultTap(QueryDocumentSnapshot result) {
+  void _onResultTap(dynamic result) async {
     log('Result tapped: ${result.data()}');
+
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+        throw Exception('No user logged in');
+      }
+
+    Map<String, dynamic> data = result.data() as Map<String, dynamic>;
+
+    String id = result.id;
+    String name = data['name'] ?? data['title'] ?? 'Unknown';
+    String image = data['image'] ?? data['cover'] ?? '';
+    String type = data['type'] ?? '';
+
+    await FirebaseFirestore.instance
+      .collection('Users')
+      .doc(user.uid)
+      .collection('SearchHistory')
+      .doc(id)
+      .set({ 'id': id, 'name': name, 'image': image, 'timestamp': FieldValue.serverTimestamp(), 'type': type });
 
     setState(() {
       _isTabLoading = true;
@@ -130,6 +178,39 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
     });
   }
 
+  Future<void> _loadSearchHistory() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      log('No user logged in');
+      return;
+    }
+
+    var snapshot = await FirebaseFirestore.instance
+      .collection('Users')
+      .doc(user.uid)
+      .collection('SearchHistory')
+      .orderBy('timestamp', descending: true)
+      .get();
+
+    setState(() {
+      _searchHistory = snapshot.docs.map((doc) => doc.data()).toList();
+    });
+  }
+
+  void _deleteSearchHistory(String id) async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      log('No user logged in');
+      return;
+    }
+
+    await FirebaseFirestore.instance.collection('Users').doc(user.uid).collection('SearchHistory').doc(id).delete();
+
+    _loadSearchHistory();
+  }
+
   Future<void> _reloadData() async {
     await Future.delayed(const Duration(seconds: 1));
     setState(() {});
@@ -138,173 +219,154 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _searchResults.isEmpty
-        ? RefreshIndicator(
-          onRefresh: _reloadData,
-          displacement: 100,
-          color: AppColors.primary,
-          backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.softGrey,
-          child: Stack(
-            children: [
-              Column(
-                children: [
-                  Column(
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: search.SearchBar(
-                              searchController: _searchController,
-                              searchFocusNode: _focusNode,
-                              hasFocus: _hasFocus,
-                              hasText: _hasText,
-                              removeFocus: _removeFocus,
-                              onChanged: (text) {
-                                setState(() {
-                                  _hasText = text.isNotEmpty;
-                                });
-                              },
-                              clearSearch: _clearSearch,
-                            ),
-                          ),
-                          SizedBox(width: 12),
-                          Padding(
-                            padding: const EdgeInsets.only(right: 4, top: 40, bottom: 8),
-                            child: IconButton(
-                              onPressed: () {},
-                              icon: Icon(Icons.cast, size: 23, color: AppColors.lightGrey),
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (!_isTabLoading && _hasText && !_isLoading && !_isSearchResult)
-                        SearchResults(
-                          isLoading: _isLoading,
-                          noResultsFound: _noResultsFound,
-                          hasText: _hasText,
-                          searchResults: _searchResults,
-                          onResultTap: _onResultTap,
-                        ),
-                      if (_isTabLoading)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 30),
-                          child: const Center(
-                            child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)),
-                          ),
-                        ),
-                      if (!_isTabLoading && _isSearchResult && _showTabBarWidget)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10),
-                          child: TabBarWidget(initialIndex: 0),
-                        ),
-                      if (!_hasFocus && _searchResults.isNotEmpty)
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: GestureDetector(
-                            onTap: () {},
-                            child: Text('Recent searches', style: TextStyle(fontSize: AppSizes.fontSizeSm, fontWeight: FontWeight.bold)),
-                          ),
-                        ),
-                      if (!_hasText && (_hasFocus || (_noResultsFound && !_isLoading && !_hasText)))
-                        Center(child: const SearchPrompt()),
-                      if (_isLoading)
-                        const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary))),
-                    ],
-                  ),
-                  if (!_isLoading && !_hasFocus && !_noResultsFound)
-                    GenreGrid(sectionTitle: "Vibes", initialIndex: widget.initialIndex),
-                ],
+      body: _searchResults.isEmpty ? _buildEmptySearchResults() : _buildSearchResults(),
+    );
+  }
+
+  Widget _buildSearchResults() {
+    return Stack(
+      children: [
+        Column(
+          children: [
+            _buildSearchBar(),
+            if (!_isTabLoading && _hasText && !_isLoading && !_isSearchResult)
+              SearchResults(
+                isLoading: _isLoading,
+                noResultsFound: _noResultsFound,
+                hasText: _hasText,
+                searchResults: _searchResults,
+                onResultTap: _onResultTap,
               ),
-              Positioned(
-                top: kToolbarHeight + 30,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Align(alignment: Alignment.topCenter, child: InternetAwareScreen(title: 'Search Screen', connectedScreen: Container())),
+            if (_isTabLoading)
+              Padding(
+                padding: const EdgeInsets.only(top: 30),
+                child: const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary))),
               ),
-            ],
+            if (!_hasFocus && _searchResults.isNotEmpty && _hasText)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: GestureDetector(
+                  onTap: () {},
+                  child: Text('Recent searches', style: TextStyle(fontSize: AppSizes.fontSizeSm, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            if (!_hasText && (_hasFocus || (_noResultsFound && !_isLoading && !_hasText)))
+              Center(child: const SearchPrompt()),
+            if (_isLoading)
+              const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary))),
+          ],
+        ),
+        if (!_isTabLoading && _isSearchResult && _showTabBarWidget)
+          Padding(
+            padding: const EdgeInsets.only(top: 100),
+            child: TabBarWidget(initialIndex: 0),
           ),
-        )
-      : Stack(
+        Positioned(
+          top: kToolbarHeight + 30,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: Align(alignment: Alignment.topCenter, child: InternetAwareScreen(title: 'Search Screen', connectedScreen: Container())),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptySearchResults() {
+    return RefreshIndicator(
+      onRefresh: _reloadData,
+      displacement: 100,
+      color: AppColors.primary,
+      backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.softGrey,
+      child: Stack(
         children: [
           Column(
             children: [
-              Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: search.SearchBar(
-                          searchController: _searchController,
-                          searchFocusNode: _focusNode,
-                          hasFocus: _hasFocus,
-                          hasText: _hasText,
-                          removeFocus: _removeFocus,
-                          onChanged: (text) {
-                            setState(() {
-                              _hasText = text.isNotEmpty;
-                            });
-                          },
-                          clearSearch: _clearSearch,
-                        ),
-                      ),
-                      SizedBox(width: 12),
-                      Padding(
-                        padding: const EdgeInsets.only(right: 4, top: 40, bottom: 8),
-                        child: IconButton(
-                          onPressed: () {},
-                          icon: Icon(Icons.cast, size: 23, color: AppColors.lightGrey),
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (!_isTabLoading && _hasText && !_isLoading && !_isSearchResult)
-                    SearchResults(
-                      isLoading: _isLoading,
-                      noResultsFound: _noResultsFound,
-                      hasText: _hasText,
-                      searchResults: _searchResults,
-                      onResultTap: _onResultTap,
-                    ),
-                  if (_isTabLoading)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 30),
-                      child: const Center(
-                        child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)),
-                      ),
-                    ),
-                  if (!_hasFocus && _searchResults.isNotEmpty)
+              _buildSearchBar(),
+              if (!_isTabLoading && _hasText && !_isLoading && !_isSearchResult)
+                SearchResults(
+                  isLoading: _isLoading,
+                  noResultsFound: _noResultsFound,
+                  hasText: _hasText,
+                  searchResults: _searchResults,
+                  onResultTap: _onResultTap,
+                ),
+              if (_isTabLoading)
+                Padding(
+                  padding: const EdgeInsets.only(top: 30),
+                  child: const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary))),
+                ),
+              if (!_hasText && _hasFocus && _searchHistory.isNotEmpty)
+                Column(
+                  children: [
                     Align(
                       alignment: Alignment.centerLeft,
                       child: GestureDetector(
                         onTap: () {},
-                        child: Text('Recent searches', style: TextStyle(fontSize: AppSizes.fontSizeSm, fontWeight: FontWeight.bold)),
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 6),
+                          child: Text('Recent searches', style: TextStyle(fontSize: AppSizes.fontSizeSm, fontWeight: FontWeight.bold)),
+                        ),
                       ),
                     ),
-                  if (!_hasText && (_hasFocus || (_noResultsFound && !_isLoading && !_hasText)))
-                    Center(child: const SearchPrompt()),
-                  if (_isLoading)
-                    const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary))),
-                ],
-              ),
-              if (!_isLoading && !_hasFocus && !_noResultsFound)
-                GenreGrid(sectionTitle: "Vibes", initialIndex: widget.initialIndex),
+                    ListView.builder(
+                      padding: EdgeInsets.zero,
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      itemCount: _searchHistory.length,
+                      itemBuilder: (context, index) {
+                        var item = _searchHistory[index];
+                        return SearchHistoryItem(
+                          item: item,
+                          onDelete: () => _deleteSearchHistory(item['id']),
+                          onTap: () => _onResultTap(FakeDocumentSnapshot(item)),
+                          initialIndex: widget.initialIndex,
+                          user: user,
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              if (!_hasText && _hasFocus && _searchHistory.isEmpty && !_isLoading)
+                Center(child: const SearchPrompt()),
+              if (_isLoading)
+                const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary))),
             ],
           ),
-          if (!_isTabLoading && _isSearchResult && _showTabBarWidget)
-            Padding(
-              padding: const EdgeInsets.only(top: 100),
-              child: TabBarWidget(initialIndex: 0),
-            ),
-          Positioned(
-            top: kToolbarHeight + 30,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Align(alignment: Alignment.topCenter, child: InternetAwareScreen(title: 'Search Screen', connectedScreen: Container())),
-          ),
+          if (!_isLoading && !_hasFocus && !_noResultsFound)
+            Positioned.fill(top: 90, child: GenreGrid(sectionTitle: "Vibes", initialIndex: widget.initialIndex)),
         ],
       ),
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Row(
+      children: [
+        Expanded(
+          child: search.SearchBar(
+            searchController: _searchController,
+            searchFocusNode: _focusNode,
+            hasFocus: _hasFocus,
+            hasText: _hasText,
+            removeFocus: _removeFocus,
+            onChanged: (text) {
+              setState(() {
+                _hasText = text.isNotEmpty;
+              });
+            },
+            clearSearch: _clearSearch,
+          ),
+        ),
+        SizedBox(width: 12),
+        Padding(
+          padding: const EdgeInsets.only(right: 4, top: 40, bottom: 8),
+          child: IconButton(
+            onPressed: () {},
+            icon: Icon(Icons.cast, size: 22, color: AppColors.lightGrey),
+          ),
+        ),
+      ],
     );
   }
 }

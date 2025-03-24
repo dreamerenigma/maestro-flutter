@@ -12,6 +12,7 @@ abstract class PlaylistFirebaseService {
   Future<Either<Exception, String>> createPlaylist(String title, bool isPublic);
   Future<Either<Exception, String>> updatePlaylist(String playlistId, String title, String description, String coverImage, int trackCount, List<String> tags, bool isPublic);
   Future<Either<Exception, String>> deletePlaylist(String playlistId);
+  Future<Either<Exception, String>> copyPlaylist(String playlistId, String title, bool isPublic);
 }
 
 class PlaylistFirebaseServiceImpl extends PlaylistFirebaseService {
@@ -122,6 +123,57 @@ class PlaylistFirebaseServiceImpl extends PlaylistFirebaseService {
       return Right('Playlist deleted successfully');
     } catch (e) {
       return Left(Exception('Failed to delete playlist: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Exception, String>> copyPlaylist(String playlistId, String title, bool isPublic) async {
+    try {
+      var playlistDoc = await FirebaseFirestore.instance.collection('Playlists').doc(playlistId).get();
+      if (!playlistDoc.exists) {
+        return Left(Exception('Playlist not found'));
+      }
+
+      var playlistData = playlistDoc.data();
+      if (playlistData == null) {
+        return Left(Exception('Failed to fetch playlist data'));
+      }
+
+      var tracksQuery = await FirebaseFirestore.instance.collection('Tracks')
+        .where('playlistId', isEqualTo: playlistId)
+        .get();
+
+      List<Map<String, dynamic>> tracksData = [];
+      for (var trackDoc in tracksQuery.docs) {
+        tracksData.add(trackDoc.data());
+      }
+
+      final newPlaylistRef = FirebaseFirestore.instance.collection('Playlists').doc();
+      Map<String, dynamic> newPlaylistData = {
+        'title': playlistData['title'],
+        'description': playlistData['description'],
+        'coverImage': playlistData['coverImage'],
+        'isPublic': playlistData['isPublic'],
+        'releaseDate': FieldValue.serverTimestamp(),
+        'authorName': playlistData['authorName'],
+      };
+
+      await newPlaylistRef.set(newPlaylistData);
+      log('New playlist created with ID: ${newPlaylistRef.id}');
+
+      for (var track in tracksData) {
+        await FirebaseFirestore.instance.collection('Tracks').add({
+          ...track,
+          'playlistId': newPlaylistRef.id,
+        });
+      }
+      log('Tracks copied to the new playlist');
+
+      return Right(newPlaylistRef.id);
+
+    } catch (e) {
+      log('Error copying playlist: $e');
+      return Left(Exception('Failed to copy playlist'));
     }
   }
 }

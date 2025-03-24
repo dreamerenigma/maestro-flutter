@@ -15,6 +15,7 @@ class BasicAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onBackPressed;
   final bool rotateIcon;
   final bool removeIconContainer;
+  final bool showProgressDialog;
   final EdgeInsetsGeometry padding;
 
   const BasicAppBar({
@@ -29,6 +30,7 @@ class BasicAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.onBackPressed,
     this.rotateIcon = false,
     this.removeIconContainer = false,
+    this.showProgressDialog = true,
     this.padding = const EdgeInsets.symmetric(horizontal: 6),
     super.key,
   });
@@ -82,10 +84,10 @@ class BasicAppBar extends StatelessWidget implements PreferredSizeWidget {
                     ),
                   )
                 : Container(
-                    height: 36,
-                    width: 36,
+                    height: 34,
+                    width: 34,
                     decoration: BoxDecoration(
-                      color: context.isDarkMode ? AppColors.white.withAlpha((0.1 * 255).toInt()) : AppColors.black.withAlpha((0.08 * 255).toInt()),
+                      color: context.isDarkMode ? AppColors.youngNight : AppColors.black,
                       shape: BoxShape.circle,
                     ),
                     child: Transform.rotate(
@@ -114,13 +116,17 @@ class BasicAppBar extends StatelessWidget implements PreferredSizeWidget {
         height: 35,
         child: ElevatedButton(
           onPressed: () async {
-            Dialogs.showProgressBarDialog(context, title: '', message: 'Saving');
+            if (showProgressDialog) {
+              Dialogs.showProgressBarDialog(context, title: '', message: 'Saving');
+            }
 
             onSavePressed?.call();
 
             await Future.delayed(Duration(seconds: 1));
 
-            Navigator.pop(context);
+            if (showProgressDialog) {
+              Navigator.pop(context);
+            }
             Navigator.pop(context);
           },
           style: ElevatedButton.styleFrom(

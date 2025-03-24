@@ -9,4 +9,9 @@ class StationRepositoryImpl extends StationRepository {
   Future<Either<String, StationModel>> createStation(StationModel stationModel) async {
     return await sl<StationFirebaseService>().createStation(stationModel);
   }
+
+  @override
+  Future<Either<String, List<StationModel>>> getStations() async {
+    return await sl<StationFirebaseService>().getStations();
+  }
 }

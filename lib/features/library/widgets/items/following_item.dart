@@ -14,10 +14,7 @@ class FollowingItem extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 30,
-            backgroundImage: NetworkImage(user.image),
-          ),
+          CircleAvatar(radius: 30, backgroundImage: NetworkImage(user.image)),
           const SizedBox(width: 16),
           Expanded(
             child: Column(

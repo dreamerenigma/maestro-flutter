@@ -26,6 +26,7 @@ class AllTracksScreen extends StatefulWidget {
 class _AllTracksScreenState extends State<AllTracksScreen> {
   late final int selectedIndex;
   List<SongEntity> songs = [];
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -42,6 +43,7 @@ class _AllTracksScreenState extends State<AllTracksScreen> {
       }).toList();
       setState(() {
         songs = songsData;
+        isLoading = false;
       });
     } catch (e) {
       log('Error loading tracks: $e');
@@ -75,21 +77,23 @@ class _AllTracksScreenState extends State<AllTracksScreen> {
             displacement: 0,
             color: AppColors.primary,
             backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.softGrey,
-            child: songs.isEmpty
-              ? const Center(child: Text('No tracks available', style: TextStyle(color: AppColors.grey)))
-              : Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: ListView.builder(
-                  itemCount: songs.length,
-                  itemBuilder: (context, index) {
-                    final song = songs[index];
-                    return TrackItem(
-                      song: song,
-                      onTap: () {},
-                      showMoreButton: false,
-                    );
-                  },
-                ),
+            child: isLoading
+              ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+              : songs.isEmpty
+                ? const Center(child: Text('No tracks available', style: TextStyle(color: AppColors.grey)))
+                : Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: ListView.builder(
+                    itemCount: songs.length,
+                    itemBuilder: (context, index) {
+                      final song = songs[index];
+                      return TrackItem(
+                        song: song,
+                        onTap: () {},
+                        showMoreButton: false,
+                      );
+                    },
+                  ),
               ),
           ),
         ),

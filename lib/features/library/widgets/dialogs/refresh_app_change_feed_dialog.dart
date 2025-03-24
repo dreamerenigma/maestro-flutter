@@ -21,6 +21,7 @@ Future<bool> showRefreshAppChangeFeedDialog(BuildContext context) async {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
               decoration: BoxDecoration(color: context.isDarkMode ? AppColors.youngNight : AppColors.light, borderRadius: BorderRadius.circular(25)),
               child: Stack(
+                clipBehavior: Clip.none,
                 children: [
                   Column(
                     mainAxisSize: MainAxisSize.min,

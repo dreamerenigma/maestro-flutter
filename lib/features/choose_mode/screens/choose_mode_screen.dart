@@ -17,6 +17,10 @@ class ChooseModeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Brightness systemBrightness = PlatformDispatcher.instance.platformBrightness;
+    final initialThemeMode = systemBrightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light;
+    context.read<ThemeCubit>().updateTheme(initialThemeMode);
+
     return Scaffold(
       body: BlocBuilder<ThemeCubit, ThemeMode>(
         builder: (context, themeMode) {

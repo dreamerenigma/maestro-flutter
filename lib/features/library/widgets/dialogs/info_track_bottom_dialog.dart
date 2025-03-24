@@ -22,10 +22,13 @@ import 'package:maestro/utils/constants/app_vectors.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:typicons_flutter/typicons_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../data/models/station/station_model.dart';
+import '../../../../data/services/station/station_firebase_service.dart';
 import '../../../../domain/entities/comment/comment_entity.dart';
 import '../../../../domain/entities/song/song_entity.dart';
-import '../../../../domain/entities/station/station_entity.dart';
+import '../../../../domain/entities/user/user_entity.dart';
 import '../../../../routes/custom_page_route.dart';
+import '../../../../service_locator.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
 import '../../../../utils/popups/dialogs.dart';
@@ -33,6 +36,7 @@ import '../../bloc/song/song_cubit.dart';
 import '../../screens/library/playlists/add_track_playlist_screen.dart';
 import '../../screens/library/station/station_screen.dart';
 import '../../screens/library/tracks/edit_track_screen.dart';
+import '../../screens/report_screen.dart';
 
 void copyUserInfo(Map<String, dynamic> userData) {
   final userName = userData['userName'] as String?;
@@ -107,6 +111,7 @@ void showInfoTrackBottomDialog(
   double initialChildSize = 0.95,
   double minChildSize = 0.6,
   double maxChildSize = 0.95,
+  String type = 'Track',
 }) {
   int initialIndex = 0;
   int selectedIndex = 0;
@@ -126,8 +131,45 @@ void showInfoTrackBottomDialog(
   }
 
   List<CommentEntity> comments = [];
-  List<StationEntity> station = [];
+  List<UserEntity> user = [];
   List<SongEntity> songs = [];
+
+  Future<void> createAndNavigateToStationScreen() async {
+    final trackTitle = song.title;
+    final authorName = song.uploadedBy;
+
+    final stationModel = StationModel(
+      stationId: '',
+      title: trackTitle,
+      cover: '',
+      authorName: authorName,
+      duration: Duration(minutes: 5),
+      isFavorite: false,
+      likesCount: 0,
+      trackCount: 0,
+      type: type,
+    );
+
+    log('Creating station: ${stationModel.title} by ${stationModel.authorName}');
+
+    final result = await sl<StationFirebaseService>().createStation(stationModel);
+
+    result.fold(
+      (error) {
+        log('Error creating station: $error');
+      },
+      (createdStation) {
+        log('Station created: ${createdStation.title} by ${createdStation.authorName}');
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => StationScreen(initialIndex: 3, station: createdStation.toEntity(), song: songs, user: user),
+          ),
+        );
+      },
+    );
+  }
 
   showModalBottomSheet(
     context: context,
@@ -362,7 +404,7 @@ void showInfoTrackBottomDialog(
                           Navigator.push(context, createPageRoute(AddTrackPlaylistScreen(playlists: [], initialIndex: initialIndex)));
                         }),
                         _buildSectionOption(context, 'Start Station', icon: BoxIcons.bx_station, () {
-                          Navigator.push(context, createPageRoute(StationScreen(initialIndex: initialIndex, station: station, song: songs)));
+                          createAndNavigateToStationScreen();
                         }),
                         Divider(height: 5, thickness: 1, color: context.isDarkMode ? AppColors.darkGrey : AppColors.lightGrey),
                         _buildSectionOption(context, 'Go to artist profile', icon: FeatherIcons.user, () {
@@ -376,7 +418,7 @@ void showInfoTrackBottomDialog(
                         ), () {
                           Navigator.push(context, createPageRoute(CommentsScreen(song: song, comments: comments)));
                         }),
-                        if (shouldShowRepost)
+                        if (shouldShowRepost && song.uploadedBy != userData['name'])
                         _buildSectionOption(context, 'Repost on Maestro', icon: CarbonIcons.repeat, rotationAngle: 1.57, () {}),
                         Divider(height: 5, thickness: 1, color: context.isDarkMode ? AppColors.darkGrey : AppColors.lightGrey),
                         if (shouldShowBehindThisTrack)
@@ -393,7 +435,9 @@ void showInfoTrackBottomDialog(
                           colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn),
                           width: 22,
                           height: 22,
-                        ), () {}),
+                        ), () {
+                          Navigator.pushReplacement(context, createPageRoute(ReportScreen()));
+                        }),
                         SizedBox(height: 12),
                       ],
                     ),
@@ -422,27 +466,13 @@ Widget _buildSectionOption(
       child: Row(
         children: [
           if (svgIcon != null)
-            Transform.rotate(
-              angle: rotationAngle,
-              child: svgIcon,
-            )
+            Transform.rotate(angle: rotationAngle, child: svgIcon)
           else if (icon != null)
-            Transform.rotate(
-              angle: rotationAngle,
-              child: Icon(
-                icon,
-                color: iconColor,
-                size: iconSize,
-              ),
-            ),
+            Transform.rotate(angle: rotationAngle, child: Icon(icon, color: iconColor, size: iconSize)),
           if (icon != null || svgIcon != null) SizedBox(width: 16),
           Text(
             text,
-            style: TextStyle(
-              color: textColor,
-              fontSize: AppSizes.fontSizeMd,
-              fontWeight: FontWeight.normal,
-            ),
+            style: TextStyle(color: textColor, fontSize: AppSizes.fontSizeMd, fontWeight: FontWeight.normal),
           ),
         ],
       ),

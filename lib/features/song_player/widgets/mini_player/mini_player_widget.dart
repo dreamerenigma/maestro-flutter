@@ -59,18 +59,24 @@ class _MiniPlayerWidgetState extends State<MiniPlayerWidget> {
         if (state is SongPlayerLoaded) {
           final songPlayerCubit = context.read<SongPlayerCubit>();
           final songEntity = context.read<SongPlayerCubit>().currentSong;
+
           if (songEntity == null) {
+            log('No song entity available.');
             return Container();
           }
           final isPlaying = context.read<SongPlayerCubit>().audioPlayer.playing;
+          log('Audio player playing: $isPlaying');
           final currentPosition = context.read<SongPlayerCubit>().songPosition;
           final totalDuration = context.read<SongPlayerCubit>().songDuration;
           final progress = totalDuration.inMilliseconds > 0 ? currentPosition.inMilliseconds / totalDuration.inMilliseconds : 0.0;
           final fileURL = songEntity.fileURL;
           final isLocalFile = fileURL.startsWith('file://') || fileURL.startsWith('/');
 
+          log('Song Entity: ${songEntity.title}, isPlaying: $isPlaying, currentPosition: $currentPosition, totalDuration: $totalDuration');
+
           final user = FirebaseAuth.instance.currentUser;
           if (user == null) {
+            log('No user logged in');
             throw Exception('No user logged in');
           }
 
@@ -87,7 +93,7 @@ class _MiniPlayerWidgetState extends State<MiniPlayerWidget> {
               child: InkWell(
                 onTap: () {
                   final songEntity = context.read<SongPlayerCubit>().currentSong;
-
+                  log('Tapped song: ${songEntity?.title ?? 'No song available'}');
                   if (songEntity != null) {
                     Navigator.push(context, createPageRoute(SongPlayerScreen(song: songEntity, isPlaying: context.read<SongPlayerCubit>().isPlaying, initialIndex: selectedIndex)));
                   } else {
@@ -122,8 +128,8 @@ class _MiniPlayerWidgetState extends State<MiniPlayerWidget> {
                                         ),
                                       ),
                                       Container(
-                                        width: 10,
-                                        height: 10,
+                                        width: 9,
+                                        height: 9,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
                                           color: AppColors.blackGrey,
@@ -164,6 +170,7 @@ class _MiniPlayerWidgetState extends State<MiniPlayerWidget> {
                               IconButton(
                                 icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow, color: AppColors.white, size: 30),
                                 onPressed: () {
+                                  log('Play/Pause button pressed');
                                   songPlayerCubit.playOrPauseSong();
                                 },
                               ),

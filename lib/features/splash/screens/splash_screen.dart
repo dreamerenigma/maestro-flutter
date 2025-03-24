@@ -20,7 +20,7 @@ class SplashScreenState extends State<SplashScreen> {
   }
 
   void _startSplashScreen() async {
-    await Future.delayed(const Duration(seconds: 3));
+    await Future.delayed(const Duration(seconds: 1));
 
     if (mounted) {
       final user = FirebaseAuth.instance.currentUser;

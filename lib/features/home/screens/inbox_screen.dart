@@ -12,7 +12,6 @@ import '../../../domain/entities/user/user_entity.dart';
 import '../../../routes/custom_page_route.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../../generated/l10n/l10n.dart';
-import '../../../utils/formatters/formatter.dart';
 import '../../song_player/widgets/mini_player/mini_player_manager.dart';
 import '../../chats/widgets/lists/user_message_list.dart';
 import '../../utils/screens/internet_aware_screen.dart';
@@ -26,6 +25,7 @@ class InboxScreen extends StatefulWidget {
   final int selectedIndex;
   final Function(int) onItemTapped;
   final Function(int) updateUnreadMessages;
+  final UserEntity? user;
 
   const InboxScreen({
     super.key,
@@ -33,6 +33,7 @@ class InboxScreen extends StatefulWidget {
     required this.onItemTapped,
     required this.updateUnreadMessages,
     required this.initialIndex,
+    this.user,
   });
 
   @override
@@ -44,15 +45,11 @@ class InboxScreenState extends State<InboxScreen> {
   final GetStorage storage = GetStorage();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   late User? user;
-  List<Map<String, dynamic>> userMessages = [];
   late Stream<List<Map<String, dynamic>>> messageStream;
-
-  bool get isMiniPlayerVisible {
-    return true;
-  }
+  bool isMiniPlayerVisible = true;
 
   double get fabBottomPosition {
-    return isMiniPlayerVisible ? 15.0 : 75.0;
+    return isMiniPlayerVisible ? 75.0 : 15.0;
   }
 
   @override
@@ -68,68 +65,36 @@ class InboxScreenState extends State<InboxScreen> {
   }
 
   Stream<List<Map<String, dynamic>>> _fetchUserMessages() {
-  final user = FirebaseAuth.instance.currentUser;
-
-  if (user == null) {
-    throw Exception(S.of(context).noUserLoggedIn);
-  }
-
-  log('Current User ID: ${user.uid}');
-
-  return FirebaseFirestore.instance
-      .collection('Users')
-      .doc(user.uid)
-      .collection('Messages')
+    return FirebaseFirestore.instance
+      .collection('Chats')
       .orderBy('sent', descending: true)
       .snapshots()
-      .asyncMap((snapshot) async {
-    List<Map<String, dynamic>> messages = [];
-    Set<String> processedUsers = {};
+      .map((snapshot) {
+        log("Snapshot data: ${snapshot.docs.length} documents found");
+        if (snapshot.docs.isEmpty) {
+          log("No documents found in the snapshot.");
+        }
 
-    for (var doc in snapshot.docs) {
-      var data = doc.data();
-      log('Message Data: $data');
+        return snapshot.docs.map((doc) {
+          log("Document data: ${doc.data()}");
+          final data = doc.data();
+          log("Fetched data: $data");
+          String fromId = data['fromId'] ?? '';
+          String toId = data['toId'] ?? '';
+          String message = data['message'] ?? '';
+          Timestamp sentTimestamp = data['sent'] ?? Timestamp.now();
 
-      String toId = data['toId'];
-      if (processedUsers.contains(toId)) {
-        continue;
-      }
-
-      DocumentSnapshot userSnapshot = await FirebaseFirestore.instance.collection('Users').doc(toId).get();
-      if (!userSnapshot.exists) {
-        continue;
-      }
-
-      var userData = userSnapshot.data() as Map<String, dynamic>;
-
-      messages.add({
-        'id': toId,
-        'name': userData['name'] ?? 'Unknown',
-        'message': data['message'] ?? '',
-        'sent': Formatter.formatTime((data['sent'] as Timestamp).toDate()),
-        'userEntity': UserEntity(
-          id: toId,
-          name: userData['name'] ?? '',
-          image: userData['image'] ?? '',
-          bio: '',
-          city: '',
-          country: '',
-          flag: '',
-          backgroundImage: '',
-          followers: 0,
-          links: [],
-          limitUploads: 0,
-          tracksCount: 0,
-          verifyAccount: false,
-        ),
+          return {
+            'fromId': fromId,
+            'toId': toId,
+            'message': message,
+            'sent': sentTimestamp.toDate(),
+          };
+        }).toList();
+      }).handleError((e) {
+        log("Error in stream: $e");
       });
-
-      processedUsers.add(toId);
-    }
-
-    return messages;
-  });
-}
+  }
 
   void _buildMarkMessageAsRead() {
     int newUnreadCount = 0;
@@ -151,7 +116,7 @@ class InboxScreenState extends State<InboxScreen> {
         actions: [
           IconButton(
             onPressed: () {},
-            icon: const Icon(Icons.cast, size: 23),
+            icon: const Icon(Icons.cast, size: 22),
           ),
         ],
       ),
@@ -185,7 +150,7 @@ class InboxScreenState extends State<InboxScreen> {
                           child: MessageWidget(userData: userData),
                         ),
                         Expanded(
-                          child: UserMessageList(initialIndex: widget.initialIndex, messages: userMessages, messageStream: messageStream),
+                          child: UserMessageList(initialIndex: widget.initialIndex, messageStream: messageStream),
                         ),
                       ],
                     );

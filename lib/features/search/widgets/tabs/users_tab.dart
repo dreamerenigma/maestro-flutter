@@ -54,7 +54,7 @@ class UsersTabState extends State<UsersTab> {
         child: Column(
           children: [
             Expanded(
-              child: UserList(users: _users, initialIndex: widget.initialIndex),
+              child: UserList(users: _users, initialIndex: widget.initialIndex, shouldShowToResultRow: false),
             ),
           ],
         ),

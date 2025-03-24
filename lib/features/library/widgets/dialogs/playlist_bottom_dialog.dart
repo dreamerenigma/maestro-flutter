@@ -24,6 +24,7 @@ import '../../../../utils/constants/app_vectors.dart';
 import '../../../../utils/popups/dialogs.dart';
 import '../../screens/library/playlists/add_music_screen.dart';
 import '../../screens/library/playlists/edit_playlist.dart';
+import 'copy_playlist_dialog.dart';
 import 'delete_playlist_dialog.dart';
 
 void copyUserInfo(Map<String, dynamic> userData) {
@@ -359,7 +360,7 @@ void showPlaylistBottomDialog(
                   height: 22,
                 ), () {
                   Navigator.of(context).pop();
-                  showDeletePlaylistDialog(context, playlistId, onPlaylistDeleted);
+                  showCopyPlaylistDialog(context, playlistId);
                 }),
               ],
               Divider(color: AppColors.darkGrey),
@@ -407,7 +408,7 @@ Widget _buildSectionOption(
           else if (icon != null)
             Transform.rotate(angle: rotationAngle, child: Icon(icon, size: 26)),
           if (icon != null || svgIcon != null) SizedBox(width: 16),
-          Text(text, style: TextStyle(fontSize: AppSizes.fontSizeLg, fontWeight: FontWeight.w200)),
+          Text(text, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w200)),
         ],
       ),
     ),

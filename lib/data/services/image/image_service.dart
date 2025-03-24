@@ -4,6 +4,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:logger/logger.dart';
 
+
+
 final _picker = ImagePicker();
 File? _image;
 
@@ -13,10 +15,7 @@ Future<void> pickImage(BuildContext context) async {
   if (pickedFile != null) {
     _image = File(pickedFile.path);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Image selected: ${pickedFile.path}'),
-        behavior: SnackBarBehavior.floating,
-      ),
+      SnackBar(content: Text('Image selected: ${pickedFile.path}'), behavior: SnackBarBehavior.floating),
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -18,6 +19,38 @@ abstract class AuthFirebaseService {
 }
 
 class AuthFirebaseServiceImpl extends AuthFirebaseService {
+
+  @override
+  Future<Either> signUp(CreateUserReq createUserReq) async {
+    try {
+      var data = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: createUserReq.email,
+        password: createUserReq.password,
+      );
+
+      FirebaseFirestore.instance.collection('Users').doc(data.user?.uid).set({
+        'id': createUserReq.id,
+        'createdAt': createUserReq.createdAt,
+        'name': createUserReq.name,
+        'email': data.user?.email,
+        'gender': createUserReq.gender,
+        'age': createUserReq.age,
+        'image': createUserReq.image,
+      });
+
+      return const Right('Signup was Successful');
+    } on FirebaseAuthException catch (e) {
+      String message = '';
+
+      if (e.code == 'week-password') {
+        message = 'The password provided is too week';
+      } else if (e.code == 'email-already-in-use') {
+        message = 'An account already exists with that email.';
+      }
+
+      return Left(message);
+    }
+  }
 
   @override
   Future<Either> signIn(SignInUserReq signInUserReq) async {
@@ -46,64 +79,39 @@ class AuthFirebaseServiceImpl extends AuthFirebaseService {
   @override
   Future<Either<String, String>> googleSignIn() async {
     try {
+      log('Starting Google Sign-In process...');
+
       final GoogleSignIn googleSignIn = GoogleSignIn();
       await googleSignIn.signOut();
+      log('Successfully signed out previous session.');
+
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
       if (googleUser == null) {
+        log('Google Sign-In aborted by user');
         return const Left('Google sign-in aborted');
       }
+      log('Google Sign-In successful: ${googleUser.email}');
 
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
       final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
+      log('Google authentication successful.');
 
       final UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
       final User? user = userCredential.user;
 
       if (user == null) {
+        log('Firebase Auth sign-in failed');
         return const Left('Google sign-in failed');
       }
 
-      final userDoc = await FirebaseFirestore.instance.collection('Users').doc(user.uid).get();
-      if (!userDoc.exists) {
-        await FirebaseAuth.instance.signOut();
-        return const Left('User is not registered. Please sign up first.');
-      }
-
-      return const Right('Google Sign-In was Successful');
-    } on FirebaseAuthException catch (e) {
-      return Left(e.message ?? 'An error occurred');
-    }
-  }
-
-  @override
-  Future<Either<String, String>> googleSignUp() async {
-    try {
-      final GoogleSignIn googleSignIn = GoogleSignIn();
-      await googleSignIn.signOut();
-
-      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-      if (googleUser == null) {
-        return const Left('Google sign-up aborted');
-      }
-
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      final UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
-      final User? user = userCredential.user;
-
-      if (user == null) {
-        return const Left('Google sign-up failed');
-      }
+      log('Successfully signed in with Firebase: ${user.email}');
 
       final userDoc = await FirebaseFirestore.instance.collection('Users').doc(user.uid).get();
       if (!userDoc.exists) {
+        log('User does not exist in Firestore, creating new user...');
         await FirebaseFirestore.instance.collection('Users').doc(user.uid).set({
           'id': user.uid,
           'name': user.displayName,
@@ -112,10 +120,71 @@ class AuthFirebaseServiceImpl extends AuthFirebaseService {
           'createdAt': FieldValue.serverTimestamp(),
         });
       }
+      log('User created or found in Firestore.');
+
+      return const Right('Google Sign-In was Successful');
+    } on FirebaseAuthException catch (e) {
+      log('Firebase Auth Exception: ${e.message}');
+      return Left(e.message ?? 'An error occurred');
+    } catch (e) {
+      log('Unexpected error: $e');
+      return const Left('An unexpected error occurred');
+    }
+  }
+
+  @override
+  Future<Either<String, String>> googleSignUp() async {
+    try {
+      log('Starting Google Sign-Up process...');
+
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+      await googleSignIn.signOut();
+      log('Successfully signed out previous session.');
+
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        log('Google Sign-Up aborted by user');
+        return const Left('Google sign-up aborted');
+      }
+      log('Google Sign-Up successful: ${googleUser.email}');
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      log('Google authentication successful.');
+
+      final UserCredential userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      final User? user = userCredential.user;
+
+      if (user == null) {
+        log('Firebase Auth sign-up failed');
+        return const Left('Google sign-up failed');
+      }
+
+      log('Successfully signed in with Firebase: ${user.email}');
+
+      final userDoc = await FirebaseFirestore.instance.collection('Users').doc(user.uid).get();
+      if (!userDoc.exists) {
+        log('Creating new user in Firestore...');
+        await FirebaseFirestore.instance.collection('Users').doc(user.uid).set({
+          'id': user.uid,
+          'name': user.displayName,
+          'email': user.email,
+          'image': user.photoURL,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+      log('User created or found in Firestore.');
 
       return const Right('Google Sign-Up was Successful');
     } on FirebaseAuthException catch (e) {
+      log('Firebase Auth Exception: ${e.message}');
       return Left(e.message ?? 'An error occurred');
+    } catch (e) {
+      log('Unexpected error: $e');
+      return const Left('An unexpected error occurred');
     }
   }
 
@@ -168,38 +237,6 @@ class AuthFirebaseServiceImpl extends AuthFirebaseService {
       return Left(e.message ?? 'An error occurred');
     } on FirebaseAuthException catch (e) {
       return Left(e.message ?? 'An error occurred');
-    }
-  }
-
-  @override
-  Future<Either> signUp(CreateUserReq createUserReq) async {
-    try {
-      var data = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: createUserReq.email,
-        password: createUserReq.password,
-      );
-
-      FirebaseFirestore.instance.collection('Users').doc(data.user?.uid).set({
-        'id': createUserReq.id,
-        'createdAt': createUserReq.createdAt,
-        'name': createUserReq.name,
-        'email': data.user?.email,
-        'gender': createUserReq.gender,
-        'age': createUserReq.age,
-        'image': createUserReq.image,
-      });
-
-      return const Right('Signup was Successful');
-    } on FirebaseAuthException catch (e) {
-      String message = '';
-
-      if (e.code == 'week-password') {
-        message = 'The password provided is too week';
-      } else if (e.code == 'email-already-in-use') {
-        message = 'An account already exists with that email.';
-      }
-
-      return Left(message);
     }
   }
 }

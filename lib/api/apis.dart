@@ -113,7 +113,6 @@ class APIs {
 
       for (var doc in snapshot.docs) {
         final data = doc.data();
-        log('Fetching liked track: ${data.toString()}');
 
         int durationInSeconds = 0;
         if (data['duration'] != null && data['duration'] is String) {
@@ -147,7 +146,6 @@ class APIs {
         ));
       }
 
-      log('Liked tracks fetched: ${likedTracks.length}');
       return likedTracks;
     } catch (e) {
       log("Error fetching liked tracks: $e");

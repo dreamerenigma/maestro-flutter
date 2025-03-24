@@ -31,7 +31,7 @@ class UploadsOptionWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(text, style: const TextStyle(fontSize: AppSizes.fontSizeSm, fontWeight: FontWeight.normal, letterSpacing: -0.7, color: AppColors.lightGrey)),
-                  Text(title, style: const TextStyle(fontSize: AppSizes.fontSizeMd, fontWeight: FontWeight.normal, letterSpacing: -0.5)),
+                  Text(title, style: const TextStyle(fontSize: AppSizes.fontSizeMd, fontWeight: FontWeight.normal, letterSpacing: -0.5), maxLines: 1, overflow: TextOverflow.ellipsis),
                 ],
               ),
             ),

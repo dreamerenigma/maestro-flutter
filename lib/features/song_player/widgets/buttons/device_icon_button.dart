@@ -1,9 +1,9 @@
-import 'package:feather_icons/feather_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:audio_session/audio_session.dart';
 import 'package:bootstrap_icons/bootstrap_icons.dart';
-
+import 'package:flutter_svg/svg.dart';
 import '../../../../utils/constants/app_colors.dart';
+import '../../../../utils/constants/app_vectors.dart';
 
 class DeviceIconButton extends StatefulWidget {
   const DeviceIconButton({super.key});
@@ -52,7 +52,8 @@ class DeviceIconButtonState extends State<DeviceIconButton> {
 
   @override
   Widget build(BuildContext context) {
-    IconData icon;
+    IconData? icon;
+    String? svgIconPath;
 
     switch (_audioOutput) {
       case "headphones":
@@ -65,12 +66,16 @@ class DeviceIconButtonState extends State<DeviceIconButton> {
         icon = BootstrapIcons.speaker;
         break;
       default:
-        icon = FeatherIcons.monitor;
+        svgIconPath = AppVectors.desktopDevice;
     }
 
     return IconButton(
+      splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+      highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
       onPressed: () {},
-      icon: Icon(icon, color: AppColors.buttonGrey, size: 23),
+      icon: svgIconPath != null
+        ? SvgPicture.asset(svgIconPath, width: 23, height: 23, colorFilter: ColorFilter.mode(AppColors.buttonGrey, BlendMode.srcIn))
+        : Icon(icon, color: AppColors.buttonGrey, size: 23),
     );
   }
 }

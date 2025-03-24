@@ -6,7 +6,6 @@ import 'package:get/get.dart';
 import '../../../domain/entities/song/song_entity.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../../utils/constants/app_sizes.dart';
-import 'package:get_storage/get_storage.dart';
 
 class FavoriteButton extends StatefulWidget {
   final SongEntity songEntity;
@@ -19,19 +18,13 @@ class FavoriteButton extends StatefulWidget {
 }
 
 class _FavoriteButtonState extends State<FavoriteButton> {
-  late bool _isFavorite;
   late int _likeCount;
-
-  final GetStorage _storage = GetStorage();
-  late String _storageKey;
 
   @override
   void initState() {
     super.initState();
-    _storageKey = 'favorite_${widget.songEntity.songId}';
-    _isFavorite = _storage.read(_storageKey) ?? widget.songEntity.isFavorite;
     _likeCount = widget.songEntity.likeCount;
-    context.read<FavoriteButtonCubit>().loadInitialState(_isFavorite, _likeCount);
+    context.read<FavoriteButtonCubit>().loadInitialState(widget.songEntity.isFavorite, _likeCount);
   }
 
   @override
@@ -39,26 +32,14 @@ class _FavoriteButtonState extends State<FavoriteButton> {
     return BlocBuilder<FavoriteButtonCubit, FavoriteButtonState>(
       builder: (context, state) {
         if (state is FavoriteButtonUpdated) {
-          _isFavorite = state.isFavorite;
           _likeCount = state.likeCount;
         }
 
         return InkWell(
           onTap: () {
-            if (!_isFavorite) {
-              context.read<FavoriteButtonCubit>().favoriteButtonUpdated(widget.songEntity.songId, _likeCount);
-              _storage.write(_storageKey, true);
-              setState(() {
-                _isFavorite = true;
-              });
-              Get.snackbar('Success', 'Added to favorites!');
-            } else {
-              context.read<FavoriteButtonCubit>().favoriteButtonUpdated(widget.songEntity.songId, _likeCount);
-              _storage.write(_storageKey, false);
-              setState(() {
-                _isFavorite = false;
-              });
-              Get.snackbar('Success', 'Removed from favorites!');
+            context.read<FavoriteButtonCubit>().favoriteButtonUpdated(widget.songEntity.songId, _likeCount);
+            if (state is FavoriteButtonUpdated) {
+              Get.snackbar('Success', state.isFavorite ? 'Added to favorites!' : 'Removed from favorites!');
             }
           },
           splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
@@ -69,16 +50,17 @@ class _FavoriteButtonState extends State<FavoriteButton> {
             child: Row(
               children: [
                 Icon(
-                  _isFavorite ? Icons.favorite : Icons.favorite_outline_outlined,
-                  color: _isFavorite ? AppColors.primary : context.isDarkMode ? AppColors.white : AppColors.black,
-                  size: 28,
+                  _likeCount > 0 ? Icons.favorite : Icons.favorite_border_rounded,
+                  size: AppSizes.iconLg,
+                  color: _likeCount > 0 ? AppColors.primary : context.isDarkMode ? AppColors.white : AppColors.black,
                 ),
-                SizedBox(width: 5),
+                if (widget.showLikeCount && _likeCount > 0)
+                  SizedBox(width: 5),
                 if (widget.showLikeCount && _likeCount > 0)
                 Text(
-                  '$_likeCount',
+                  _likeCount.toString(),
                   style: TextStyle(
-                    color: _isFavorite ? AppColors.primary : context.isDarkMode ? AppColors.white : AppColors.black,
+                    color: _likeCount > 0 ? AppColors.primary : (context.isDarkMode ? AppColors.white : AppColors.black),
                     fontSize: AppSizes.fontSizeLg,
                     fontWeight: FontWeight.bold,
                   ),
@@ -91,5 +73,4 @@ class _FavoriteButtonState extends State<FavoriteButton> {
     );
   }
 }
-
 

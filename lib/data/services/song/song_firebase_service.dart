@@ -33,9 +33,7 @@ class SongFirebaseServiceImpl extends SongFirebaseService {
 
       for (var element in data.docs) {
         var songModel = SongModel.fromJson(element.data());
-        bool isFavorite = await sl<IsFavoriteSongUseCase>().call(
-            params: element.reference.id
-        );
+        bool isFavorite = await sl<IsFavoriteSongUseCase>().call(params: element.reference.id);
         songModel.isFavorite = isFavorite;
         songModel.songId = element.reference.id;
         songs.add(songModel.toEntity());
@@ -74,59 +72,58 @@ class SongFirebaseServiceImpl extends SongFirebaseService {
   @override
   Future<Either<dynamic, bool>> addOrRemoveFavoriteSongs(String songId) async {
     try {
-      final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        return Left('No user logged in');
+      }
+
       final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
 
-      late bool isFavorite;
-      var user = firebaseAuth.currentUser;
-      String uId = user!.uid;
+      final userFavoritesRef = firebaseFirestore.collection('Users').doc(user.uid).collection('Favorites');
+      final songRef = firebaseFirestore.collection('Songs').doc(songId);
 
-      QuerySnapshot favoriteSongs = await firebaseFirestore.collection('Users')
-        .doc(uId)
-        .collection('Favorites')
-        .where('songId', isEqualTo: songId)
-        .get();
+      DocumentSnapshot songSnapshot = await songRef.get();
+      if (!songSnapshot.exists) {
+        return const Left('Song not found');
+      }
 
-      if (favoriteSongs.docs.isNotEmpty) {
-        await favoriteSongs.docs.first.reference.delete();
+      var songData = songSnapshot.data() as Map<String, dynamic>;
+
+      DocumentSnapshot favoriteDoc = await userFavoritesRef.doc(songId).get();
+
+      bool isFavorite = false;
+      int currentLikes = songData['likeCount'] ?? 0;
+
+      if (favoriteDoc.exists) {
+        await userFavoritesRef.doc(songId).delete();
         isFavorite = false;
         log("Song removed from favorites.");
 
-        await firebaseFirestore.collection('Songs').doc(songId).update({
-          'likeCount': FieldValue.increment(-1),
+        await songRef.update({
+          'likeCount': currentLikes > 0 ? currentLikes - 1 : 0,
+          'likedBy': FieldValue.arrayRemove([user.uid])
         });
         log('Like count decremented.');
       } else {
-        DocumentSnapshot songSnapshot = await firebaseFirestore.collection('Songs').doc(songId).get();
-        log('Song snapshot exists: ${songSnapshot.exists}');
+        await userFavoritesRef.doc(songId).set({
+          'songId': songId,
+          'title': songData['title'],
+          'artist': songData['artist'],
+          'cover': songData['cover'],
+          'uploadedBy': songData['uploadedBy'],
+          'duration': songData['duration'],
+          'addedDate': Timestamp.now(),
+          'listenCount': songData['listenCount'] ?? 0,
+          'likeCount': songData['likeCount'] ?? 0,
+        });
+        isFavorite = true;
+        log('Song added to favorites.');
 
-        if (songSnapshot.exists) {
-          var songData = songSnapshot.data() as Map<String, dynamic>;
-          log('Song data: $songData');
-
-          await firebaseFirestore.collection('Users').doc(uId).collection('Favorites').add({
-            'songId': songId,
-            'title': songData['title'],
-            'artist': songData['artist'],
-            'cover': songData['cover'],
-            'uploadedBy': songData['uploadedBy'],
-            'duration': songData['duration'],
-            'addedDate': Timestamp.now(),
-            'listenCount': songData['listenCount'] ?? 0,
-            'likeCount': songData['likeCount'] ?? 0,
-          });
-
-          isFavorite = true;
-          log('Song added to favorites.');
-
-          await firebaseFirestore.collection('Songs').doc(songId).update({
-            'likeCount': FieldValue.increment(1),
-          });
-
-          log('Like count incremented.');
-        } else {
-          return const Left('Song not found');
-        }
+        await songRef.update({
+          'likeCount': currentLikes + 1,
+          'likedBy': FieldValue.arrayUnion([user.uid])
+        });
+        log('Like count incremented.');
       }
 
       return Right(isFavorite);

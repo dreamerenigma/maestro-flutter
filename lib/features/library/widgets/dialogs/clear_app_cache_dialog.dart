@@ -9,56 +9,74 @@ void showClearAppCacheDialog(BuildContext context) {
     context: context,
     barrierDismissible: true,
     builder: (BuildContext context) {
-      return AlertDialog(
-        elevation: 4,
-        backgroundColor: Theme.of(context).brightness == Brightness.dark ? AppColors.youngNight : AppColors.lightBackground,
-        titlePadding: const EdgeInsets.all(0),
-        actionsPadding: const EdgeInsets.only(left: 20, right: 20, top: 12, bottom: 12),
-        contentPadding: const EdgeInsets.only(left: 20, right: 20, top: 12, bottom: 16),
-        title: Stack(
-          children: [
-            const Padding(
-              padding: EdgeInsets.only(left: 20, right: 20, top: 14, bottom: 12),
-              child: Text('Are you sure you want to clear the app cache?', style: TextStyle(fontSize: AppSizes.fontSizeBg)),
-            ),
-            Positioned(
-              right: 0,
-              top: 5,
-              child: IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 25),
+        child: Align(
+          alignment: Alignment.center,
+          child: Material(
+            borderRadius: BorderRadius.circular(20),
+            color: context.isDarkMode ? AppColors.youngNight : AppColors.light,
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+              decoration: BoxDecoration(color: context.isDarkMode ? AppColors.youngNight : AppColors.light, borderRadius: BorderRadius.circular(25)),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Are you sure you want \n' 'to clear the app cache?', style: TextStyle(fontSize: AppSizes.fontSizeBg)),
+                      const SizedBox(height: 20),
+                      const Text('This will restart the app and stop any ongoing playback.'),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppColors.darkerGrey,
+                              backgroundColor: context.isDarkMode ? AppColors.buttonDarkGrey : AppColors.darkGrey,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                            ),
+                            child: Text('No', style: TextStyle(color: context.isDarkMode ? AppColors.white : AppColors.black, fontWeight: FontWeight.bold, fontSize: AppSizes.fontSizeMd)),
+                          ),
+                          const SizedBox(width: 8),
+                          TextButton(
+                            onPressed: () async {
+                              Navigator.of(context).pop();
+                              await APIs.clearRecentlyPlayed(context);
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppColors.darkerGrey,
+                              backgroundColor: context.isDarkMode ? AppColors.buttonDarkGrey : AppColors.darkGrey,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                            ),
+                            child: Text('Yes', style: TextStyle(color: context.isDarkMode ? AppColors.white : AppColors.black, fontWeight: FontWeight.bold, fontSize: AppSizes.fontSizeMd)),
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                  Positioned(
+                    right: -15,
+                    top: -9,
+                    child: IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        Navigator.of(context).pop(false);
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
-        content: const Text('This will restart the app and stop any ongoing playback.'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.darkerGrey,
-              backgroundColor: context.isDarkMode ? AppColors.buttonDarkGrey : AppColors.darkGrey,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-            ),
-            child: Text('No', style: TextStyle(color: context.isDarkMode ? AppColors.white : AppColors.black, fontWeight: FontWeight.bold, fontSize: AppSizes.fontSizeMd)),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.of(context).pop();
-              await APIs.clearRecentlyPlayed(context);
-            },
-            style: TextButton.styleFrom(
-              foregroundColor: AppColors.darkerGrey,
-              backgroundColor: context.isDarkMode ? AppColors.buttonDarkGrey : AppColors.darkGrey,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-            ),
-            child: Text('Yes', style: TextStyle(color: context.isDarkMode ? AppColors.white : AppColors.black, fontWeight: FontWeight.bold, fontSize: AppSizes.fontSizeMd)),
-          ),
-        ],
       );
     },
   );

@@ -163,10 +163,7 @@ class PlaylistScreenState extends State<PlaylistScreen> {
                 child: Container(
                   width: 40,
                   height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.darkGrey.withAlpha((0.5 * 255).toInt()),
-                  ),
+                  decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.darkGrey.withAlpha((0.5 * 255).toInt())),
                   child: const Icon(Icons.close, color: Colors.white, size: 22),
                 ),
               ),

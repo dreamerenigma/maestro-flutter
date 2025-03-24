@@ -71,24 +71,22 @@ Future<SongEntity> convertSongModelToEntity(SongModel songModel, {bool fetchFrom
   int likeCount = 0;
   int commentsCount = 0;
   int repostCount = 0;
+  String uploadedBy = '';
 
   if (fetchFromFirestore) {
     listenCount = await _fetchFieldFromFirestore(songModel.id.toString(), 'listenCount');
     likeCount = await _fetchFieldFromFirestore(songModel.id.toString(), 'likeCount');
     commentsCount = await _fetchFieldFromFirestore(songModel.id.toString(), 'commentsCount');
     repostCount = await _fetchFieldFromFirestore(songModel.id.toString(), 'repostCount');
+    uploadedBy = await _fetchUploadedByFromFirestore(songModel.id.toString());
   }
-
-  final String uploadedBy = await _fetchUploadedByFromFirestore(songModel.id.toString());
-  String description = '';
-  String caption = '';
 
   return SongEntity(
     title: songModel.title,
     artist: songModel.artist ?? 'Unknown Artist',
     genre: songModel.genre ?? '',
-    description: description,
-    caption: caption,
+    description: '',
+    caption: '',
     duration: songModel.duration ?? 0,
     releaseDate: Timestamp.now(),
     isFavorite: false,

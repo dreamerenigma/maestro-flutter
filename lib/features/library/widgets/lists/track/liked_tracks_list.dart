@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:maestro/features/library/screens/profile/all_likes_tracks_screen.dart';
 import '../../../../../domain/entities/song/song_entity.dart';
 import '../../../../../routes/custom_page_route.dart';
-import '../../../screens/profile/all_tracks_screen.dart';
 import '../../dialogs/info_track_bottom_dialog.dart';
 import '../../items/track_item.dart';
 import '../row/tracks_list_row.dart';
@@ -40,7 +40,7 @@ class LikedTracksList extends StatelessWidget {
               onPressedSeeAll: () {
                 Navigator.push(
                   context,
-                  createPageRoute(AllTracksScreen(songs: tracks, initialIndex: 3)),
+                  createPageRoute(AllLikesTracksScreen(initialIndex: 3, userData: userData)),
                 );
               },
             ),

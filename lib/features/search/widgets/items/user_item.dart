@@ -11,8 +11,14 @@ import '../buttons/follow_button.dart';
 class UserItem extends StatelessWidget {
   final int initialIndex;
   final UserEntity user;
+  final bool? hideFollowButton;
 
-  const UserItem({super.key, required this.user, required this.initialIndex});
+  const UserItem({
+    super.key,
+    required this.user,
+    required this.initialIndex,
+    this.hideFollowButton = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -27,10 +33,7 @@ class UserItem extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(50),
-                border: Border.all(color: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()), width: 1),
-              ),
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(50), border: Border.all(color: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()), width: 1)),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(50),
                 child: user.image.isNotEmpty
@@ -57,7 +60,8 @@ class UserItem extends StatelessWidget {
                 ],
               ),
             ),
-            FollowButton(initialIndex: initialIndex, isFollowing: true.obs),
+            if (!(hideFollowButton ?? true))
+            FollowButton(initialIndex: initialIndex, isFollowing: false.obs, userEntity: user),
           ],
         ),
       ),

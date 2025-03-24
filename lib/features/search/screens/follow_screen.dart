@@ -1,25 +1,34 @@
+import 'dart:developer';
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:maestro/utils/constants/app_sizes.dart';
 import '../../../api/apis.dart';
+import '../../../data/services/history/history_firebase_service.dart';
 import '../../../domain/entities/user/user_entity.dart';
 import '../../../generated/l10n/l10n.dart';
 import '../../../routes/custom_page_route.dart';
+import '../../../service_locator.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../home/screens/home_screen.dart';
 import '../../home/widgets/nav_bar/bottom_nav_bar.dart';
+import '../../library/widgets/dialogs/show_more_bio_info_bottom_dialog.dart';
 import '../../library/widgets/icons/action_icons_widget.dart';
 import '../../library/widgets/icons/fixed_icons_widget.dart';
 import '../../library/widgets/user_avatar_widget.dart';
+import '../../library/widgets/user_info_widget.dart';
 import '../../library/widgets/user_profile_info_widget.dart';
 import '../../song_player/widgets/mini_player/mini_player_manager.dart';
 import '../../utils/widgets/no_glow_scroll_behavior.dart';
+import '../controllers/user_params_controller.dart';
 
 class FollowScreen extends StatefulWidget {
   final int initialIndex;
-  final UserEntity user;
+  final UserEntity? user;
 
   const FollowScreen({super.key, required this.initialIndex, required this.user});
 
@@ -37,6 +46,7 @@ class _FollowScreenState extends State<FollowScreen> {
   bool isShuffleActive = false;
   bool isConnected = true;
   RxBool isFollowing = false.obs;
+  bool isBlocked = false;
 
   @override
   void initState() {
@@ -44,6 +54,8 @@ class _FollowScreenState extends State<FollowScreen> {
     selectedIndex = widget.initialIndex;
     userDataFuture = APIs.fetchUserData();
     scrollController = ScrollController();
+    final userParamsController = Get.find<UserParamsController>();
+    userParamsController.setUserParams('currentUserId', 'targetUserId');
 
     scrollController.addListener(() {
       double newOpacity = (1 - (scrollController.offset / 100)).clamp(0.0, 1.0);
@@ -57,7 +69,9 @@ class _FollowScreenState extends State<FollowScreen> {
       });
     });
 
+    _checkIfBlocked();
     _checkInternetConnection();
+    _loadRecentlyPlayed();
   }
 
   @override
@@ -78,7 +92,58 @@ class _FollowScreenState extends State<FollowScreen> {
       isConnected = hasConnection;
     });
   }
-  
+
+  void _loadRecentlyPlayed() async {
+    User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      log('No current user');
+      return;
+    }
+
+    if (widget.user != null) {
+      final userData = {
+        'image': widget.user?.image,
+        'name': widget.user?.name,
+        'followers': widget.user?.followers,
+      };
+
+      await sl<HistoryFirebaseService>().addToRecentlyPlayed(userData, 'user');
+    }
+  }
+
+  void _checkIfBlocked() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return;
+    }
+
+    if (widget.user == null) {
+      log('Error: user is null.');
+      return;
+    }
+
+    if (widget.user!.id == null || widget.user!.id.isEmpty) {
+      log('Error: user id is null or empty.');
+      return;
+    }
+
+    final currentUserId = user.uid;
+    final targetUserId = widget.user!.id;
+
+    final blockedUsersRef = FirebaseFirestore.instance.collection('Users').doc(currentUserId).collection('BlockedUsers');
+    final doc = await blockedUsersRef.doc(targetUserId).get();
+
+    if (doc.exists) {
+      setState(() {
+        isBlocked = true;
+      });
+    } else {
+      setState(() {
+        isBlocked = false;
+      });
+    }
+  }
+
   void toggleShuffle() {
     setState(() {
       isShuffleActive = !isShuffleActive;
@@ -133,13 +198,7 @@ class _FollowScreenState extends State<FollowScreen> {
                                 },
                                 child: Padding(
                                   padding: const EdgeInsets.only(bottom: 4),
-                                  child: Text(
-                                    widget.user.name,
-                                    style: TextStyle(
-                                      color: Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black,
-                                      fontSize: 20,
-                                    ),
-                                  ),
+                                  child: Text(widget.user!.name, style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black, fontSize: 20)),
                                 ),
                               ),
                             ),
@@ -154,9 +213,48 @@ class _FollowScreenState extends State<FollowScreen> {
                                     isShuffleActive: isShuffleActive,
                                     toggleShuffle: toggleShuffle,
                                     initialIndex: widget.initialIndex,
+                                    showEditProfileButton: false,
                                     showFollowButton: true,
+                                    showDeleteHistory: false,
                                     isFollowing: isFollowing,
                                     user: widget.user,
+                                  ),
+                                  if (widget.user!.bio.isNotEmpty && !isBlocked)
+                                  UserInfoWidget(
+                                    userData: userData,
+                                    getInfoText: (userData) {
+                                      return Padding(
+                                        padding: const EdgeInsets.only(left: 18, right:18, top: 16),
+                                        child: Text(
+                                          widget.user!.bio,
+                                          style: TextStyle(fontSize: 15, height: 1.2, letterSpacing: -0.3),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis, textAlign: TextAlign.start,
+                                        ),
+                                      );
+                                    },
+                                    onShowMorePressed: (context, userData) {
+                                      showMoreBioInfoBottomDialog(context, userData, widget.user);
+                                    },
+                                  ),
+                                  SizedBox(height: 50),
+                                  if (isBlocked)
+                                  Align(
+                                    alignment: Alignment.center,
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 25),
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          Text('Nothing to hear here', style: TextStyle(fontSize: AppSizes.fontSizeLg, fontWeight: FontWeight.bold)),
+                                          SizedBox(height: 4),
+                                          Text('Follow ${widget.user?.name} for updates on sounds they share in the future.',
+                                            style: TextStyle(fontSize: AppSizes.fontSizeSm), textAlign: TextAlign.center,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -165,7 +263,15 @@ class _FollowScreenState extends State<FollowScreen> {
                         ),
                       ),
                     ),
-                    FixedIconsWidget(userData: userData),
+                    FixedIconsWidget(
+                      userData: userData,
+                      user: widget.user,
+                      isStartStation: true.obs,
+                      isFollow: true.obs,
+                      isMissingMusic: true.obs,
+                      isReport: true.obs,
+                      isBlockUser: true.obs,
+                    ),
                   ],
                 ),
               );
@@ -195,7 +301,7 @@ class _FollowScreenState extends State<FollowScreen> {
           Positioned(
             top: 70,
             left: 20,
-            child: UserAvatar(imageUrl: widget.user.image),
+            child: UserAvatar(imageUrl: widget.user!.image),
           ),
         ],
       ),
@@ -210,9 +316,9 @@ class _FollowScreenState extends State<FollowScreen> {
         children: [
           const SizedBox(height: 15),
           UserProfileInfo(
-            userName: widget.user.name,
-            city: widget.user.city,
-            country: widget.user.country,
+            userName: widget.user!.name,
+            city: widget.user!.city,
+            country: widget.user!.country,
             initialIndex: widget.initialIndex,
           ),
         ],

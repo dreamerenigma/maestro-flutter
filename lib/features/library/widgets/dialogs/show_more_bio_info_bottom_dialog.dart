@@ -5,29 +5,43 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../domain/entities/user/user_entity.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
 
-Future<void> fetchAndShowUserInfo(BuildContext context, String userId) async {
+void fetchAndShowUserInfo(BuildContext context, String userId, UserEntity? user) async {
   try {
     DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('Users').doc(userId).get();
 
     if (userDoc.exists) {
       Map<String, dynamic> userData = userDoc.data() as Map<String, dynamic>;
 
-      final userLinks = (userData['links'] as List).map((link) {
-        if (link is Map<String, dynamic>) {
-          return {
-            'title': link['title'] ?? '',
-            'url': link['webOrEmail'] ?? '',
-          };
-        }
-        return {};
-      }).toList();
+      final userLinks = user == null
+  ? (userData['links'] as List?)?.map((link) {
+      if (link is Map<String, dynamic>) {
+        return {
+          'title': link['title'] ?? '',
+          'url': link['webOrEmail'] ?? '',
+        };
+      }
+      return {};
+    }).toList() ?? []
+  : (userData['id'] == user.id ? (userData['links'] as List?)?.toList() : user.links)?.toList() ?? [];
+
+      log('Fetched user links: $userLinks');
 
       userData['links'] = userLinks;
 
-      showMoreBioInfoBottomDialog(context, userData);
+      if (user == null) {
+        log('User is null, cannot fetch bio.');
+        showMoreBioInfoBottomDialog(context, userData, null);
+      } else {
+        if (user.id == userId) {
+          showMoreBioInfoBottomDialog(context, userData, user);
+        } else {
+          showMoreBioInfoBottomDialog(context, userData, null);
+        }
+      }
     } else {
       log("User not found");
     }
@@ -36,19 +50,29 @@ Future<void> fetchAndShowUserInfo(BuildContext context, String userId) async {
   }
 }
 
-void showMoreBioInfoBottomDialog(BuildContext context, Map<String, dynamic> userData) {
-  final userBioInfo = userData['bio'] as String?;
-  final userLinks = (userData['links'] as List<dynamic>?)
-    ?.map((link) {
+void showMoreBioInfoBottomDialog(BuildContext context, Map<String, dynamic> userData, UserEntity? user) {
+  log('userData[id]: ${userData['id']}');
+  log('user?.id: ${user?.id}');
+
+  final userBioInfo = user == null ? userData['bio'] as String? : (userData['id'] == user.id ? userData['bio'] as String? : user.bio);
+
+  log('userBioInfo: $userBioInfo');
+
+  final userLinks = user == null
+  ? (userData['links'] as List?)?.map((link) {
       if (link is Map<String, dynamic>) {
         return {
           'title': link['title'] ?? '',
           'url': link['webOrEmail'] ?? '',
         };
       }
-      return <String, String>{};
-    }).toList() ?? [];
+      return {};
+    }).toList() ?? []
+  : (userData['id'] == user.id ? (userData['links'] as List?)?.toList() : user.links)?.toList() ?? [];
+
   final displayBio = userBioInfo ?? 'Bio not specified';
+  log('displayBio: $displayBio');
+  log('userLinks: $userLinks');
 
   final Map<String, IconData> domainIcons = {
     'google.com': BootstrapIcons.google,

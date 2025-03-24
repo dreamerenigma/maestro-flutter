@@ -19,9 +19,7 @@ class BasicAppButton extends StatelessWidget {
         end: Alignment.bottomRight,
       ),
       increaseWidthBy: double.infinity,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(30.0),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
       increaseHeightBy: height ?? 35.0,
       callback: callback,
       child: Text(title, style: const TextStyle(color: AppColors.white, fontSize: AppSizes.fontSizeBg)),
