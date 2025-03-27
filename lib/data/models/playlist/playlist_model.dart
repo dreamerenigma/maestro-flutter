@@ -1,5 +1,5 @@
 class PlaylistModel {
-  final String playlistId;
+  final String id;
   final String title;
   final String authorName;
   final int likes;
@@ -9,7 +9,7 @@ class PlaylistModel {
   final bool isPublic;
 
   PlaylistModel({
-    required this.playlistId,
+    required this.id,
     required this.title,
     required this.authorName,
     required this.likes,
@@ -19,9 +19,9 @@ class PlaylistModel {
     this.isPublic = false,
   });
 
-  factory PlaylistModel.fromJson(Map<String, dynamic> json) {
+  factory PlaylistModel.fromJson(String documentId, Map<String, dynamic> json) {
     return PlaylistModel(
-      playlistId: json['playlistId'] as String,
+      id: documentId,
       title: json['title'] as String,
       authorName: json['authorName'] as String,
       likes: json['likes'] ?? 0,
@@ -34,7 +34,7 @@ class PlaylistModel {
 
   Map<String, dynamic> toJson() {
     return {
-      'playlistId': playlistId,
+      'id': id,
       'title': title,
       'authorName': authorName,
       'likes': likes,
@@ -46,7 +46,7 @@ class PlaylistModel {
   }
 
   PlaylistModel copyWith({
-    String? playlistId,
+    String? id,
     String? title,
     String? authorName,
     int? likes,
@@ -56,7 +56,7 @@ class PlaylistModel {
     bool? isPublic,
   }) {
     return PlaylistModel(
-      playlistId: playlistId ?? this.playlistId,
+      id: id ?? this.id,
       title: title ?? this.title,
       authorName: authorName ?? this.authorName,
       likes: likes ?? this.likes,

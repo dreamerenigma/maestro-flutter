@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -46,8 +45,6 @@ class SearchResults extends StatelessWidget {
         ),
       );
     }
-
-    log('Rendering ${searchResults.length} search results');
 
     return ScrollConfiguration(
       behavior: NoGlowScrollBehavior(),

@@ -83,27 +83,15 @@ class MadeForYouGridWidget extends StatelessWidget {
                 child: Container(
                   width: height,
                   height: height,
-                  decoration: BoxDecoration(
-                    color: Colors.blue[100],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  decoration: BoxDecoration(color: Colors.blue[100], borderRadius: BorderRadius.circular(8)),
                   child: Stack(
                     children: [
                       Positioned.fill(
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.asset(
-                            imageAsset,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
+                        child: ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.asset(imageAsset, fit: BoxFit.cover)),
                       ),
                       Positioned.fill(
                         child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            color: AppColors.black.withAlpha((0.4 * 255).toInt()),
-                          ),
+                          decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), color: AppColors.black.withAlpha((0.4 * 255).toInt())),
                         ),
                       ),
                       Positioned(
@@ -112,10 +100,7 @@ class MadeForYouGridWidget extends StatelessWidget {
                           width: height,
                           height: height / 2,
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.only(
-                              bottomLeft: Radius.circular(8),
-                              bottomRight: Radius.circular(8),
-                            ),
+                            borderRadius: BorderRadius.only(bottomLeft: Radius.circular(8), bottomRight: Radius.circular(8)),
                             gradient: LinearGradient(
                               begin: Alignment.bottomCenter,
                               end: Alignment.topCenter,
@@ -135,10 +120,7 @@ class MadeForYouGridWidget extends StatelessWidget {
                             Container(
                               width: 140,
                               height: 140,
-                              decoration: BoxDecoration(
-                                color: Colors.green[100],
-                                border: Border.all(color: AppColors.darkerGrey),
-                              ),
+                              decoration: BoxDecoration(color: Colors.green[100], border: Border.all(color: AppColors.darkerGrey)),
                               child: Stack(
                                 children: [
                                   Positioned.fill(
@@ -158,10 +140,7 @@ class MadeForYouGridWidget extends StatelessWidget {
                                             ),
                                           ),
                                           child: ClipRRect(
-                                            child: Image.asset(
-                                              albumAsset,
-                                              fit: BoxFit.cover,
-                                            ),
+                                            child: Image.asset(albumAsset, fit: BoxFit.cover),
                                           ),
                                         ),
                                       ),
@@ -177,12 +156,7 @@ class MadeForYouGridWidget extends StatelessWidget {
                                       decoration: BoxDecoration(color: AppColors.ascentBlue),
                                       child: Align(
                                         alignment: Alignment.center,
-                                        child: Text(
-                                          text,
-                                          style: const TextStyle(fontWeight: FontWeight.bold),
-                                          overflow: TextOverflow.ellipsis,
-                                          textAlign: TextAlign.left,
-                                        ),
+                                        child: Text(text, style: const TextStyle(fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis, textAlign: TextAlign.left),
                                       ),
                                     ),
                                   ),

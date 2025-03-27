@@ -6,7 +6,6 @@ class MessageModel {
   late final bool read;
   late final String fromId;
   late final DateTime sent;
-  late final List<String> deleted;
 
   MessageModel({
     required this.toId,
@@ -14,7 +13,6 @@ class MessageModel {
     required this.read,
     required this.fromId,
     required this.sent,
-    required this.deleted,
   });
 
   MessageModel.fromJson(Map<String, dynamic> json) {
@@ -27,7 +25,6 @@ class MessageModel {
     } else {
       sent = DateTime.parse(json['sent']);
     }
-    deleted = List<String>.from(json['deletedBy'] ?? []);
   }
 
   Map<String, dynamic> toJson() {
@@ -37,7 +34,6 @@ class MessageModel {
     data['read'] = read;
     data['fromId'] = fromId;
     data['sent'] = Timestamp.fromDate(sent);
-    data['deletedBy'] = deleted;
     return data;
   }
 }

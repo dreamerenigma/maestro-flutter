@@ -17,8 +17,14 @@ class SearchService {
       .where('title', isLessThanOrEqualTo: '$keywordLower\uf8ff')
       .get();
 
+    QuerySnapshot playlistSnapshot = await _db.collection('Playlists')
+      .where('title', isGreaterThanOrEqualTo: keywordLower)
+      .where('title', isLessThanOrEqualTo: '$keywordLower\uf8ff')
+      .get();
+
     log('Users found: ${usersSnapshot.docs.length}');
     log('Songs found: ${songsSnapshot.docs.length}');
+    log('Playlists found: ${playlistSnapshot.docs.length}');
 
     return [...usersSnapshot.docs, ...songsSnapshot.docs];
   }

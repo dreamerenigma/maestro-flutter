@@ -6,11 +6,12 @@ import '../../../generated/l10n/l10n.dart';
 import '../../../routes/custom_page_route.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../../utils/constants/app_sizes.dart';
-import '../../library/widgets/input_fields/input_field.dart';
+import '../../library/widgets/lists/following_list.dart';
 import '../../utils/widgets/no_glow_scroll_behavior.dart';
 import '../../home/models/user_model.dart';
 import '../../home/widgets/nav_bar/bottom_nav_bar.dart';
 import '../../home/screens/home_screen.dart';
+import '../widgets/inputs/new_message_text_field.dart';
 
 class NewMessageScreen extends StatefulWidget {
   final List<UserModel> users;
@@ -28,6 +29,8 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
   List<UserModel> filteredUsers = [];
   final FocusNode _focusNode = FocusNode();
   bool isLoading = true;
+  String currentText = "";
+  bool _isSearching = false;
 
   @override
   void initState() {
@@ -48,6 +51,27 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
     _searchController.dispose();
     _focusNode.dispose();
     super.dispose();
+  }
+
+  void _toggleSearch() {
+    setState(() {
+      _isSearching = !_isSearching;
+      if (_isSearching) {
+        _focusNode.requestFocus();
+      } else {
+        _searchController.clear();
+        _focusNode.unfocus();
+      }
+    });
+  }
+
+  void _clearText() {
+    _searchController.clear();
+    setState(() {});
+  }
+
+  void _onTextChanged(String text) {
+    currentText = text;
   }
 
   void _filterUsers() {
@@ -104,19 +128,10 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
           displacement: 0,
           color: AppColors.primary,
           backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.softGrey,
-          child: ListView(
+          child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 12),
-                child: InputField(
-                  controller: _searchController,
-                  showIcon: false,
-                  focusNode: _focusNode,
-                ),
-              ),
-              if (isLoading)
-                Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary))),
-              if (!isLoading)...filteredUsers.map((user) => ListTile(title: Text(user.name), subtitle: Text(user.city))),
+              NewMessageTextField(controller: _searchController, toggleSearch: _toggleSearch, onClearText: _clearText, onChanged: _onTextChanged),
+              FollowingList(),
             ],
           ),
         ),

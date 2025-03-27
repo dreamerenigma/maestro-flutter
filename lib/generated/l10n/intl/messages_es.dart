@@ -74,6 +74,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "describeYourTrack":
             MessageLookupByLibrary.simpleMessage("Describe tu ruta"),
         "description": MessageLookupByLibrary.simpleMessage("Descripción"),
+        "deutschLanguage": MessageLookupByLibrary.simpleMessage("Alemán"),
         "discoverStations":
             MessageLookupByLibrary.simpleMessage("Descubre con estaciones"),
         "englishLanguage": MessageLookupByLibrary.simpleMessage("Inglés"),
@@ -94,6 +95,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "feed": MessageLookupByLibrary.simpleMessage("Alimentar"),
         "female": MessageLookupByLibrary.simpleMessage("Mujer"),
         "followings": MessageLookupByLibrary.simpleMessage("Seguidos"),
+        "frenchLanguage": MessageLookupByLibrary.simpleMessage("Francés"),
         "fullName": MessageLookupByLibrary.simpleMessage("Nombre completo"),
         "getStarted": MessageLookupByLibrary.simpleMessage("Empezar"),
         "googleSignInFailed": m0,
@@ -105,6 +107,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "helloUserMessage": m1,
         "home": MessageLookupByLibrary.simpleMessage("Hogar"),
         "inbox": MessageLookupByLibrary.simpleMessage("Bandeja de entrada"),
+        "italianLanguage": MessageLookupByLibrary.simpleMessage("Italiano"),
         "latestArtistsFollow": MessageLookupByLibrary.simpleMessage(
             "Lo último de los artistas que sigues"),
         "library": MessageLookupByLibrary.simpleMessage("Biblioteca"),
@@ -156,6 +159,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "pleaseSureInternetAvailable": MessageLookupByLibrary.simpleMessage(
             "Asegúrate de tener internet disponible"),
         "podcasts": MessageLookupByLibrary.simpleMessage("Podcasts"),
+        "portugueseLanguage": MessageLookupByLibrary.simpleMessage("Portugués"),
         "privacyPolicy":
             MessageLookupByLibrary.simpleMessage("Política de privacidad."),
         "recents": MessageLookupByLibrary.simpleMessage("Recientes"),
@@ -165,7 +169,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "resume": MessageLookupByLibrary.simpleMessage("Reanudar"),
         "russianLanguage": MessageLookupByLibrary.simpleMessage("Rusa"),
         "search": MessageLookupByLibrary.simpleMessage("Buscar"),
-        "seeAll": MessageLookupByLibrary.simpleMessage("Ver todo"),
+        "seeAll": MessageLookupByLibrary.simpleMessage("Ver Al"),
         "selectAge": MessageLookupByLibrary.simpleMessage("Seleccionar edad"),
         "selectGender":
             MessageLookupByLibrary.simpleMessage("Seleccionar género"),

@@ -9,8 +9,9 @@ import '../lists/user_list.dart';
 
 class UsersTab extends StatefulWidget {
   final int initialIndex;
+  final String searchKeyword;
 
-  const UsersTab({super.key, required this.initialIndex});
+  const UsersTab({super.key, required this.initialIndex, required this.searchKeyword});
 
   @override
   UsersTabState createState() => UsersTabState();
@@ -23,6 +24,14 @@ class UsersTabState extends State<UsersTab> {
   void initState() {
     super.initState();
     _loadUsers();
+  }
+
+  @override
+  void didUpdateWidget(covariant UsersTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.searchKeyword != oldWidget.searchKeyword) {
+      _loadUsers();
+    }
   }
 
   Future<void> _loadUsers() async {
@@ -39,9 +48,15 @@ class UsersTabState extends State<UsersTab> {
         log('Error: $error');
       },
       (users) {
-        setState(() {
-          _users = users.map((userModel) => UserEntity.fromUserModel(userModel)).toList();
-        });
+        final filteredUsers = users.map((userModel) => UserEntity.fromUserModel(userModel)).where((user) {
+          return widget.searchKeyword.isEmpty || user.name.toLowerCase().contains(widget.searchKeyword.toLowerCase());
+        }).toList();
+
+        if (filteredUsers != _users) {
+          setState(() {
+            _users = filteredUsers;
+          });
+        }
       },
     );
   }

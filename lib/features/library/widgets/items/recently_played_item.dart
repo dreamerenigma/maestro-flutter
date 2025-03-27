@@ -13,6 +13,7 @@ class RecentlyPlayedItem extends StatelessWidget {
   final bool isStations;
   final String imageUrl;
   final String? userName;
+  final String? authorName;
   final int? userFollowers;
   final VoidCallback onTap;
 
@@ -24,6 +25,7 @@ class RecentlyPlayedItem extends StatelessWidget {
     required this.imageUrl,
     required this.onTap,
     this.userName,
+    this.authorName,
     this.userFollowers,
   });
 
@@ -75,7 +77,44 @@ class RecentlyPlayedItem extends StatelessWidget {
             ],
           ),
         )
-      : Container(),
+      : isPlaylist
+        ? Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()), width: 1),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      width: 130,
+                      height: 130,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Shimmer.fromColors(
+                        baseColor: AppColors.darkGrey,
+                        highlightColor: AppColors.steelGrey,
+                        child: Container(
+                          width: 130,
+                          height: 130,
+                          decoration: BoxDecoration(color: AppColors.white, shape: BoxShape.rectangle),
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => SvgPicture.asset(AppVectors.avatar, width: 65, height: 65),
+                    ),
+                  ),
+                ),
+                Text(userName ?? '', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text('$authorName', style: TextStyle(fontSize: AppSizes.fontSizeLm, fontFamily: 'Roboto')),
+              ],
+            ),
+          )
+        : const SizedBox.shrink(),
     );
   }
 }

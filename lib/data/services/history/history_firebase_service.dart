@@ -1,8 +1,7 @@
 import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
-import '../../../domain/entities/playlist/playlist_entity.dart';
+import '../../../utils/formatters/formatter.dart';
 
 abstract class HistoryFirebaseService {
   Future<void> addToListeningHistory(Map<String, dynamic> track);
@@ -40,7 +39,7 @@ class HistoryFirebaseServiceImpl extends HistoryFirebaseService {
         return;
       }
 
-      final duration = track['duration'] is String ? parseDuration(track['duration']) : track['duration'] ?? 0;
+      final duration = track['duration'] is String ? Formatter.parseDuration(track['duration']) : track['duration'] ?? 0;
 
       await _firestore.collection('Users').doc(userId).collection('ListeningHistory').add({
         'title': track['title'],
@@ -134,25 +133,45 @@ class HistoryFirebaseServiceImpl extends HistoryFirebaseService {
       log('Adding to recently played: $lists');
 
       final existingDoc = await _firestore
-        .collection('Users')
-        .doc(userId)
-        .collection('RecentlyPlayed')
-        .where('name', isEqualTo: lists['name'])
-        .limit(1)
-        .get();
+          .collection('Users')
+          .doc(userId)
+          .collection('RecentlyPlayed')
+          .where('type', isEqualTo: type)
+          .where(type == 'user' ? 'name' : 'title', isEqualTo: type == 'user' ? lists['name'] : lists['title'])
+          .limit(1)
+          .get();
 
       if (existingDoc.docs.isNotEmpty) {
-        log('User already in recently played');
+        log('Item already in recently played');
         return;
       }
 
-      await _firestore.collection('Users').doc(userId).collection('RecentlyPlayed').add({
-        'image': lists['image'],
-        'name': lists['name'],
-        'followers': lists['followers'],
+      Map<String, dynamic> data = {
         'timestamp': FieldValue.serverTimestamp(),
         'type': type,
-      });
+      };
+
+      if (type == 'user') {
+        data.addAll({
+          'image': lists['image'] ?? '',
+          'name': lists['name'] ?? 'Unknown',
+          'followers': lists['followers'] ?? 0,
+          'city': lists['city'] ?? '',
+          'country': lists['country'] ?? '',
+        });
+      } else if (type == 'playlist') {
+        data.addAll({
+          'title': lists['title'] ?? 'Untitled Playlist',
+          'authorName': lists['authorName'] ?? 'Unknown Author',
+          'coverImage': lists['coverImage'] ?? '',
+        });
+      }
+
+      data.removeWhere((key, value) =>
+        type == 'playlist' && ['followers', 'image', 'name'].contains(key)
+      );
+
+      await _firestore.collection('Users').doc(userId).collection('RecentlyPlayed').add(data);
 
       log('Item added to recently played');
     } catch (e) {
@@ -175,14 +194,29 @@ class HistoryFirebaseServiceImpl extends HistoryFirebaseService {
         .get();
 
       return querySnapshot.docs.map((doc) {
-        return {
+      Map<String, dynamic> item = {
+        'timestamp': doc['timestamp'],
+        'type': doc['type'] ?? 'unknown',
+      };
+
+      if (item['type'] == 'user') {
+        item.addAll({
           'image': doc['image'] ?? '',
           'name': doc['name'] ?? 'Unknown Name',
           'followers': doc['followers'] ?? 0,
-          'timestamp': doc['timestamp'],
-          'type': doc['type'] ?? 'unknown',
-        };
-      }).toList();
+          'city': doc['city'] ?? '',
+          'country': doc['country'] ?? '',
+        });
+      } else if (item['type'] == 'playlist') {
+        item.addAll({
+          'title': doc['title'] ?? 'Untitled Playlist',
+          'authorName': doc['authorName'] ?? 'Unknown Author',
+          'coverImage': doc['coverImage'] ?? '',
+        });
+      }
+
+      return item;
+    }).toList();
     } catch (e) {
       log("Error fetching recently played: $e");
       return [];

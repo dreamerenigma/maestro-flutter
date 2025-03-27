@@ -35,6 +35,7 @@ class AppVectors {
   static const String notificationCheck = '${basePath}notification_check$format';
   static const String desktopDevice = '${basePath}desktop_device$format';
   static const String equalizerPlay = '${basePath}equalizer_play$format';
+  static const String pencil = '${basePath}pencil$format';
 
 /// -- Flags country
   static const String abw = '${pathFlags}abw$format';

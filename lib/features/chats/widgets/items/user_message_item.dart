@@ -1,10 +1,12 @@
 import 'dart:developer';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:maestro/features/search/screens/follow_screen.dart';
 import 'package:maestro/routes/custom_page_route.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../../../api/apis.dart';
 import '../../../../domain/entities/song/song_entity.dart';
 import '../../../../domain/entities/user/user_entity.dart';
@@ -76,7 +78,6 @@ class _UserMessageItemState extends State<UserMessageItem> {
           return Center(child: Text(S.of(context).errorLoadingProfile));
         } else {
           final isDeleted = isDeletedSnapshot.data ?? false;
-          final displayName = isDeleted ? S.of(context).deletedUser : widget.userName;
 
           return FutureBuilder<Map<String, dynamic>?>(
             future: userDataFuture,
@@ -86,6 +87,10 @@ class _UserMessageItemState extends State<UserMessageItem> {
               } else if (snapshot.hasError || !snapshot.hasData) {
                 return Center(child: Text(S.of(context).errorLoadingProfile));
               } else {
+              final userData = snapshot.data!;
+              final isCurrentUser = FirebaseAuth.instance.currentUser?.uid == widget.user.id;
+              final displayName = isDeleted ? S.of(context).deletedUser : isCurrentUser ? userData['name'] ?? '' : widget.user.name;
+
                 return InkWell(
                   onTap: () {
                     Navigator.push(
@@ -97,28 +102,51 @@ class _UserMessageItemState extends State<UserMessageItem> {
                   },
                   splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
                   highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
-                  borderRadius: BorderRadius.circular(AppSizes.cardRadiusXl),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        InkWell(
-                          onTap: () {
-                            Navigator.push(context, createPageRoute(FollowScreen(initialIndex: widget.initialIndex, user: widget.user)));
-                          },
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(50),
-                              border: Border.all(color: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()), width: 1),
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Ink(
+                              decoration: BoxDecoration(
+                                color: AppColors.darkGrey,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: AppColors.darkerGrey.withAlpha((0.2 * 255).toInt()), width: 1),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(50),
+                                child: widget.user.image.isNotEmpty
+                                  ? CachedNetworkImage(
+                                    imageUrl: widget.user.image,
+                                    width: 50,
+                                    height: 50,
+                                    fit: BoxFit.cover,
+                                    placeholder: (context, url) => Shimmer.fromColors(
+                                      baseColor: AppColors.darkGrey,
+                                      highlightColor: AppColors.steelGrey,
+                                      child: Container(width: 45, height: 45, decoration: BoxDecoration(color: AppColors.white, shape: BoxShape.circle)),
+                                    ),
+                                    errorWidget: (context, url, error) => SvgPicture.asset(AppVectors.avatar, width: 22, height: 22),
+                                  )
+                                  : SvgPicture.asset(AppVectors.avatar, width: 50, height: 50),
+                              ),
                             ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(50),
-                              child: widget.user.image.isNotEmpty
-                                ? Image.network(widget.user.image, width: 40, height: 40, fit: BoxFit.cover)
-                                : SvgPicture.asset(AppVectors.avatar, width: 40, height: 40),
+                            Material(
+                              color: AppColors.transparent,
+                              child: InkWell(
+                                onTap: () {
+                                  Navigator.push(context, createPageRoute(FollowScreen(initialIndex: widget.initialIndex, user: widget.user)));
+                                },
+                                splashColor: AppColors.steelGrey.withAlpha((0.2 * 255).toInt()),
+                                highlightColor: AppColors.steelGrey.withAlpha((0.2 * 255).toInt()),
+                                borderRadius: BorderRadius.circular(40),
+                                child: Container(width: 50, height: 50, decoration: BoxDecoration(borderRadius: BorderRadius.circular(40))),
+                              ),
                             ),
-                          ),
+                          ],
                         ),
                         const SizedBox(width: 20.0),
                         Expanded(
@@ -129,10 +157,7 @@ class _UserMessageItemState extends State<UserMessageItem> {
                                 children: [
                                   Padding(
                                     padding: const EdgeInsets.only(top: 6),
-                                    child: Text(
-                                      displayName,
-                                      style: const TextStyle(fontSize: AppSizes.fontSizeMd, fontWeight: FontWeight.bold, height: 1),
-                                    ),
+                                    child: Text(displayName, style: const TextStyle(fontSize: AppSizes.fontSizeMd, fontWeight: FontWeight.bold, height: 1)),
                                   ),
                                 ],
                               ),

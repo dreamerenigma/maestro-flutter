@@ -1,5 +1,5 @@
 class PlaylistParams {
-  final String playlistId;
+  final String id;
   final String authorName;
   final String title;
   final String description;
@@ -9,7 +9,7 @@ class PlaylistParams {
   final bool isPublic;
 
   PlaylistParams( {
-    required this.playlistId,
+    required this.id,
     required this.authorName,
     required this.title,
     required this.description,

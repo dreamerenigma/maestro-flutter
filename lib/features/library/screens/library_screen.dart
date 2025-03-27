@@ -6,6 +6,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:carbon_icons/carbon_icons.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:maestro/features/library/screens/library/playlists/view_playlists_screen.dart';
@@ -19,10 +20,13 @@ import 'package:maestro/features/library/screens/library/liked_tracks_screen.dar
 import 'package:maestro/features/library/screens/local_audio_screen.dart';
 import 'package:maestro/features/library/screens/profile_settings_screen.dart';
 import 'package:maestro/features/library/screens/library/your_upload_screen.dart';
+import 'package:maestro/utils/constants/app_vectors.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../../api/apis.dart';
 import '../../../data/services/history/history_firebase_service.dart';
-import '../../../domain/entities/song/song_entity.dart';
+import '../../../domain/entities/playlist/playable_item.dart';
+import '../../../domain/entities/playlist/playlist_entity.dart';
+import '../../../domain/entities/song/song_entity.dart' as song;
 import '../../../domain/entities/user/user_entity.dart';
 import '../../../generated/l10n/l10n.dart';
 import '../../../service_locator.dart';
@@ -52,8 +56,8 @@ class LibraryScreen extends StatefulWidget {
 
 class LibraryScreenState extends State<LibraryScreen> {
   String? _userAvatarUrl;
-  List<SongEntity> listeningHistory = [];
-  List<UserEntity> recentlyPlayed = [];
+  List<song.SongEntity> listeningHistory = [];
+  List<PlayableItem> recentlyPlayed = [];
   List<Map<String, dynamic>> playlists = [];
   late Map<String, dynamic> userData;
   late Future<Map<String, dynamic>?> userDataFuture;
@@ -107,10 +111,10 @@ class LibraryScreenState extends State<LibraryScreen> {
   void _loadListeningHistory() async {
     try {
       List<Map<String, dynamic>> history = await sl<HistoryFirebaseService>().fetchListeningHistory();
-      List<SongEntity> tracks = history.map((trackData) {
-      final duration = trackData['duration'] is String ? parseDuration(trackData['duration']) : trackData['duration'] ?? 0;
+      List<song.SongEntity> tracks = history.map((trackData) {
+      final duration = trackData['duration'] is String ? song.parseDuration(trackData['duration']) : trackData['duration'] ?? 0;
 
-        return SongEntity(
+        return song.SongEntity(
           songId: trackData['songId'] ?? '',
           title: trackData['title'] ?? 'Unknown Track',
           artist: trackData['artist'] ?? 'Unknown Artist',
@@ -142,29 +146,45 @@ class LibraryScreenState extends State<LibraryScreen> {
     try {
       List<Map<String, dynamic>> recently = await sl<HistoryFirebaseService>().fetchRecentlyPlayed();
 
-      List<UserEntity> userEntities = recently.map((data) {
-        return UserEntity(
-          id: data['id'] ?? '',
-          name: data['name'] ?? 'Unknown',
-          image: data['image'] ?? '',
-          followers: data['followers'] ?? 0,
-          bio: '',
-          city: '',
-          country: '',
-          flag: '',
-          backgroundImage: '',
-          links: [],
-          limitUploads: 0,
-          tracksCount: 0,
-          verifyAccount: false,
-        );
+      List<PlayableItem> items = recently.map((data) {
+        if (data['type'] == 'user') {
+          return UserEntity(
+            id: data['id'] ?? '',
+            name: data['name'] ?? 'Unknown',
+            image: data['image'] ?? '',
+            followers: data['followers'] ?? 0,
+            bio: '',
+            city: data['city'] ?? '',
+            country: data['country'] ?? '',
+            flag: '',
+            backgroundImage: '',
+            links: [],
+            limitUploads: 0,
+            tracksCount: 0,
+            verifyAccount: false,
+          );
+        } else if (data['type'] == 'playlist') {
+          return PlaylistEntity(
+            id: data['id'] ?? '',
+            title: data['title'] ?? 'Untitled Playlist',
+            authorName: data['authorName'] ?? 'Unknown Author',
+            description: '',
+            releaseDate: Timestamp.now(),
+            isFavorite: false,
+            listenCount: 0,
+            coverImage: data['coverImage'] ?? '',
+            likes: 0,
+            trackCount: 0,
+            tags: [],
+            isPublic: false,
+          );
+        }
+        throw Exception('Unknown type in recently played');
       }).toList();
 
       setState(() {
-        recentlyPlayed = userEntities;
+        recentlyPlayed = items;
       });
-
-      log('Recently played users loaded: $recentlyPlayed');
     } catch (e) {
       log('Error loading recently played: $e');
     }
@@ -300,14 +320,20 @@ class LibraryScreenState extends State<LibraryScreen> {
                 child: CircleAvatar(
                   maxRadius: 16,
                   backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.lightGrey,
-                  child: const Icon(Icons.person, size: 16),
+                  child: SvgPicture.asset(AppVectors.avatar, width: 16, height: 16),
                 ),
               )
-            : CircleAvatar(
-              maxRadius: 16,
-              backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.lightGrey,
-              backgroundImage: CachedNetworkImageProvider(_userAvatarUrl!),
-              child: _userAvatarUrl == null ? const Icon(Icons.person, size: 16) : null,
+            : Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AppSizes.cardRadiusXl),
+                border: Border.all(color: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()), width: 1),
+              ),
+              child: CircleAvatar(
+                maxRadius: 16,
+                backgroundColor: context.isDarkMode ? AppColors.youngNight : AppColors.lightGrey,
+                backgroundImage: CachedNetworkImageProvider(_userAvatarUrl!),
+                child: _userAvatarUrl == null ? const Icon(Icons.person, size: 16) : null,
+              ),
             ),
           ),
         ],
@@ -334,7 +360,7 @@ class LibraryScreenState extends State<LibraryScreen> {
   }
 
   Widget _buildRecentlyPlayed(String title, String content, Map<String, dynamic> userData) {
-    List<UserEntity> userEntities = recentlyPlayed;
+    List<PlayableItem> userEntities = recentlyPlayed;
 
     return Container(
       width: double.infinity,
@@ -366,7 +392,7 @@ class LibraryScreenState extends State<LibraryScreen> {
   }
 
   Widget _buildListeningHistory(String title, String content, Map<String, dynamic> userData) {
-    List<SongEntity> convertedTracks = listeningHistory;
+    List<song.SongEntity> convertedTracks = listeningHistory;
 
     return Container(
       width: double.infinity,

@@ -5,7 +5,7 @@ import '../../../../generated/l10n/l10n.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_sizes.dart';
 
-class SearchBar extends StatelessWidget {
+class SearchTextField extends StatelessWidget {
   final TextEditingController searchController;
   final FocusNode? searchFocusNode;
   final bool hasFocus;
@@ -14,7 +14,7 @@ class SearchBar extends StatelessWidget {
   final Function(String) onChanged;
   final Function() clearSearch;
 
-  const SearchBar({
+  const SearchTextField({
     required this.searchController,
     required this.searchFocusNode,
     required this.hasFocus,

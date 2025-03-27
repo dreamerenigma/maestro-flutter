@@ -1,14 +1,18 @@
 import 'dart:developer';
 import 'dart:io';
+import 'package:async/async.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:maestro/data/services/search/search_firebase_service.dart';
 import 'package:maestro/utils/constants/app_sizes.dart';
 import '../../../api/apis.dart';
 import '../../../data/services/history/history_firebase_service.dart';
+import '../../../domain/entities/song/song_entity.dart';
 import '../../../domain/entities/user/user_entity.dart';
 import '../../../generated/l10n/l10n.dart';
 import '../../../routes/custom_page_route.dart';
@@ -16,9 +20,14 @@ import '../../../service_locator.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../home/screens/home_screen.dart';
 import '../../home/widgets/nav_bar/bottom_nav_bar.dart';
+import '../../library/screens/spotlight_screen.dart';
 import '../../library/widgets/dialogs/show_more_bio_info_bottom_dialog.dart';
 import '../../library/widgets/icons/action_icons_widget.dart';
 import '../../library/widgets/icons/fixed_icons_widget.dart';
+import '../../library/widgets/lists/playlist/playlist_list.dart';
+import '../../library/widgets/lists/track/top_tracks_list.dart';
+import '../../library/widgets/lists/track/tracks_list.dart';
+import '../../library/widgets/pinned_spotlight_widget.dart';
 import '../../library/widgets/user_avatar_widget.dart';
 import '../../library/widgets/user_info_widget.dart';
 import '../../library/widgets/user_profile_info_widget.dart';
@@ -40,17 +49,21 @@ class _FollowScreenState extends State<FollowScreen> {
   final GetStorage _storageBox = GetStorage();
   late Future<Map<String, dynamic>?> userDataFuture;
   late ScrollController scrollController;
-  final ValueNotifier<double> opacityNotifier = ValueNotifier<double>(1.0);
+  final ValueNotifier<double> opacityNotifier = ValueNotifier<double>(0);
   late final int selectedIndex;
-  String? _imageUrlBg;
+  late CancelableOperation<void> _searchFuture;
   bool isShuffleActive = false;
   bool isConnected = true;
   RxBool isFollowing = false.obs;
   bool isBlocked = false;
+  bool isArtistPro = false;
+  List<SongEntity> myTracks = [];
+  List<Map<String, dynamic>> playlists = [];
 
   @override
   void initState() {
     super.initState();
+    _searchFuture = CancelableOperation.fromFuture(SearchService().searchByKeyword('keyword'));
     selectedIndex = widget.initialIndex;
     userDataFuture = APIs.fetchUserData();
     scrollController = ScrollController();
@@ -58,7 +71,7 @@ class _FollowScreenState extends State<FollowScreen> {
     userParamsController.setUserParams('currentUserId', 'targetUserId');
 
     scrollController.addListener(() {
-      double newOpacity = (1 - (scrollController.offset / 100)).clamp(0.0, 1.0);
+      double newOpacity = (scrollController.offset / 100).clamp(0.0, 1.0);
       opacityNotifier.value = newOpacity;
     });
 
@@ -77,6 +90,7 @@ class _FollowScreenState extends State<FollowScreen> {
   @override
   void dispose() {
     scrollController.dispose();
+    _searchFuture.cancel();
     super.dispose();
   }
 
@@ -105,6 +119,8 @@ class _FollowScreenState extends State<FollowScreen> {
         'image': widget.user?.image,
         'name': widget.user?.name,
         'followers': widget.user?.followers,
+        'city': widget.user?.city,
+        'country': widget.user?.country,
       };
 
       await sl<HistoryFirebaseService>().addToRecentlyPlayed(userData, 'user');
@@ -122,7 +138,7 @@ class _FollowScreenState extends State<FollowScreen> {
       return;
     }
 
-    if (widget.user!.id == null || widget.user!.id.isEmpty) {
+    if (widget.user!.id.isEmpty) {
       log('Error: user id is null or empty.');
       return;
     }
@@ -196,9 +212,26 @@ class _FollowScreenState extends State<FollowScreen> {
                                 builder: (context, opacity, child) {
                                   return Opacity(opacity: opacity, child: child!);
                                 },
-                                child: Padding(
-                                  padding: const EdgeInsets.only(bottom: 4),
-                                  child: Text(widget.user!.name, style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black, fontSize: 20)),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: AppColors.darkGrey,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(color: AppColors.darkerGrey.withAlpha((0.2 * 255).toInt()), width: 1),
+                                      ),
+                                      child: CircleAvatar(
+                                        radius: 18,
+                                        backgroundImage: CachedNetworkImageProvider(widget.user!.image),
+                                        backgroundColor: AppColors.darkGrey,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 4),
+                                      child: Text(widget.user!.name, style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black, fontSize: 20)),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -207,8 +240,11 @@ class _FollowScreenState extends State<FollowScreen> {
                               delegate: SliverChildListDelegate(
                                 [
                                   _buildBackground(context),
-                                  const SizedBox(height: 50),
-                                  _buildUserProfile(userData),
+                                  const SizedBox(height: 10),
+                                  if (isArtistPro)
+                                  _buildArtistPro(),
+                                  SizedBox(height: isArtistPro ? 25 : 35),
+                                  _buildUserProfile(),
                                   ActionIconsWidget(
                                     isShuffleActive: isShuffleActive,
                                     toggleShuffle: toggleShuffle,
@@ -236,6 +272,17 @@ class _FollowScreenState extends State<FollowScreen> {
                                     onShowMorePressed: (context, userData) {
                                       showMoreBioInfoBottomDialog(context, userData, widget.user);
                                     },
+                                  ),
+                                  const SizedBox(height: 25),
+                                  const PinnedSpotlightWidget(),
+                                  const SizedBox(height: 10),
+                                  TopTracksList(tracks: myTracks, userData: userData),
+                                  TracksList(tracks: myTracks, userData: userData),
+                                  PlaylistList(
+                                    initialIndex: widget.initialIndex,
+                                    playlists: playlists.where((playlist) {
+                                      return playlist['authorName'] == (userData['name'] ?? '');
+                                    }).toList(),
                                   ),
                                   SizedBox(height: 50),
                                   if (isBlocked)
@@ -292,15 +339,19 @@ class _FollowScreenState extends State<FollowScreen> {
     return Container(
       height: 150,
       decoration: BoxDecoration(
-        image: _imageUrlBg != null ? DecorationImage(image: NetworkImage(_imageUrlBg!), fit: BoxFit.cover) : null,
-        color: _imageUrlBg == null ? AppColors.transparent : (Theme.of(context).brightness == Brightness.dark ? AppColors.darkGrey : AppColors.lightBackground),
+        image: widget.user?.backgroundImage.isNotEmpty == true
+          ? DecorationImage(image: CachedNetworkImageProvider(widget.user!.backgroundImage), fit: BoxFit.cover)
+          : null,
+        color: widget.user?.backgroundImage.isEmpty == true
+          ? AppColors.transparent
+          : (Theme.of(context).brightness == Brightness.dark ? AppColors.darkGrey : AppColors.lightBackground),
       ),
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           Positioned(
-            top: 70,
-            left: 20,
+            top: 75,
+            left: 15,
             child: UserAvatar(imageUrl: widget.user!.image),
           ),
         ],
@@ -308,7 +359,9 @@ class _FollowScreenState extends State<FollowScreen> {
     );
   }
   
-  Widget _buildUserProfile(Map<String, dynamic> userData) {
+  Widget _buildUserProfile() {
+    bool hasCityAndCountry = (widget.user?.city.isNotEmpty ?? false) && (widget.user?.country.isNotEmpty ?? false);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
       child: Column(
@@ -317,11 +370,51 @@ class _FollowScreenState extends State<FollowScreen> {
           const SizedBox(height: 15),
           UserProfileInfo(
             userName: widget.user!.name,
-            city: widget.user!.city,
-            country: widget.user!.country,
+            city: hasCityAndCountry ? widget.user!.city : null,
+            country: hasCityAndCountry ? widget.user!.country : null,
             initialIndex: widget.initialIndex,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildArtistPro() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16),
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: Container(
+          padding: EdgeInsets.only(left: 4, right: 8),
+          decoration: BoxDecoration(
+            color: AppColors.darkGrey,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Material(
+            color: AppColors.transparent,
+            child: InkWell(
+              onTap: () {
+                Navigator.push(context, createPageRoute(SpotlightScreen(name: widget.user?.name, avatarUrl: widget.user?.image)));
+              },
+              splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+              highlightColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
+              borderRadius: BorderRadius.circular(8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 14,
+                    height: 14,
+                    decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.primary),
+                    child: Icon(Icons.star, color: AppColors.white, size: 11),
+                  ),
+                  SizedBox(width: 4),
+                  Text('ARTIST PRO', style: TextStyle(fontSize: AppSizes.fontSizeLm, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

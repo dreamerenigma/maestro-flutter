@@ -10,9 +10,12 @@ import '../../models/playlist/playlist_model.dart';
 abstract class PlaylistFirebaseService {
   Future<Either<Exception, List<PlaylistModel>>> getPlayList();
   Future<Either<Exception, String>> createPlaylist(String title, bool isPublic);
-  Future<Either<Exception, String>> updatePlaylist(String playlistId, String title, String description, String coverImage, int trackCount, List<String> tags, bool isPublic);
+  Future<Either<Exception, String>> updatePlaylist(String id, String title, String description, String coverImage, int trackCount, List<String> tags, bool isPublic);
   Future<Either<Exception, String>> deletePlaylist(String playlistId);
   Future<Either<Exception, String>> copyPlaylist(String playlistId, String title, bool isPublic);
+  Future<Either<Exception, String>> addOrRemoveFavoritePlaylists(String playlistId);
+  Future<Either<Exception, List<PlaylistModel>>> getNewsPlaylists();
+  Future<bool> isFavoritePlaylist(String playlistId);
 }
 
 class PlaylistFirebaseServiceImpl extends PlaylistFirebaseService {
@@ -24,16 +27,12 @@ class PlaylistFirebaseServiceImpl extends PlaylistFirebaseService {
         .orderBy('releaseDate', descending: true)
         .get();
 
-      for (var element in data.docs) {
-        var playlistModel = PlaylistModel.fromJson(element.data());
+      for (var doc in data.docs) {
+        var playlistModel = PlaylistModel.fromJson(doc.id, doc.data());
 
-        bool isFavorite = await sl<IsFavoritePlaylistUseCase>().call(params: element.reference.id);
+        bool isFavorite = await sl<IsFavoritePlaylistUseCase>().call(params: doc.id);
 
-        playlistModel = playlistModel.copyWith(
-          playlistId: element.reference.id,
-          isFavorite: isFavorite,
-        );
-
+        playlistModel = playlistModel.copyWith(isFavorite: isFavorite);
         playlists.add(playlistModel);
       }
 
@@ -92,9 +91,26 @@ class PlaylistFirebaseServiceImpl extends PlaylistFirebaseService {
   }
 
   @override
-  Future<Either<Exception, String>> updatePlaylist(String playlistId, String title, String description, String coverImage, int trackCount, List<String> tags, bool isPublic) async {
+  Future<Either<Exception, String>> updatePlaylist(
+    String id,
+    String title,
+    String description,
+    String coverImage,
+    int trackCount,
+    List<String> tags,
+    bool isPublic,
+  ) async {
     try {
+      log('Updating Firestore: $id, $title, $description, $coverImage, $trackCount, $tags, $isPublic');
+
       final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+
+      DocumentReference playlistRef = firebaseFirestore.collection('Playlists').doc(id);
+
+      final docSnapshot = await playlistRef.get();
+      if (!docSnapshot.exists) {
+        return Left(Exception('Playlist not found'));
+      }
 
       Map<String, dynamic> data = {
         'title': title,
@@ -107,7 +123,7 @@ class PlaylistFirebaseServiceImpl extends PlaylistFirebaseService {
 
       log('Updating playlist with data: $data');
 
-      await firebaseFirestore.collection('Playlists').doc(playlistId).update(data);
+      await playlistRef.update(data);
 
       return Right('Playlist updated successfully');
     } catch (e) {
@@ -175,5 +191,20 @@ class PlaylistFirebaseServiceImpl extends PlaylistFirebaseService {
       log('Error copying playlist: $e');
       return Left(Exception('Failed to copy playlist'));
     }
+  }
+
+  @override
+  Future<Either<Exception, String>> addOrRemoveFavoritePlaylists(String playlistId) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Exception, List<PlaylistModel>>> getNewsPlaylists() {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> isFavoritePlaylist(String playlistId) {
+    throw UnimplementedError();
   }
 }

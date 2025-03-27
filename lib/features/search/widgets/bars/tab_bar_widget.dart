@@ -10,8 +10,9 @@ import '../tabs/users_tab.dart';
 
 class TabBarWidget extends StatefulWidget {
   final int initialIndex;
+  final String searchKeyword;
 
-  const TabBarWidget({super.key, required this.initialIndex});
+  const TabBarWidget({super.key, required this.initialIndex, required this.searchKeyword});
 
   @override
   TabBarWidgetState createState() => TabBarWidgetState();
@@ -73,9 +74,9 @@ class TabBarWidgetState extends State<TabBarWidget> with SingleTickerProviderSta
               controller: _tabController,
               physics: const NeverScrollableScrollPhysics(),
               children: [
-                AllTab(initialIndex: widget.initialIndex, searchQuery: ''),
+                AllTab(initialIndex: widget.initialIndex, searchKeyword: widget.searchKeyword),
                 const TracksTab(),
-                UsersTab(initialIndex: widget.initialIndex),
+                UsersTab(initialIndex: widget.initialIndex, searchKeyword: widget.searchKeyword),
                 const PlaylistsTab(),
                 const AlbumsTab(),
               ],

@@ -16,26 +16,28 @@ class UserList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        if (shouldShowToResultRow)
-        Padding(
-          padding: const EdgeInsets.only(left: 16, right: 16, top: 20, bottom: 6),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: const Text('Top Result', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800, letterSpacing: -1.3)),
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          if (shouldShowToResultRow)
+          Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16, top: 20, bottom: 6),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: const Text('Top Result', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800, letterSpacing: -1.3)),
+            ),
           ),
-        ),
-        Expanded(
-          child: ListView.builder(
+          ListView.builder(
             padding: EdgeInsets.only(top: 6),
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
             itemCount: users.length,
             itemBuilder: (context, index) {
               return UserItem(user: users[index], initialIndex: initialIndex);
             },
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -38,8 +38,6 @@ class PlaylistTabState extends State<PlaylistTab> {
         .where('authorName', isEqualTo: widget.userData['name'])
         .get();
 
-      log('Loaded ${snapshot.docs.length} playlists for current user');
-
       setState(() {
         playlists = snapshot.docs.map((doc) => {
           'id': doc.id,

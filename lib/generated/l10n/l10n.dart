@@ -550,6 +550,46 @@ class S {
     );
   }
 
+  /// `German`
+  String get deutschLanguage {
+    return Intl.message(
+      'German',
+      name: 'deutschLanguage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `French`
+  String get frenchLanguage {
+    return Intl.message(
+      'French',
+      name: 'frenchLanguage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Italian`
+  String get italianLanguage {
+    return Intl.message(
+      'Italian',
+      name: 'italianLanguage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Portuguese`
+  String get portugueseLanguage {
+    return Intl.message(
+      'Portuguese',
+      name: 'portugueseLanguage',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `No Data Found!`
   String get noDataFound {
     return Intl.message(

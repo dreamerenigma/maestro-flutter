@@ -40,7 +40,7 @@ class UserAvatar extends StatelessWidget {
               ),
             ),
             Material(
-              color: Colors.transparent,
+              color: AppColors.transparent,
               child: InkWell(
                 onTap: () {
                   if (imageUrl == null || imageUrl!.isEmpty || imageUrl == AppVectors.avatar) {

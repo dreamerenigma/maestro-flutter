@@ -20,8 +20,8 @@ void showImageDialog(BuildContext context, String? imageUrl, {BoxShape shape = B
             ),
           ),
           Positioned(
-            top: 40,
-            left: 20,
+            top: 10,
+            left: 15,
             child: GestureDetector(
               onTap: () => Get.back(),
               child: Container(

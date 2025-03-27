@@ -2,7 +2,7 @@ import 'dart:developer';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:maestro/common/widgets/app_bar/app_bar.dart';
@@ -12,6 +12,7 @@ import '../../../domain/entities/user/user_entity.dart';
 import '../../../routes/custom_page_route.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../../generated/l10n/l10n.dart';
+import '../../../utils/constants/app_vectors.dart';
 import '../../song_player/widgets/mini_player/mini_player_manager.dart';
 import '../../chats/widgets/lists/user_message_list.dart';
 import '../../utils/screens/internet_aware_screen.dart';
@@ -43,8 +44,6 @@ class InboxScreen extends StatefulWidget {
 class InboxScreenState extends State<InboxScreen> {
   late Future<Map<String, dynamic>?> userDataFuture;
   final GetStorage storage = GetStorage();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  late User? user;
   late Stream<List<Map<String, dynamic>>> messageStream;
   bool isMiniPlayerVisible = true;
 
@@ -55,44 +54,137 @@ class InboxScreenState extends State<InboxScreen> {
   @override
   void initState() {
     super.initState();
-    user = _auth.currentUser;
     userDataFuture = APIs.fetchUserData();
     messageStream = _fetchUserMessages();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.updateUnreadMessages(0);
     });
     _fetchUserMessages();
+    toggleMiniPlayerVisibility();
   }
 
-  Stream<List<Map<String, dynamic>>> _fetchUserMessages() {
-    return FirebaseFirestore.instance
+  void toggleMiniPlayerVisibility() {
+    setState(() {
+      isMiniPlayerVisible = !isMiniPlayerVisible;
+    });
+  }
+
+  Stream<List<Map<String, dynamic>>> _fetchUserMessages() async* {
+    final User? user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      log("User not logged in");
+      yield [];
+      return;
+    }
+
+    final String userId = user.uid;
+
+    log("Fetching chats for user: $userId");
+
+    yield* FirebaseFirestore.instance
       .collection('Chats')
-      .orderBy('sent', descending: true)
+      .where('fromId', isEqualTo: userId)
       .snapshots()
-      .map((snapshot) {
-        log("Snapshot data: ${snapshot.docs.length} documents found");
-        if (snapshot.docs.isEmpty) {
-          log("No documents found in the snapshot.");
+      .asyncMap((querySnapshot) async {
+        log("Fetched chats where user is fromId: ${querySnapshot.docs.length} chats found");
+
+        List<Map<String, dynamic>> messages = [];
+
+        for (final chatDoc in querySnapshot.docs) {
+          final chatId = chatDoc.id;
+          log("Processing chat: $chatId");
+
+          final messagesSnapshot = await FirebaseFirestore.instance
+            .collection('Chats')
+            .doc(chatId)
+            .collection('Messages')
+            .orderBy('sent', descending: true)
+            .limit(1)
+            .get();
+
+          log("Fetched messages for chat $chatId: ${messagesSnapshot.docs.length} messages found");
+
+          if (messagesSnapshot.docs.isNotEmpty) {
+            for (var messageDoc in messagesSnapshot.docs) {
+              final data = messageDoc.data();
+              log("Message data for chat $chatId: $data");
+
+              final fromId = data['fromId'] ?? '';
+              final toId = data['toId'] ?? '';
+
+              if (fromId.isEmpty || toId.isEmpty) {
+                log("Error: fromId or toId is empty in chatId: $chatId");
+              }
+
+              if (fromId == userId || toId == userId) {
+                messages.add({
+                  'fromId': fromId,
+                  'toId': toId,
+                  'message': data['message'] ?? '',
+                  'read': data['read'] ?? false,
+                  'sent': (data['sent'] as Timestamp).toDate(),
+                });
+              }
+            }
+          } else {
+            log("No messages found for chatId: $chatId");
+          }
         }
 
-        return snapshot.docs.map((doc) {
-          log("Document data: ${doc.data()}");
-          final data = doc.data();
-          log("Fetched data: $data");
-          String fromId = data['fromId'] ?? '';
-          String toId = data['toId'] ?? '';
-          String message = data['message'] ?? '';
-          Timestamp sentTimestamp = data['sent'] ?? Timestamp.now();
+        log("Total messages fetched: ${messages.length}");
 
-          return {
-            'fromId': fromId,
-            'toId': toId,
-            'message': message,
-            'sent': sentTimestamp.toDate(),
-          };
-        }).toList();
-      }).handleError((e) {
-        log("Error in stream: $e");
+        final receivedChatsSnapshot = await FirebaseFirestore.instance
+          .collection('Chats')
+          .where('toId', isEqualTo: userId)
+          .get();
+
+        log("Fetched chats where user is toId: ${receivedChatsSnapshot.docs.length} chats found");
+
+        for (final chatDoc in receivedChatsSnapshot.docs) {
+          final chatId = chatDoc.id;
+          log("Processing received chat: $chatId");
+
+          final messagesSnapshot = await FirebaseFirestore.instance
+            .collection('Chats')
+            .doc(chatId)
+            .collection('Messages')
+            .orderBy('sent', descending: true)
+            .limit(1)
+            .get();
+
+          log("Fetched messages for received chat $chatId: ${messagesSnapshot.docs.length} messages found");
+
+          if (messagesSnapshot.docs.isNotEmpty) {
+            for (var messageDoc in messagesSnapshot.docs) {
+              final data = messageDoc.data();
+              log("Message data for received chat $chatId: $data");
+
+              final fromId = data['fromId'] ?? '';
+              final toId = data['toId'] ?? '';
+
+              if (fromId.isEmpty || toId.isEmpty) {
+                log("Error: fromId or toId is empty in chatId: $chatId");
+              }
+
+              if (fromId == userId || toId == userId) {
+                messages.add({
+                  'fromId': fromId,
+                  'toId': toId,
+                  'message': data['message'] ?? '',
+                  'read': data['read'] ?? false,
+                  'sent': (data['sent'] as Timestamp).toDate(),
+                });
+              }
+            }
+          } else {
+            log("No messages found for received chatId: $chatId");
+          }
+        }
+
+        log("Total messages fetched after adding received chats: ${messages.length}");
+
+        return messages;
       });
   }
 
@@ -172,7 +264,12 @@ class InboxScreenState extends State<InboxScreen> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
                 splashColor: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()),
                 backgroundColor: context.isDarkMode ? AppColors.white : AppColors.black,
-                child: Icon(PhosphorIcons.pencil_simple_light, size: 26, color: context.isDarkMode ? AppColors.black : AppColors.white),
+                child: SvgPicture.asset(
+                  AppVectors.pencil,
+                  width: 23,
+                  height: 23,
+                  colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.black : AppColors.white, BlendMode.srcIn),
+                ),
               ),
             ),
           ),

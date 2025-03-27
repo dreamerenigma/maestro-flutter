@@ -6,7 +6,6 @@ class MessageEntity {
   final bool read;
   final String fromId;
   final DateTime sent;
-  final List<String> deleted;
 
   MessageEntity({
     required this.toId,
@@ -14,7 +13,6 @@ class MessageEntity {
     required this.read,
     required this.fromId,
     required this.sent,
-    required this.deleted,
   });
 
   factory MessageEntity.fromModel(MessageModel model) {
@@ -24,7 +22,6 @@ class MessageEntity {
       read: model.read,
       fromId: model.fromId,
       sent: model.sent,
-      deleted: model.deleted,
     );
   }
 
@@ -35,7 +32,6 @@ class MessageEntity {
       read: read,
       fromId: fromId,
       sent: sent,
-      deleted: deleted,
     );
   }
 

@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../../utils/constants/app_images.dart';
 import '../../../../utils/constants/app_sizes.dart';
-import '../../../../utils/constants/app_urls.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../domain/entities/song/song_entity.dart';
 import '../../bloc/news_songs_cubit.dart';
@@ -77,9 +77,7 @@ class NewsSongsTab extends StatelessWidget {
                           borderRadius: BorderRadius.circular(AppSizes.cardRadiusLg),
                           image: DecorationImage(
                             fit: BoxFit.cover,
-                            image: NetworkImage(
-                              '${AppURLs.coverFirestorage}${songs[index].artist} - ${songs[index].title}.jpg?${AppURLs.mediaAlt}'
-                            ),
+                            image: NetworkImage(AppImages.albumImage),
                             onError: (exception, stackTrace) {
                               log('Error loading image: $exception');
                             },

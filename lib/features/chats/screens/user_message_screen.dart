@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:maestro/features/home/screens/add_track_or_playlist_screen.dart';
 import 'package:maestro/features/utils/widgets/no_glow_scroll_behavior.dart';
@@ -16,6 +17,7 @@ import '../../home/screens/home_screen.dart';
 import '../../home/widgets/nav_bar/bottom_nav_bar.dart';
 import '../../song_player/widgets/mini_player/mini_player_manager.dart';
 import '../models/message_model.dart';
+import '../widgets/dialogs/block_report_profile_dialog.dart';
 import '../widgets/inputs/message_text_field.dart';
 import '../widgets/lists/message_list.dart';
 
@@ -79,7 +81,6 @@ class _UserMessageScreenState extends State<UserMessageScreen> {
         message: message,
         read: false,
         sent: sentTimestamp,
-        deleted: [],
       );
 
       final result = await sl<MessageFirebaseService>().addMessage(messageModel);
@@ -157,11 +158,17 @@ class _UserMessageScreenState extends State<UserMessageScreen> {
         centerTitle: false,
         actions: [
           IconButton(
+            splashColor: context.isDarkMode ? AppColors.darkGrey.withAlpha((0.4 * 255).toInt()) : AppColors.grey.withAlpha((0.4 * 255).toInt()),
+            highlightColor: context.isDarkMode ? AppColors.darkGrey.withAlpha((0.4 * 255).toInt()) : AppColors.grey.withAlpha((0.4 * 255).toInt()),
             onPressed: () {},
             icon: const Icon(Icons.cast, size: 22),
           ),
           IconButton(
-            onPressed: () {},
+            splashColor: context.isDarkMode ? AppColors.darkGrey.withAlpha((0.4 * 255).toInt()) : AppColors.grey.withAlpha((0.4 * 255).toInt()),
+            highlightColor: context.isDarkMode ? AppColors.darkGrey.withAlpha((0.4 * 255).toInt()) : AppColors.grey.withAlpha((0.4 * 255).toInt()),
+            onPressed: () {
+              showBlockReportProfileBottomDialog(context);
+            },
             icon: const Icon(Icons.more_vert_rounded, size: 23),
           ),
         ],
@@ -240,10 +247,7 @@ class _UserMessageScreenState extends State<UserMessageScreen> {
               right: 0,
               child: MiniPlayerManager(
                 hideMiniPlayerOnSplash: false,
-                child: SizedBox(
-                  height: 60,
-                  child: Center(child: Text('Mini Player Here')),
-                ),
+                child: SizedBox(height: 60, child: Center(child: Text('Mini Player Here'))),
               ),
             ),
         ],

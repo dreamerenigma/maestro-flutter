@@ -20,7 +20,7 @@ class SenderMessage extends StatelessWidget {
         children: [
           Container(
             width: 200,
-            padding: EdgeInsets.only(left: 14, right: 14, top: 8, bottom: 8),
+            padding: EdgeInsets.only(left: 14, right: 14, top: 6, bottom: 6),
             decoration: BoxDecoration(color: AppColors.darkGrey, borderRadius: BorderRadius.circular(15)),
             child: Text(
               message.message,

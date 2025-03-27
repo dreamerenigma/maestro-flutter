@@ -59,8 +59,6 @@ class AllPlaylistsScreenState extends State<AllPlaylistsScreen> {
         .where('authorName', isEqualTo: userData['name'])
         .get();
 
-      log('Loaded ${snapshot.docs.length} playlists for current user');
-
       var playlistsData = snapshot.docs.map((doc) {
         return {
           'id': doc.id,

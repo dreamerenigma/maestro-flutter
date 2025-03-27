@@ -5,6 +5,7 @@ import 'package:maestro/data/repository/song/song_repository_impl.dart';
 import 'package:maestro/data/repository/station/station_repository_impl.dart';
 import 'package:maestro/data/repository/user/user_repository_impl.dart';
 import 'package:maestro/data/services/history/history_firebase_service.dart';
+import 'package:maestro/data/services/reposts/repost_firebase_service.dart';
 import 'package:maestro/data/services/station/station_firebase_service.dart';
 import 'package:maestro/data/services/user/user_firebase_service.dart';
 import 'package:maestro/domain/repository/authentication/auth_repository.dart';
@@ -31,12 +32,14 @@ import 'data/repository/comment/comment_repository_impl.dart';
 import 'data/repository/history/history_repository_impl.dart';
 import 'data/repository/message/message_repository_impl.dart';
 import 'data/repository/playlist/playlist_repository_impl.dart';
+import 'data/repository/repost/repost_repository_impl.dart';
 import 'data/services/authentication/auth_firebase_service.dart';
 import 'data/services/comment/comment_firebase_service.dart';
 import 'data/services/message/message_firebase_service.dart';
 import 'data/services/playlist/playlist_firebase_service.dart';
 import 'data/services/song/song_firebase_service.dart';
 import 'domain/repository/playlist/playlists_repository.dart';
+import 'domain/repository/repost/repost_repository.dart';
 import 'domain/repository/song/songs_repository.dart';
 import 'domain/usecases/authentication/signin.dart';
 import 'domain/usecases/comment/add_comment_use_cases.dart';
@@ -45,6 +48,7 @@ import 'domain/usecases/playlist/create_play_list_use_cases.dart';
 import 'domain/usecases/playlist/delete_playlist_use_cases.dart';
 import 'domain/usecases/playlist/get_play_list_use_cases.dart';
 import 'domain/usecases/playlist/is_favorite_playlist_use_cases.dart';
+import 'domain/usecases/repost/add_repost_use_cases.dart';
 import 'domain/usecases/user/add_following_use_cases.dart';
 import 'domain/usecases/user/create_recommended_tracks_use_case.dart';
 import 'domain/usecases/user/get_recommended_tracks_use_case.dart';
@@ -64,6 +68,7 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<CommentFirebaseService>(CommentFirebaseServiceImpl());
   sl.registerSingleton<MessageFirebaseService>(MessageFirebaseServiceImpl());
   sl.registerSingleton<HistoryFirebaseService>(HistoryFirebaseServiceImpl());
+  sl.registerSingleton<RepostFirebaseService>(RepostFirebaseServiceImpl());
 
   /// -- Repository Impl --
   sl.registerSingleton<AuthRepository>(AuthRepositoryImpl());
@@ -75,6 +80,7 @@ Future<void> initializeDependencies() async {
   sl.registerSingleton<CommentRepository>(CommentRepositoryImpl());
   sl.registerSingleton<MessageRepository>(MessageRepositoryImpl());
   sl.registerSingleton<HistoryRepository>(HistoryRepositoryImpl());
+  sl.registerSingleton<RepostRepository>(RepostRepositoryImpl());
 
   /// -- Authentication Use Cases --
   sl.registerSingleton<SignupUseCase>(SignupUseCase());
@@ -119,4 +125,7 @@ Future<void> initializeDependencies() async {
 
   /// -- History Use Cases --
   sl.registerSingleton<FetchListeningHistoryUseCases>(FetchListeningHistoryUseCases());
+
+  /// -- Repost Use Cases --
+  sl.registerSingleton<AddRepostUseCases>(AddRepostUseCases());
 }

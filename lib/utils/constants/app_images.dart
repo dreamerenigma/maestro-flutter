@@ -28,9 +28,4 @@ class AppImages {
   static const String defaultCover4 = '${basePath}default_cover_4.png';
   static const String defaultCover5 = '${basePath}default_cover_5.png';
   static const String defaultCover6 = '${basePath}default_cover_6.png';
-
-  /// -- Icons
-  static const String russiaFlag = '${iconsPath}flags/russia.png';
-  static const String usaFlag = '${iconsPath}flags/usa.png';
-  static const String spainFlag = '${iconsPath}flags/spain.png';
 }

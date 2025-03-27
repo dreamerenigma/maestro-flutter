@@ -57,7 +57,7 @@ class MessageTextFieldState extends State<MessageTextField> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             child: SizedBox(
               height: null,
               child: Row(
@@ -74,8 +74,9 @@ class MessageTextFieldState extends State<MessageTextField> {
                         cursorColor: AppColors.primary,
                         textCapitalization: TextCapitalization.sentences,
                         onChanged: widget.onChanged,
-                        maxLines: 3,
                         minLines: 1,
+                        maxLines: 3,
+                        keyboardType: TextInputType.multiline,
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: Theme.of(context).brightness == Brightness.dark ? AppColors.darkGrey : AppColors.grey.withAlpha((0.2 * 255).toInt()),
@@ -93,13 +94,13 @@ class MessageTextFieldState extends State<MessageTextField> {
                             onPressed: widget.onAttach,
                           ),
                           suffixIcon: _hasText
-                              ? IconButton(
-                                  onPressed: widget.onClearText,
-                                  icon: Icon(Ionicons.close_circle, size: 26, color: context.isDarkMode ? AppColors.lightGrey : AppColors.darkGrey),
-                                )
-                              : null,
+                            ? IconButton(
+                                onPressed: widget.onClearText,
+                                icon: Icon(Ionicons.close_circle, size: 26, color: context.isDarkMode ? AppColors.lightGrey : AppColors.darkGrey),
+                              )
+                            : null,
                         ),
-                        style: TextStyle(fontSize: AppSizes.fontSizeMd, fontWeight: FontWeight.w400),
+                        style: TextStyle(fontSize: 18, fontFamily: 'Roboto', fontWeight: FontWeight.w400),
                       ),
                     ),
                   ),

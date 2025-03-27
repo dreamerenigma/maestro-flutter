@@ -8,8 +8,17 @@ class UpdatePlaylistUseCases implements UseCase<Either<Exception, String>, Playl
   @override
   Future<Either<Exception, String>> call({PlaylistParams? params}) async {
     if (params == null) {
-      return Left(Exception('Params cannot be null'));
+      return Left(Exception('PlaylistParams cannot be null'));
     }
-    return await sl<PlaylistsRepository>().updatePlaylist(params.playlistId, params.title, params.description, params.coverImage, params.trackCount, params.tags, params.isPublic);
+    return await sl<PlaylistsRepository>().updatePlaylist(
+      params.id,
+      params.title,
+      params.description,
+      params.coverImage,
+      params.trackCount,
+      params.tags,
+      params.isPublic,
+    );
   }
 }
+

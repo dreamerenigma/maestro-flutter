@@ -16,6 +16,8 @@ class MessageFirebaseServiceImpl extends MessageFirebaseService {
     try {
       String chatId = getChatId(message.fromId, message.toId);
 
+      log('Sending message from: ${message.fromId}, to: ${message.toId}');
+
       await _firestore.collection('Chats').doc(chatId).collection('Messages').add({
         'fromId': message.fromId,
         'message': message.message,
@@ -23,7 +25,13 @@ class MessageFirebaseServiceImpl extends MessageFirebaseService {
         'sent': Timestamp.fromDate(message.sent),
         'toId': message.toId,
       });
+
       log('Message added to chat\'s messages collection');
+
+      await _firestore.collection('Chats').doc(chatId).set({
+        'fromId': message.fromId,
+        'toId': message.toId,
+      }, SetOptions(merge: true));
 
       return Right(message);
     } catch (e) {
@@ -50,7 +58,6 @@ class MessageFirebaseServiceImpl extends MessageFirebaseService {
             message: data['message'],
             read: data['read'] is bool ? data['read'] : data['read'] == 'true',
             sent: data['sent'] is Timestamp ? (data['sent'] as Timestamp).toDate() : DateTime.parse(data['sent']),
-            deleted: List<String>.from(data['deleted'] ?? []),
           );
         }).toList();
       });

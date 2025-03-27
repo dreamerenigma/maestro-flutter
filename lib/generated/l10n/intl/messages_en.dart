@@ -71,6 +71,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "describeYourTrack":
             MessageLookupByLibrary.simpleMessage("Describe your track"),
         "description": MessageLookupByLibrary.simpleMessage("Description"),
+        "deutschLanguage": MessageLookupByLibrary.simpleMessage("German"),
         "discoverStations":
             MessageLookupByLibrary.simpleMessage("Discover with Stations"),
         "englishLanguage": MessageLookupByLibrary.simpleMessage("English"),
@@ -90,6 +91,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "feed": MessageLookupByLibrary.simpleMessage("Feed"),
         "female": MessageLookupByLibrary.simpleMessage("Female"),
         "followings": MessageLookupByLibrary.simpleMessage("Followings"),
+        "frenchLanguage": MessageLookupByLibrary.simpleMessage("French"),
         "fullName": MessageLookupByLibrary.simpleMessage("Full name"),
         "getStarted": MessageLookupByLibrary.simpleMessage("Get Started"),
         "googleSignInFailed": m0,
@@ -101,6 +103,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "helloUserMessage": m1,
         "home": MessageLookupByLibrary.simpleMessage("Home"),
         "inbox": MessageLookupByLibrary.simpleMessage("Inbox"),
+        "italianLanguage": MessageLookupByLibrary.simpleMessage("Italian"),
         "latestArtistsFollow": MessageLookupByLibrary.simpleMessage(
             "Latest from artists you follow"),
         "library": MessageLookupByLibrary.simpleMessage("Library"),
@@ -151,6 +154,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "pleaseSureInternetAvailable": MessageLookupByLibrary.simpleMessage(
             "Please make sure your internet is available"),
         "podcasts": MessageLookupByLibrary.simpleMessage("Podcasts"),
+        "portugueseLanguage":
+            MessageLookupByLibrary.simpleMessage("Portuguese"),
         "privacyPolicy":
             MessageLookupByLibrary.simpleMessage("Privacy Policy."),
         "recents": MessageLookupByLibrary.simpleMessage("Recents"),

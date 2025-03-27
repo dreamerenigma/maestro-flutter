@@ -16,16 +16,16 @@ import '../../../widgets/dialogs/are_your_sure_dialog.dart';
 import '../../../widgets/tabs/details_tab.dart';
 import '../../../widgets/tabs/tracks_tab.dart';
 
-class EditPlaylist extends StatefulWidget {
+class EditPlaylistScreen extends StatefulWidget {
   final Map<String, dynamic> playlist;
 
-  const EditPlaylist({super.key, required this.playlist});
+  const EditPlaylistScreen({super.key, required this.playlist});
 
   @override
-  State<EditPlaylist> createState() => _EditPlaylistState();
+  State<EditPlaylistScreen> createState() => EditPlaylistScreenState();
 }
 
-class _EditPlaylistState extends State<EditPlaylist> {
+class EditPlaylistScreenState extends State<EditPlaylistScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   bool isPublic = true;
@@ -38,75 +38,109 @@ class _EditPlaylistState extends State<EditPlaylist> {
   @override
   void initState() {
     super.initState();
+    log('Received playlist data: ${widget.playlist}');
     _titleController.text = widget.playlist['title'] ?? '';
     _descriptionController.text = widget.playlist['description'] ?? '';
+    _playlistImageUrl = widget.playlist['coverImage'];
   }
 
   void _updatePlaylistTitle(String newTitle) {
     setState(() {
       _titleController.text = newTitle;
+      log('Updated title: $newTitle');
     });
   }
 
   void _updatePlaylistDescription(String newDescription) {
     setState(() {
       _descriptionController.text = newDescription;
+      log('Updated description: $newDescription');
     });
   }
 
   void _updatePlaylistTags(List<String> newTags) {
     setState(() {
       tags = newTags;
+      log('Updated tags: $tags');
     });
   }
 
   void _updatePlaylistImageUrl(String newImageUrl) {
     setState(() {
       _playlistImageUrl = newImageUrl;
+      log('Updated cover image URL: $newImageUrl');
     });
   }
 
   Future<void> _onSavePressed() async {
-  log('Saving playlist with data:');
-  log('Title: ${_titleController.text}');
-  log('Description: $description');
-  log('Track count: $trackCount');
-  log('Tags: $tags');
-  log('Cover image URL: $_playlistImageUrl');
-  log('Is Public: $isPublic');
+    log('Attempting to save playlist...');
+    log('Title: ${_titleController.text}');
+    log('Description: ${_descriptionController.text}');
+    log('Track count: $trackCount');
+    log('Tags: $tags');
+    log('Cover image URL: $_playlistImageUrl');
+    log('Is Public: $isPublic');
 
-  GetStorage().remove('tags');
+    GetStorage().remove('tags');
 
-  final playlistState = context.read<PlaylistCubit>().state;
-  if (playlistState is PlaylistLoaded) {
+    final playlistState = context.read<PlaylistCubit>().state;
+    log('Current PlaylistCubit state: $playlistState');
+
+    if (playlistState is PlaylistLoading) {
+      Get.snackbar('Error', 'Playlist is still loading. Please wait.');
+      log('Error: playlist is loading');
+      return;
+    }
+
+    if (playlistState is! PlaylistLoaded) {
+      Get.snackbar('Error', 'Playlist is still loading. Try again.');
+      log('Error: playlist is null inside PlaylistLoaded');
+      return;
+    }
+
     final playlist = playlistState.playlist;
-    log('Current playlist data: ${playlist.title}, ${playlist.description}, ${playlist.trackCount}');
+    log('Existing playlist data before update:');
+    log('ID: ${playlist.id}');
+    log('Title: ${playlist.title}');
+    log('Description: ${playlist.description}');
+    log('Track count: ${playlist.trackCount}');
+    log('Cover Image URL: ${playlist.coverImage}');
 
-    final updatedCover = _playlistImageUrl ?? playlist.coverImage;
-    final updatedTitle = _titleController.text;
-    final updatedDescription = description;
-    final updatedTrackCount = trackCount;
-    final updatedTags = tags;
-    final updatedIsPublic = isPublic;
+    final updatedPlaylist = playlist.copyWith(
+      coverImage: _playlistImageUrl ?? playlist.coverImage,
+      title: _titleController.text,
+      description: _descriptionController.text,
+      trackCount: trackCount,
+      tags: tags,
+      isPublic: isPublic,
+    );
+
+    log('Updated playlist data:');
+    log('Title: ${updatedPlaylist.title}');
+    log('Description: ${updatedPlaylist.description}');
+    log('Track count: ${updatedPlaylist.trackCount}');
+    log('Cover Image URL: ${updatedPlaylist.coverImage}');
+    log('Tags: ${updatedPlaylist.tags}');
+    log('Is Public: ${updatedPlaylist.isPublic}');
 
     try {
       final result = await sl<PlaylistFirebaseService>().updatePlaylist(
-        playlist.playlistId,
-        updatedCover,
-        updatedTitle,
-        updatedDescription,
-        updatedTrackCount,
-        updatedTags,
-        updatedIsPublic,
+        updatedPlaylist.id,
+        updatedPlaylist.title,
+        updatedPlaylist.description,
+        updatedPlaylist.coverImage,
+        updatedPlaylist.trackCount,
+        updatedPlaylist.tags,
+        updatedPlaylist.isPublic,
       );
 
       result.fold(
         (error) {
-          Get.snackbar('Failed', 'Failed to update playlist: $error');
-          log('Error updating playlist: $error');
+          log('Error saving playlist: $error');
+          Get.snackbar('Error', 'An error occurred while saving the playlist');
         },
         (successMessage) {
-          Get.snackbar('Success', 'Upload Playlist Complete');
+          Get.snackbar('Success', successMessage);
           Navigator.of(context).pop();
         },
       );
@@ -115,8 +149,6 @@ class _EditPlaylistState extends State<EditPlaylist> {
       Get.snackbar('Error', 'An error occurred while saving the playlist');
     }
   }
-}
-
 
   @override
   Widget build(BuildContext context) {

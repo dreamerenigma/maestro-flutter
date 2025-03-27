@@ -22,7 +22,6 @@ import '../../home/screens/home_screen.dart';
 import '../../home/screens/upload_tracks_screen.dart';
 import '../../home/widgets/nav_bar/bottom_nav_bar.dart';
 import '../../song_player/widgets/mini_player/mini_player_manager.dart';
-import '../controllers/language_controller.dart';
 import '../widgets/dialogs/logout_confirmation_dialog.dart';
 import 'account_screen.dart';
 import 'basic_settings_screen.dart';
@@ -41,7 +40,6 @@ class SettingsScreen extends StatefulWidget {
 
 class SettingsScreenState extends State<SettingsScreen> {
   late final int selectedIndex;
-  final LanguageController languageController = Get.put(LanguageController());
   File? _selectedFile;
 
   @override
@@ -74,7 +72,7 @@ class SettingsScreenState extends State<SettingsScreen> {
     }
 
     return {
-      'appVersion': '2025.03.24-release (${packageInfo.buildNumber})',
+      'appVersion': '2025.03.27-release (${packageInfo.buildNumber})',
       'troubleshootingId': savedTroubleshootingId,
     };
   }
@@ -130,7 +128,7 @@ class SettingsScreenState extends State<SettingsScreen> {
                   Navigator.push(context, createPageRoute(InterfaceStyleScreen()));
                 }),
                 _buildProfileOption('Languages', Icons.arrow_forward_ios, () {
-                  Navigator.push(context, createPageRoute(SelectLanguageScreen()));
+                  Navigator.push(context, createPageRoute(SelectLanguageScreen(initialIndex: widget.initialIndex)));
                 }),
                 SizedBox(height: 14),
                 _buildProfileOption('Analytics', Icons.arrow_forward_ios, () {

@@ -23,7 +23,7 @@ import '../../../../utils/constants/app_sizes.dart';
 import '../../../../utils/constants/app_vectors.dart';
 import '../../../../utils/popups/dialogs.dart';
 import '../../screens/library/playlists/add_music_screen.dart';
-import '../../screens/library/playlists/edit_playlist.dart';
+import '../../screens/library/playlists/edit_playlist_screen.dart';
 import 'copy_playlist_dialog.dart';
 import 'delete_playlist_dialog.dart';
 
@@ -325,7 +325,7 @@ void showPlaylistBottomDialog(
               SizedBox(height: 6),
               _buildSectionOption(context, 'Edit', icon: PhosphorIcons.pencil_simple_light, () {
                 Navigator.of(context).pop();
-                Navigator.push(context, createPageRoute(EditPlaylist(playlist: playlist)));
+                Navigator.push(context, createPageRoute(EditPlaylistScreen(playlist: playlist)));
               }),
               _buildSectionOption(
                 context,

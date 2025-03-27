@@ -1,20 +1,27 @@
+import 'dart:developer';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:evil_icons_flutter/evil_icons_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'package:maestro/features/home/widgets/profile_playlist_widget.dart';
 import 'package:maestro/features/home/widgets/tabs/concerts_tab.dart';
 import 'package:maestro/features/home/widgets/tabs/videos_tab.dart';
 import 'package:maestro/features/home/widgets/your_likes_widget.dart';
 import 'package:maestro/routes/custom_page_route.dart';
 import '../../../api/apis.dart';
+import '../../../data/services/history/history_firebase_service.dart';
+import '../../../domain/entities/playlist/playable_item.dart';
+import '../../../domain/entities/playlist/playlist_entity.dart';
+import '../../../domain/entities/user/user_entity.dart';
 import '../../../generated/l10n/l10n.dart';
+import '../../../service_locator.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../../utils/constants/app_sizes.dart';
 import '../../../utils/constants/app_vectors.dart';
 import '../../library/screens/library/playlists/playlist_screen.dart';
 import '../../library/widgets/circular_animation.dart';
+import '../../library/widgets/lists/history/recently_played_list.dart';
 import '../../utils/screens/internet_aware_screen.dart';
 import '../../utils/widgets/no_glow_scroll_behavior.dart';
 import 'grids/latest_artists_follow_grid_widget.dart';
@@ -60,12 +67,15 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
   late Future<Map<String, dynamic>?> userDataFuture;
   bool _isConnected = true;
   late int selectedPlaylistIndex;
+  late List<PlayableItem> userEntities;
+  List<PlayableItem> recentlyPlayed = [];
 
   @override
   void initState() {
     super.initState();
     userDataFuture = APIs.fetchUserData();
     _checkInternetConnection();
+    _loadRecentlyPlayed();
 
     Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> results) {
       final result = results.isNotEmpty ? results.first : ConnectivityResult.none;
@@ -79,6 +89,54 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
     super.didChangeDependencies();
     final routeArguments = ModalRoute.of(context)?.settings.arguments as Map?;
     selectedPlaylistIndex = routeArguments?['selectedPlaylistIndex'] ?? 0;
+  }
+
+  void _loadRecentlyPlayed() async {
+    try {
+      List<Map<String, dynamic>> recently = await sl<HistoryFirebaseService>().fetchRecentlyPlayed();
+
+      List<PlayableItem> items = recently.map((data) {
+        if (data['type'] == 'user') {
+          return UserEntity(
+            id: data['id'] ?? '',
+            name: data['name'] ?? 'Unknown',
+            image: data['image'] ?? '',
+            followers: data['followers'] ?? 0,
+            bio: '',
+            city: data['city'] ?? '',
+            country: data['country'] ?? '',
+            flag: '',
+            backgroundImage: '',
+            links: [],
+            limitUploads: 0,
+            tracksCount: 0,
+            verifyAccount: false,
+          );
+        } else if (data['type'] == 'playlist') {
+          return PlaylistEntity(
+            id: data['id'] ?? '',
+            title: data['title'] ?? 'Untitled Playlist',
+            authorName: data['authorName'] ?? 'Unknown Author',
+            description: '',
+            releaseDate: Timestamp.now(),
+            isFavorite: false,
+            listenCount: 0,
+            coverImage: data['coverImage'] ?? '',
+            likes: 0,
+            trackCount: 0,
+            tags: [],
+            isPublic: false,
+          );
+        }
+        throw Exception('Unknown type in recently played');
+      }).toList();
+
+      setState(() {
+        recentlyPlayed = items;
+      });
+    } catch (e) {
+      log('Error loading recently played: $e');
+    }
   }
 
   Future<void> _reloadData() async {
@@ -123,9 +181,9 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
                           child: ListView(
                             padding: EdgeInsets.symmetric(vertical: 20),
                             children: [
-                              YourLikesWidget(padding: EdgeInsets.only(left: 16, right: 16, bottom: 12), initialIndex: widget.initialIndex),
-                              ProfilePlaylistWidget(padding: EdgeInsets.only(left: 16, right: 16, bottom: 35)),
-                              LatestArtistsFollowGridWidget(padding: EdgeInsets.only(bottom: 30)),
+                              YourLikesWidget(padding: EdgeInsets.only(left: 16, right: 16, bottom: 6), initialIndex: widget.initialIndex),
+                              _buildRecentlyPlayed(userData!),
+                              LatestArtistsFollowGridWidget(padding: EdgeInsets.only(top: 20, bottom: 20)),
                               GridWidget(
                                 padding: EdgeInsets.only(top: 8, bottom: 20),
                                 sectionTitle: S.of(context).moreWhatYouLike,
@@ -395,6 +453,34 @@ class _HomeScreenWidgetState extends State<HomeScreenWidget> {
                     height: 24,
                     colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.lightGrey : AppColors.black, BlendMode.srcIn),
                   ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecentlyPlayed(Map<String, dynamic> userData) {
+    List<PlayableItem> userEntities = recentlyPlayed;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: RecentlyPlayedList(
+                  users: userEntities,
+                  userData: userData,
+                  initialIndex: widget.initialIndex,
+                  showRecentlyPlayedHomeItem: true,
+                  shouldShowRecentlyPlayedListRow: false,
                 ),
               ),
             ],

@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:maestro/api/apis.dart';
+import 'package:maestro/domain/entities/reposts/repost_entity.dart';
 import 'package:maestro/features/library/widgets/lists/playlist/playlist_list.dart';
 import 'package:maestro/features/library/widgets/lists/track/repost_tracks_list.dart';
 import 'package:maestro/features/utils/widgets/no_glow_scroll_behavior.dart';
@@ -63,11 +64,10 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   bool isConnected = true;
   RxBool isFollowing = false.obs;
   double opacity = 1.0;
-  double opacityUsername = 0;
   double lastOffset = 0;
   List<SongEntity> likedTracks = [];
   List<SongEntity> myTracks = [];
-  List<SongEntity> repostTracks = [];
+  List<RepostEntity> repostTracks = [];
   List<Map<String, dynamic>> playlists = [];
 
   @override
@@ -135,8 +135,8 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
   Future<void> _loadImageUrls() async {
     setState(() {
-      imageUrlBg = _storageBox.read<String>('backgroundImage');
-      imageUrl = _storageBox.read<String>('image');
+      imageUrlBg = _storageBox.read<String>('backgroundImage_${widget.user?.id}');
+      imageUrl = _storageBox.read<String>('image_${widget.user?.id}');
     });
   }
 
@@ -266,16 +266,13 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                       child: CircleAvatar(
                                         radius: 18,
                                         backgroundImage: NetworkImage(userData['image'] ?? ''),
-                                        backgroundColor: AppColors.lightGrey,
+                                        backgroundColor: AppColors.darkGrey,
                                       ),
                                     ),
                                     const SizedBox(width: 12),
                                     Text(
                                       userData['name'] as String? ?? 'No Name',
-                                      style: TextStyle(
-                                        color: Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black,
-                                        fontSize: 20,
-                                      ),
+                                      style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? AppColors.white : AppColors.black, fontSize: 20),
                                     ),
                                   ],
                                 ),
@@ -324,7 +321,7 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                       return playlist['authorName'] == (userData['name'] ?? '');
                                     }).toList(),
                                   ),
-                                  RepostTrackList(tracks: repostTracks, userData: userData),
+                                  RepostTrackList(reposts: repostTracks, userData: userData),
                                   LikedTracksList(tracks: likedTracks, userData: userData),
                                   SizedBox(height: 100),
                                 ],
@@ -367,12 +364,13 @@ class ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   }
 
   Widget _buildBackground(BuildContext context, Map<String, dynamic> userData) {
+    final imageUrlBg = userData['backgroundImage'] as String?;
     final imageUrl = userData['image'] as String?;
 
     return Container(
       height: 150,
       decoration: BoxDecoration(
-        image: imageUrlBg != null ? DecorationImage(image: CachedNetworkImageProvider(imageUrlBg!), fit: BoxFit.cover) : null,
+        image: imageUrlBg != null ? DecorationImage(image: CachedNetworkImageProvider(imageUrlBg), fit: BoxFit.cover) : null,
         color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkGrey : AppColors.lightBackground,
       ),
       child: Stack(

@@ -1,4 +1,6 @@
+import 'dart:developer';
 import 'dart:ui';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -9,7 +11,9 @@ import 'package:maestro/utils/constants/app_images.dart';
 import 'package:maestro/features/utils/widgets/no_glow_scroll_behavior.dart';
 import '../../../../../api/apis.dart';
 import '../../../../../common/widgets/app_bar/app_bar.dart';
+import '../../../../../data/services/history/history_firebase_service.dart';
 import '../../../../../routes/custom_page_route.dart';
+import '../../../../../service_locator.dart';
 import '../../../../../utils/constants/app_colors.dart';
 import '../../../../../utils/constants/app_sizes.dart';
 import '../../../../home/screens/home_screen.dart';
@@ -21,7 +25,12 @@ class PlaylistScreen extends StatefulWidget {
   final int initialIndex;
   final int selectedPlaylistIndex;
 
-  const PlaylistScreen({super.key, required this.initialIndex, required this.playlist, required this.selectedPlaylistIndex});
+  const PlaylistScreen({
+    super.key,
+    required this.initialIndex,
+    required this.playlist,
+    required this.selectedPlaylistIndex,
+  });
 
   @override
   State<PlaylistScreen> createState() => PlaylistScreenState();
@@ -42,12 +51,36 @@ class PlaylistScreenState extends State<PlaylistScreen> {
     selectedIndex = widget.initialIndex;
     userDataFuture = APIs.fetchUserData();
     _searchController = TextEditingController();
+    _loadRecentlyPlayed();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _loadRecentlyPlayed() async {
+    User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      log('No current user');
+      return;
+    }
+
+    if (widget.selectedPlaylistIndex < 0 || widget.selectedPlaylistIndex >= widget.playlist.length) {
+      log('Invalid playlist index');
+      return;
+    }
+
+    final selectedPlaylist = widget.playlist[widget.selectedPlaylistIndex];
+
+    final userData = {
+      'coverImage': selectedPlaylist['coverImage'],
+      'title': selectedPlaylist['title'],
+      'authorName': selectedPlaylist['authorName'],
+    };
+
+    await sl<HistoryFirebaseService>().addToRecentlyPlayed(userData, 'playlist');
   }
 
   void _toggleShuffle() {
@@ -93,6 +126,8 @@ class PlaylistScreenState extends State<PlaylistScreen> {
           }
           final userData = snapshot.data!;
           final playlist = widget.playlist.isNotEmpty ? widget.playlist[widget.selectedPlaylistIndex] : null;
+
+          log('Number of playlists: ${widget.playlist.length}');
 
           if (playlist == null) {
             return const Center(child: Text('No playlist available'));

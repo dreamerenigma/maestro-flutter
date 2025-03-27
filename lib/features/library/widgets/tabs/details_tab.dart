@@ -92,8 +92,8 @@ class _DetailsTabState extends State<DetailsTab> {
   void _navigateToTagsPage() async {
     final updatedTags = await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => TagsPlaylistScreen(
+      createPageRoute(
+        TagsPlaylistScreen(
           onSaveTags: (List<String> tags) {
             setState(() {
               this.tags = tags;
@@ -113,10 +113,10 @@ class _DetailsTabState extends State<DetailsTab> {
   Future<void> _loadPlaylist() async {
     final playlistState = context.read<PlaylistCubit>().state;
     if (playlistState is PlaylistLoaded) {
-      String playlistId = playlistState.playlist.playlistId;
+      String id = playlistState.playlist.id;
 
       try {
-        final playlistSnapshot = await FirebaseFirestore.instance.collection('Playlists').doc(playlistId).get();
+        final playlistSnapshot = await FirebaseFirestore.instance.collection('Playlists').doc(id).get();
 
         if (playlistSnapshot.exists) {
           Map<String, dynamic> playlistData = playlistSnapshot.data() as Map<String, dynamic>;
@@ -126,6 +126,7 @@ class _DetailsTabState extends State<DetailsTab> {
             _descriptionController.text = playlistData['description'] ?? 'Describe your playlist';
             tags = playlistData['tags'] ?? 'No tags';
             isPublic = playlistData['isPublic'] ?? true;
+            _playlistImageUrl = playlistData['coverImage'];
           });
 
           log('Playlist loaded: description=$description, tags=$tags, isPublic=$isPublic');
@@ -168,6 +169,7 @@ class _DetailsTabState extends State<DetailsTab> {
         setState(() {
           _playlistImageUrl = downloadURL;
         });
+        log('Updated image URL: $_playlistImageUrl');
       } catch (e) {
         log('Error uploading image: $e');
       }
@@ -292,15 +294,9 @@ class _DetailsTabState extends State<DetailsTab> {
                       Text(labelText, style: TextStyle(fontSize: AppSizes.fontSizeMd, color: AppColors.grey, height: 0.1)),
                       const SizedBox(height: 10),
                       if (tagsText.isNotEmpty)
-                        Text(
-                          tagsText,
-                          style: TextStyle(fontSize: AppSizes.fontSizeMd, color: AppColors.lightGrey, fontWeight: FontWeight.w400),
-                        ),
+                        Text(tagsText, style: TextStyle(fontSize: AppSizes.fontSizeMd, color: AppColors.lightGrey, fontWeight: FontWeight.w400)),
                       if (descriptionText.isNotEmpty)
-                      Text(
-                        descriptionText,
-                        style: TextStyle(fontSize: AppSizes.fontSizeMd, color: AppColors.lightGrey, fontWeight: FontWeight.w400),
-                      ),
+                        Text(descriptionText, style: TextStyle(fontSize: AppSizes.fontSizeMd, color: AppColors.lightGrey, fontWeight: FontWeight.w400)),
                     ],
                   ),
                   Icon(icon, size: 22, color: AppColors.lightGrey),

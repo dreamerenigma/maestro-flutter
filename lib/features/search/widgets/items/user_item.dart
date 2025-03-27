@@ -1,8 +1,10 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:maestro/features/search/screens/follow_screen.dart';
 import 'package:maestro/routes/custom_page_route.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../../../domain/entities/user/user_entity.dart';
 import '../../../../utils/constants/app_colors.dart';
 import '../../../../utils/constants/app_vectors.dart';
@@ -24,6 +26,7 @@ class UserItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
+        FocusScope.of(context).unfocus();
         Navigator.push(context, createPageRoute(FollowScreen(initialIndex: 2, user: user)));
       },
       splashColor: AppColors.darkGrey.withAlpha((0.4 * 255).toInt()),
@@ -33,11 +36,25 @@ class UserItem extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              decoration: BoxDecoration(borderRadius: BorderRadius.circular(50), border: Border.all(color: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()), width: 1)),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(50),
+                border: Border.all(color: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()), width: 1),
+              ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(50),
                 child: user.image.isNotEmpty
-                  ? Image.network(user.image, width: 65, height: 65, fit: BoxFit.cover)
+                  ? CachedNetworkImage(
+                      imageUrl: user.image,
+                      width: 65,
+                      height: 65,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Shimmer.fromColors(
+                        baseColor: AppColors.darkGrey,
+                        highlightColor: AppColors.steelGrey,
+                        child: Container(width: 45, height: 45, decoration: BoxDecoration(color: AppColors.white, shape: BoxShape.circle)),
+                      ),
+                      errorWidget: (context, url, error) => SvgPicture.asset(AppVectors.avatar, width: 22, height: 22),
+                    )
                   : SvgPicture.asset(AppVectors.avatar, width: 65, height: 65),
               ),
             ),

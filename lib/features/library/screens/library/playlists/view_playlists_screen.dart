@@ -1,17 +1,21 @@
 import 'dart:developer';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:jam_icons/jam_icons.dart';
 import 'package:maestro/features/library/screens/library/playlists/playlist_screen.dart';
 import 'package:maestro/features/library/screens/library/playlists/widgets/create_playlist_widget.dart';
 import 'package:maestro/features/utils/widgets/no_glow_scroll_behavior.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../../../../api/apis.dart';
 import '../../../../../common/widgets/app_bar/app_bar.dart';
 import '../../../../../generated/l10n/l10n.dart';
 import '../../../../../routes/custom_page_route.dart';
 import '../../../../../utils/constants/app_sizes.dart';
 import '../../../../../utils/constants/app_colors.dart';
+import '../../../../../utils/constants/app_vectors.dart';
 import '../../../../home/screens/home_screen.dart';
 import '../../../../home/widgets/nav_bar/bottom_nav_bar.dart';
 import '../../../../song_player/widgets/mini_player/mini_player_manager.dart';
@@ -64,8 +68,6 @@ class ViewPlaylistsScreenState extends State<ViewPlaylistsScreen> {
       }
 
       var snapshot = await FirebaseFirestore.instance.collection('Playlists').where('authorName', isEqualTo: userData['name']).get();
-
-      log('Loaded ${snapshot.docs.length} playlists for current user');
 
       var playlistsData = snapshot.docs.map((doc) {
         return {
@@ -229,11 +231,26 @@ class ViewPlaylistsScreenState extends State<ViewPlaylistsScreen> {
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: Image.network(
-                            playlist['coverImage'],
+                          child: CachedNetworkImage(
+                            imageUrl: playlist['coverImage'],
                             width: 65,
                             height: 65,
                             fit: BoxFit.cover,
+                            placeholder: (context, url) => Shimmer.fromColors(
+                              baseColor: AppColors.darkGrey,
+                              highlightColor: AppColors.steelGrey,
+                              child: Container(
+                                width: 65,
+                                height: 65,
+                                decoration: BoxDecoration(color: AppColors.white, shape: BoxShape.rectangle),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => SvgPicture.asset(
+                              AppVectors.defaultAlbum,
+                              width: 22,
+                              height: 22,
+                              colorFilter: ColorFilter.mode(context.isDarkMode ? AppColors.white : AppColors.black, BlendMode.srcIn),
+                            ),
                           ),
                         ),
                       )

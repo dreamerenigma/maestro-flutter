@@ -28,7 +28,6 @@ class _TracksScreenState extends State<TracksScreen> {
     selectedIndex = widget.initialIndex;
   }
 
-
   Future<void> _reloadData() async {
     await Future.delayed(const Duration(seconds: 1));
     setState(() {});

@@ -24,42 +24,39 @@ class FollowingListState extends State<FollowingList> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Following')),
-      body: FutureBuilder<dartz.Either<String, UserModel>>(
-        future: _userFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)));
-          } else if (snapshot.hasError || snapshot.data?.isLeft() == true) {
-            return const Center(child: Text('Error loading user details'));
-          } else if (snapshot.hasData) {
-            final user = snapshot.data?.getOrElse(() => UserModel(
-              id: '',
-              name: '',
-              followers: 0,
-              image: '',
-              bio: '',
-              city: '',
-              country: '',
-              flag: '',
-              backgroundImage: '',
-              links: [],
-              limitUploads: 0,
-              tracksCount: 0,
-              verifyAccount: false,
-            ));
-            if (user != null) {
-              return ListView(
-                children: [
-                  FollowingItem(user: user),
-                ],
-              );
-            }
+    return FutureBuilder<dartz.Either<String, UserModel>>(
+      future: _userFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary)));
+        } else if (snapshot.hasError || snapshot.data?.isLeft() == true) {
+          return const Center(child: Text('Error loading user details'));
+        } else if (snapshot.hasData) {
+          final user = snapshot.data?.getOrElse(() => UserModel(
+            id: '',
+            name: '',
+            followers: 0,
+            image: '',
+            bio: '',
+            city: '',
+            country: '',
+            flag: '',
+            backgroundImage: '',
+            links: [],
+            limitUploads: 0,
+            tracksCount: 0,
+            verifyAccount: false,
+          ));
+          if (user != null) {
+            return ListView(
+              children: [
+                FollowingItem(user: user),
+              ],
+            );
           }
-          return const Center(child: Text('No data'));
-        },
-      ),
+        }
+        return const Center(child: Text('No data'));
+      },
     );
   }
 }

@@ -2,8 +2,10 @@ import 'dart:developer';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:maestro/data/services/playlist/playlist_firebase_service.dart';
-import '../../../../data/models/playlist/playlist_model.dart';
+import '../../../../data/services/song/song_firebase_service.dart';
 import '../../../../data/services/user/user_firebase_service.dart';
+import '../../../../domain/entities/playlist/playlist_entity.dart';
+import '../../../../domain/entities/song/song_entity.dart';
 import '../../../../domain/entities/user/user_entity.dart';
 import '../../../../service_locator.dart';
 import '../../../utils/widgets/no_glow_scroll_behavior.dart';
@@ -11,9 +13,9 @@ import '../lists/user_list.dart';
 
 class AllTab extends StatefulWidget {
   final int initialIndex;
-  final String searchQuery;
+  final String searchKeyword;
 
-  const AllTab({super.key, required this.initialIndex, required this.searchQuery});
+  const AllTab({super.key, required this.initialIndex, required this.searchKeyword});
 
   @override
   State<AllTab> createState() => _AllTabState();
@@ -21,12 +23,21 @@ class AllTab extends StatefulWidget {
 
 class _AllTabState extends State<AllTab> {
   late List<UserEntity> _users = [];
-  late List<PlaylistModel> _playlists = [];
+  late List<SongEntity> _songs = [];
+  late List<PlaylistEntity> _playlists = [];
 
   @override
   void initState() {
     super.initState();
     _loadUsers();
+  }
+
+  @override
+  void didUpdateWidget(covariant AllTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.searchKeyword != oldWidget.searchKeyword) {
+      _loadUsers();
+    }
   }
 
   Future<void> _loadUsers() async {
@@ -36,16 +47,41 @@ class _AllTabState extends State<AllTab> {
       return;
     }
 
-    final result = await sl<UserFirebaseService>().getUsers(user.uid);
+    final userResult = await sl<UserFirebaseService>().getUsers(user.uid);
 
-    result.fold(
+    userResult.fold(
       (error) {
         log('Error fetching users: $error');
       },
       (users) {
-        setState(() {
-          _users = users.map((userModel) => UserEntity.fromUserModel(userModel)).toList();
-        });
+        final filteredUsers = users.map((userModel) => UserEntity.fromUserModel(userModel)).where((user) {
+          return widget.searchKeyword.isEmpty || user.name.toLowerCase().contains(widget.searchKeyword.toLowerCase());
+        }).toList();
+
+        if (filteredUsers != _users) {
+          setState(() {
+            _users = filteredUsers;
+          });
+        }
+      },
+    );
+
+    final songResult = await sl<SongFirebaseService>().getSong();
+
+    songResult.fold(
+      (error) {
+        log('Error fetching songs: $error');
+      },
+      (songs) {
+        final filteredSongs = songs.map((songModel) => PlaylistEntity.fromPlaylistModel(songModel)).where((song) {
+          return widget.searchKeyword.isEmpty || song.title.toLowerCase().contains(widget.searchKeyword.toLowerCase());
+        }).toList();
+
+        if (filteredSongs != _songs) {
+          setState(() {
+            _songs = filteredSongs;
+          });
+        }
       },
     );
 
@@ -56,9 +92,15 @@ class _AllTabState extends State<AllTab> {
         log('Error fetching playlists: $error');
       },
       (playlists) {
-        setState(() {
-          _playlists = playlists;
-        });
+        final filteredPlaylists = playlists.map((playlistModel) => PlaylistEntity.fromPlaylistModel(playlistModel)).where((playlist) {
+          return widget.searchKeyword.isEmpty || playlist.title.toLowerCase().contains(widget.searchKeyword.toLowerCase());
+        }).toList();
+
+        if (filteredPlaylists != _playlists) {
+          setState(() {
+            _playlists = filteredPlaylists;
+          });
+        }
       },
     );
   }

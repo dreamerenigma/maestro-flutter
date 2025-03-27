@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'package:carbon_icons/carbon_icons.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -30,6 +31,7 @@ class MiniPlayerWidget extends StatefulWidget {
 class _MiniPlayerWidgetState extends State<MiniPlayerWidget> {
   bool _isPressed = false;
   int selectedIndex = 0;
+  Timer? _timer;
 
   @override
   void initState() {
@@ -61,7 +63,6 @@ class _MiniPlayerWidgetState extends State<MiniPlayerWidget> {
           final songEntity = context.read<SongPlayerCubit>().currentSong;
 
           if (songEntity == null) {
-            log('No song entity available.');
             return Container();
           }
           final isPlaying = context.read<SongPlayerCubit>().audioPlayer.playing;
@@ -71,6 +72,14 @@ class _MiniPlayerWidgetState extends State<MiniPlayerWidget> {
           final progress = totalDuration.inMilliseconds > 0 ? currentPosition.inMilliseconds / totalDuration.inMilliseconds : 0.0;
           final fileURL = songEntity.fileURL;
           final isLocalFile = fileURL.startsWith('file://') || fileURL.startsWith('/');
+
+          if (isPlaying && _timer == null) {
+            _timer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
+              setState(() {});
+            });
+          } else if (!isPlaying && _timer != null) {
+            _timer?.cancel();
+          }
 
           log('Song Entity: ${songEntity.title}, isPlaying: $isPlaying, currentPosition: $currentPosition, totalDuration: $totalDuration');
 

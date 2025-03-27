@@ -7,7 +7,7 @@ import '../../services/playlist/playlist_firebase_service.dart';
 class PlaylistRepositoryImpl extends PlaylistsRepository {
 
   @override
-  Future<Either<Exception, List<PlaylistModel>>> getPlaylist() async {
+  Future<Either<Exception, List<PlaylistModel>>> getPlaylist(String playlistId) async {
     return await sl<PlaylistFirebaseService>().getPlayList();
   }
 
@@ -28,7 +28,7 @@ class PlaylistRepositoryImpl extends PlaylistsRepository {
 
   @override
   Future<Either<Exception, String>> addOrRemoveFavoritePlaylists(String playlistId) async {
-    throw UnimplementedError();
+    return await sl<PlaylistFirebaseService>().addOrRemoveFavoritePlaylists(playlistId);
   }
 
   @override

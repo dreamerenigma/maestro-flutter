@@ -9,8 +9,10 @@ import '../../../utils/constants/app_sizes.dart';
 import '../../upgrade/widgets/dialogs/restrictions_apply_dialog.dart';
 
 class SpotlightScreen extends StatelessWidget {
+  final String? name;
+  final String? avatarUrl;
 
-  const SpotlightScreen({super.key});
+  const SpotlightScreen({super.key, this.name, this.avatarUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -23,33 +25,41 @@ class SpotlightScreen extends StatelessWidget {
               Align(
                 alignment: Alignment.center,
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 70),
+                  padding: EdgeInsets.only(top: avatarUrl != null ? 90 : 70),
                   child: SizedBox(
                     width: 220,
                     height: 270,
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        Container(
-                          width: 180,
-                          height: 230,
-                          decoration: BoxDecoration(
-                            image: DecorationImage(image: AssetImage(AppImages.artistBg), fit: BoxFit.cover),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        Positioned(
-                          left: 5,
-                          bottom: 5,
-                          child: Container(
+                        avatarUrl != null
+                          ? Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(100),
+                              border: Border.all(color: AppColors.darkerGrey.withAlpha((0.4 * 255).toInt()), width: 1),
+                            ),
+                            child: CircleAvatar(radius: 100, backgroundImage: NetworkImage(avatarUrl!)))
+                          : Container(
                             width: 180,
                             height: 230,
                             decoration: BoxDecoration(
-                              image: DecorationImage(image: AssetImage(AppImages.artist), fit: BoxFit.cover),
+                              image: DecorationImage(image: AssetImage(AppImages.artistBg), fit: BoxFit.cover),
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                        ),
+                        avatarUrl == null
+                          ? Positioned(
+                            left: 5,
+                            bottom: 5,
+                            child: Container(
+                              width: 180,
+                              height: 230,
+                              decoration: BoxDecoration(
+                                image: DecorationImage(image: AssetImage(AppImages.artist), fit: BoxFit.cover), borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                          )
+                        : SizedBox.shrink(),
                       ],
                     ),
                   ),
@@ -71,17 +81,14 @@ class SpotlightScreen extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: 12),
+          SizedBox(height: avatarUrl != null ? 50 : 12),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
                 Container(
                   padding: EdgeInsets.only(left: 4, right: 8, top: 2, bottom: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.darkGrey,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+                  decoration: BoxDecoration(color: AppColors.darkGrey, borderRadius: BorderRadius.circular(16)),
                   child: Row(
                     children: [
                       Container(
@@ -98,10 +105,7 @@ class SpotlightScreen extends StatelessWidget {
                 SizedBox(width: 12),
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.info,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+                  decoration: BoxDecoration(color: AppColors.info, borderRadius: BorderRadius.circular(16)),
                   child: Text('FOR ARTISTS', style: TextStyle(fontSize: AppSizes.fontSizeLm, fontWeight: FontWeight.bold)),
                 ),
               ],
@@ -110,7 +114,10 @@ class SpotlightScreen extends StatelessWidget {
           SizedBox(height: 30),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Text('Spotlight your best tracks & more.', style: TextStyle(fontSize: AppSizes.fontSizeXxl, fontWeight: FontWeight.bold, height: 1, letterSpacing: -1.5)),
+            child: Text(
+              name != null ? 'Get heard & paid with Artist Pro, like $name' : 'Spotlight your best tracks & more.',
+              style: TextStyle(fontSize: AppSizes.fontSizeXxl, fontWeight: FontWeight.bold, height: 1, letterSpacing: -1.5),
+            ),
           ),
           SizedBox(height: 12),
           Padding(
@@ -123,9 +130,7 @@ class SpotlightScreen extends StatelessWidget {
               text: TextSpan(
                 style: TextStyle(fontSize: AppSizes.fontSizeSm, fontWeight: FontWeight.w400),
                 children: [
-                  TextSpan(
-                    text: 'Cancel anytime. ',
-                  ),
+                  TextSpan(text: 'Cancel anytime. '),
                   TextSpan(
                     text: 'Restriction apply',
                     style: TextStyle(color: AppColors.blue, fontWeight: FontWeight.w400, decoration: TextDecoration.none),
@@ -164,10 +169,7 @@ class SpotlightScreen extends StatelessWidget {
                   child: Container(
                     width: double.infinity,
                     padding: EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      color: AppColors.transparent,
-                      borderRadius: BorderRadius.circular(30),
-                    ),
+                    decoration: BoxDecoration(color: AppColors.transparent, borderRadius: BorderRadius.circular(30)),
                     child: Text(
                       'See all plans',
                       style: TextStyle(fontSize: AppSizes.fontSizeMd, fontWeight: FontWeight.w400, color: AppColors.white),

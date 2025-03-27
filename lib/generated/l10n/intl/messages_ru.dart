@@ -74,6 +74,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "describeYourTrack":
             MessageLookupByLibrary.simpleMessage("Опишите свой трек"),
         "description": MessageLookupByLibrary.simpleMessage("Описание"),
+        "deutschLanguage": MessageLookupByLibrary.simpleMessage("Немецкий"),
         "discoverStations":
             MessageLookupByLibrary.simpleMessage("Откройте для себя Stations"),
         "englishLanguage": MessageLookupByLibrary.simpleMessage("Английский"),
@@ -93,6 +94,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "feed": MessageLookupByLibrary.simpleMessage("Новости"),
         "female": MessageLookupByLibrary.simpleMessage("Женский"),
         "followings": MessageLookupByLibrary.simpleMessage("Подписчики"),
+        "frenchLanguage": MessageLookupByLibrary.simpleMessage("Французский"),
         "fullName": MessageLookupByLibrary.simpleMessage("Полное имя"),
         "getStarted": MessageLookupByLibrary.simpleMessage("Начать"),
         "googleSignInFailed": m0,
@@ -104,6 +106,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "helloUserMessage": m1,
         "home": MessageLookupByLibrary.simpleMessage("Главная"),
         "inbox": MessageLookupByLibrary.simpleMessage("Входящие"),
+        "italianLanguage": MessageLookupByLibrary.simpleMessage("Итальянский"),
         "latestArtistsFollow":
             MessageLookupByLibrary.simpleMessage("Последние от подписок"),
         "library": MessageLookupByLibrary.simpleMessage("Профиль"),
@@ -155,6 +158,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "pleaseSureInternetAvailable": MessageLookupByLibrary.simpleMessage(
             "Убедитесь, что ваш интернет доступен"),
         "podcasts": MessageLookupByLibrary.simpleMessage("Подкасты"),
+        "portugueseLanguage":
+            MessageLookupByLibrary.simpleMessage("Португальский"),
         "privacyPolicy": MessageLookupByLibrary.simpleMessage(
             "Политикой конфиденциальности."),
         "recents": MessageLookupByLibrary.simpleMessage("Недавние"),

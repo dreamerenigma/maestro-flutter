@@ -162,4 +162,14 @@ class Formatter {
       return '${(difference.inDays / 365).floor()} y';
     }
   }
+
+  static int parseDuration(String durationString) {
+    final parts = durationString.split(':');
+    if (parts.length == 2) {
+      final minutes = int.tryParse(parts[0]) ?? 0;
+      final seconds = int.tryParse(parts[1]) ?? 0;
+      return minutes * 60 + seconds;
+    }
+    return 0;
+  }
 }

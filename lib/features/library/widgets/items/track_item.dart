@@ -52,10 +52,7 @@ class TrackItem extends StatelessWidget {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(AppSizes.cardRadiusXs),
                     border: Border.all(color: AppColors.darkGrey, width: 0.5),
-                    image: DecorationImage(
-                      fit: BoxFit.cover,
-                      image: CachedNetworkImageProvider(song.cover),
-                    ),
+                    image: DecorationImage(fit: BoxFit.cover, image: CachedNetworkImageProvider(song.cover)),
                   ),
                 ),
                 const SizedBox(width: 14),

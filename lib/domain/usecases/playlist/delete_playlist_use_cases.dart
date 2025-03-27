@@ -11,6 +11,6 @@ class DeletePlaylistUseCases implements UseCase<Either<Exception, String>, Playl
     if (params == null) {
       return Left(Exception('Params cannot be null'));
     }
-    return await sl<PlaylistsRepository>().deletePlaylist(params.playlistId);
+    return await sl<PlaylistsRepository>().deletePlaylist(params.id);
   }
 }

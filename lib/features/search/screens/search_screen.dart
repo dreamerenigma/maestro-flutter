@@ -4,12 +4,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:maestro/domain/entities/user/user_entity.dart';
-import '../../../data/services/search/search_service.dart';
+import '../../../data/services/search/search_firebase_service.dart';
 import '../../../utils/constants/app_sizes.dart';
 import '../../../utils/constants/app_colors.dart';
 import '../../utils/screens/internet_aware_screen.dart';
 import '../../../test/fake_query_document_snapshot.dart';
-import '../widgets/bars/search_bar.dart' as search;
+import '../widgets/inputs/search_text_field.dart' as search;
 import '../widgets/bars/tab_bar_widget.dart';
 import '../widgets/grids/genre_grid.dart';
 import '../widgets/items/search_history_item.dart';
@@ -50,6 +50,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
     _loadUserData();
 
     _focusNode.addListener(() {
+      log('Focus changed: hasFocus = ${_focusNode.hasFocus}');
       setState(() {
         _hasFocus = _focusNode.hasFocus;
       });
@@ -63,6 +64,8 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
         }
       });
 
+      log('Before search: hasFocus = ${_focusNode.hasFocus}');
+
       if (_hasText) {
         var searchResults = await _searchService.searchByKeyword(_searchController.text);
         log('Search results: ${searchResults.length}');
@@ -73,11 +76,6 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
           _isLoading = false;
           _showTabBarWidget = true;
         });
-
-        FocusScope.of(context).requestFocus(_focusNode);
-        setState(() {
-          _searchResults = searchResults;
-        });
       } else {
         setState(() {
           _searchResults = [];
@@ -86,15 +84,30 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
           _showTabBarWidget = false;
         });
       }
+
+      log('After search: hasFocus = ${_focusNode.hasFocus}');
+
+      if (!_focusNode.hasFocus) {
+        FocusScope.of(context).requestFocus(_focusNode);
+      }
     });
   }
 
   @override
   void dispose() {
+    log('Disposing SearchScreen');
     _tabController.dispose();
     _searchController.dispose();
     _focusNode.dispose();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant SearchScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_hasText && !_focusNode.hasFocus) {
+      FocusScope.of(context).requestFocus(_focusNode);
+    }
   }
 
   Future<void> _loadUserData() async {
@@ -125,6 +138,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
 
   void _clearSearch() {
     _searchController.clear();
+    FocusScope.of(context).requestFocus(_focusNode);
     setState(() {
       _hasText = false;
       _noResultsFound = false;
@@ -134,6 +148,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
   }
 
   void _removeFocus() {
+    log('Removing focus');
     _focusNode.unfocus();
     setState(() {
       _hasFocus = false;
@@ -228,7 +243,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
       children: [
         Column(
           children: [
-            _buildSearchBar(),
+            _buildSearchTextField(),
             if (!_isTabLoading && _hasText && !_isLoading && !_isSearchResult)
               SearchResults(
                 isLoading: _isLoading,
@@ -242,7 +257,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                 padding: const EdgeInsets.only(top: 30),
                 child: const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary))),
               ),
-            if (!_hasFocus && _searchResults.isNotEmpty && _hasText)
+            if (!_hasText && _hasFocus && _searchHistory.isNotEmpty && !(_isSearchResult && !_isTabLoading && _showTabBarWidget))
               Align(
                 alignment: Alignment.centerLeft,
                 child: GestureDetector(
@@ -259,7 +274,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
         if (!_isTabLoading && _isSearchResult && _showTabBarWidget)
           Padding(
             padding: const EdgeInsets.only(top: 100),
-            child: TabBarWidget(initialIndex: 0),
+            child: TabBarWidget(initialIndex: 0, searchKeyword: _searchController.text),
           ),
         Positioned(
           top: kToolbarHeight + 30,
@@ -282,7 +297,7 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
         children: [
           Column(
             children: [
-              _buildSearchBar(),
+              _buildSearchTextField(),
               if (!_isTabLoading && _hasText && !_isLoading && !_isSearchResult)
                 SearchResults(
                   isLoading: _isLoading,
@@ -333,6 +348,11 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
                 const Center(child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary))),
             ],
           ),
+          if (!_isTabLoading && _isSearchResult && _showTabBarWidget)
+            Padding(
+              padding: const EdgeInsets.only(top: 100),
+              child: TabBarWidget(initialIndex: 0, searchKeyword: _searchController.text),
+            ),
           if (!_isLoading && !_hasFocus && !_noResultsFound)
             Positioned.fill(top: 90, child: GenreGrid(sectionTitle: "Vibes", initialIndex: widget.initialIndex)),
         ],
@@ -340,11 +360,11 @@ class _SearchScreenState extends State<SearchScreen> with SingleTickerProviderSt
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchTextField() {
     return Row(
       children: [
         Expanded(
-          child: search.SearchBar(
+          child: search.SearchTextField(
             searchController: _searchController,
             searchFocusNode: _focusNode,
             hasFocus: _hasFocus,

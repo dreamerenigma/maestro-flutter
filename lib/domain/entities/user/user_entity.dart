@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../features/home/models/user_model.dart';
-
-abstract class PlayableItem {}
+import '../playlist/playable_item.dart';
 
 class UserEntity implements PlayableItem {
   final String id;
@@ -53,7 +52,7 @@ class UserEntity implements PlayableItem {
   }
 
   factory UserEntity.fromFirestore(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>? ?? {};
     return UserEntity(
       id: doc.id,
       name: data['name'] ?? '',
@@ -63,11 +62,11 @@ class UserEntity implements PlayableItem {
       country: data['country'] ?? '',
       flag: data['flag'] ?? '',
       backgroundImage: data['backgroundImage'] ?? '',
-      followers: data['followers'] ?? 0,
-      links: List<String>.from(data['links'] ?? []),
-      limitUploads: data['limitUploads'] ?? 0,
-      tracksCount: data['tracksCount'] ?? 0,
-      verifyAccount: data['verifyAccount'] ?? false,
+      followers: (data['followers'] ?? 0) as int,
+      links: (data['links'] as List?)?.cast<String>() ?? [],
+      limitUploads: (data['limitUploads'] ?? 0) as int,
+      tracksCount: (data['tracksCount'] ?? 0) as int,
+      verifyAccount: (data['verifyAccount'] ?? false) as bool,
     );
   }
 
@@ -89,4 +88,3 @@ class UserEntity implements PlayableItem {
     );
   }
 }
-

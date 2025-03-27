@@ -27,7 +27,10 @@ class MessageWidget extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.white, border: Border.all(color: AppColors.darkGrey, width: 1)),
-            child: const Icon(ZondIcons.music_notes, color: AppColors.black),
+            child: Padding(
+              padding: const EdgeInsets.only(right: 2),
+              child: const Icon(ZondIcons.music_notes, color: AppColors.black),
+            ),
           ),
           const SizedBox(width: 20.0),
           Expanded(
